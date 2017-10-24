@@ -1,33 +1,50 @@
-EXE_CLIENT = VaultTec-Client
-EXE_SRV = VaultTec-Server
-LOGIN = gabriel
+# @Author: Manel Manchón Gascó / Gabriel Cammany Ruiz
+# @Date:   24-10-2017
+# @Email:  ls31343@salleurl.edu ls30652@salleurl.edu
+# @Project: Práctica LSEat
+# @Filename: makefile
+# @Last modified by:   Manel Manchón Gascó / Gabriel Cammany Ruiz
+# @Last modified time: 25-10-2017
+
+
+
+EXE_CLIENT = Picard
+#EXE_SRV =
+LOGIN1 = ls31343
+LOGIN2 = ls30652
 CC = gcc
 CFLAGS = -lpthread -Wall -Wextra
 COP = -o
-MAIN_CLIENT = client.c
-MAIN_SRV = servidor.c
-EXTRA_LIBS = basicUtils.o socketUtils.o
+MAIN_CLIENT = main.c
+#MAIN_SRV = servidor.c
+EXTRA_LIBS = main.o fitxers.o shell.o utils.o
 
-all: clean basicUtils socketUtils $(EXE_CLIENT) $(EXE_SRV)
+all: clean $(EXE_CLIENT) $(EXTRA_LIBS)# $(EXE_SRV)
 
-$(EXE_CLIENT):
-	$(CC) $(COP) $(EXE_CLIENT) $(MAIN_CLIENT) $(EXTRA_LIBS) $(CFLAGS)
+#$(EXE_SRV):
+#	$(CC) $(COP) $(EXE_SRV) $(MAIN_SRV) $(EXTRA_LIBS) $(CFLAGS)
 
-$(EXE_SRV):
-	$(CC) $(COP) $(EXE_SRV) $(MAIN_SRV) $(EXTRA_LIBS) $(CFLAGS)
+main.o: main.c types.h fitxers.h shell.h
+	$(CC)  main.c -c $(CFLAGS)
 
-basicUtils: basicUtils.c basicUtils.h
-	$(CC) -c basicUtils.c $(CFLAGS)
+fitxers.o: fitxers.c types.h
+	$(CC)  fitxers.c -c $(CFLAGS)
 
-socketUtils: socketUtils.c socketUtils.h
-	$(CC) -c socketUtils.c $(CFLAGS)
+utils.o: utils.c types.h
+	$(CC)  utils.c -c $(CFLAGS)
+
+shell.o: shell.c types.h utils.o
+	$(CC)  shell.c -c $(CFLAGS)
+
+$(EXE_CLIENT): $(EXTRA_LIBS)
+	$(CC) $(COP) $(EXE_CLIENT) $(EXTRA_LIBS) $(CFLAGS)
 
 stop:
 	ps -u $(LOGIN) | grep $(EXE_CLIENT) | awk '{print $$1}' | xargs kill
-	ps -u $(LOGIN) | grep $(EXE_SRV) | awk '{print $$1}' | xargs kill
+	#ps -u $(LOGIN) | grep $(EXE_SRV) | awk '{print $$1}' | xargs kill
 
 clean:
-	rm -f $(EXE_CLIENT) $(EXE_SRV) $(EXTRA_LIBS)
+	rm -f $(EXE_CLIENT) $(EXTRA_LIBS)# $(EXE_SRV) $(EXTRA_LIBS)
 
 cutils:
 	rm -f $(EXTRA_LIBS)
