@@ -5,7 +5,7 @@
  * @Project: Práctica LSEat
  * @Filename: utils.h
  * @Last modified by:   Manel Manchón Gascó / Gabriel Cammany Ruiz
- * @Last modified time: 25-10-2017
+ * @Last modified time: 27-10-2017
  */
 #ifndef _UTILS_H_
 #define _UTILS_H_
@@ -16,6 +16,9 @@
 #include <unistd.h>
 #include <sys/types.h>
 
+/**
+ *
+ */
 int readDynamic(char** input, int fd);
-
+char* getArrayString(char *input,int index, char delimiter);
 #endif

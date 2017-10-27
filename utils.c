@@ -5,7 +5,7 @@
  * @Project: Práctica LSEat
  * @Filename: utils.c
  * @Last modified by:   Manel Manchón Gascó / Gabriel Cammany Ruiz
- * @Last modified time: 25-10-2017
+ * @Last modified time: 27-10-2017
  */
 
 #include "utils.h"
@@ -52,4 +52,34 @@
      (*input)[indice] = '\0';
 
      return indice;
+ }
+
+
+ char* getArrayString(char *input,int index, char delimiter){
+     char *string = NULL;
+     int index_string = 0;
+
+     while(input[index] != delimiter && input[index] != '\0'){
+
+         string = (char*) realloc (string, sizeof(char) * (index_string+1));
+
+         if (string == NULL) {
+
+            if(input != NULL){
+              free(input);
+            }
+            return NULL;
+
+         }
+
+
+         string[index_string] = input[index];
+         index++;
+         index_string++;
+         string[index_string] = '\0';
+
+     }
+
+
+     return string;
  }

@@ -5,22 +5,31 @@
  * @Project: Práctica LSEat
  * @Filename: types.h
  * @Last modified by:   Manel Manchón Gascó / Gabriel Cammany Ruiz
- * @Last modified time: 25-10-2017
+ * @Last modified time: 26-10-2017
  */
 
 #ifndef _TYPES_H_
 #define _TYPES_H_
 
+/*
+ * Typedef del client on per ara tindrem el saldo i el nom.
+ */
 typedef struct{
     int saldo;
     char *nom;
 }Client;
 
+/*
+ * Typedef de la configuració on guardarem el port i la IP del servidor
+ */
 typedef struct{
     char *IP;
     int Port;
 }Config;
 
+/*
+ *
+ */
 typedef struct{
     Config config;
     Client client;

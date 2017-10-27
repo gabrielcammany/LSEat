@@ -4,7 +4,7 @@
 # @Project: Práctica LSEat
 # @Filename: makefile
 # @Last modified by:   Manel Manchón Gascó / Gabriel Cammany Ruiz
-# @Last modified time: 25-10-2017
+# @Last modified time: 26-10-2017
 
 
 
@@ -27,7 +27,7 @@ all: clean $(EXE_CLIENT) $(EXTRA_LIBS)# $(EXE_SRV)
 main.o: main.c types.h fitxers.h shell.h
 	$(CC)  main.c -c $(CFLAGS)
 
-fitxers.o: fitxers.c types.h
+fitxers.o: fitxers.c types.h utils.h
 	$(CC)  fitxers.c -c $(CFLAGS)
 
 utils.o: utils.c types.h

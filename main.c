@@ -5,7 +5,7 @@
  * @Project: Practica LSEat
  * @Filename: main.c
  * @Last modified by:   Manel Manchón Gascó / Gabriel Cammany Ruiz
- * @Last modified time: 25-10-2017
+ * @Last modified time: 27-10-2017
  */
 
 //includes del sistema
@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <signal.h>
 
 //Includes propios
 #include "types.h"
@@ -22,12 +23,32 @@
 #define ERR_ARG "Error en el nombre d'arguments!\n"
 #define WELCOME "BENVINGUT %s\n"
 #define SALDO "Té %d euros disponibles\n"
+#define ERR_INT "Interrupció desconeguda!\n"
+
+
+LSEat lseat;
+
+void signalHandler(int signum) {
+    switch (signum) {
+		case SIGINT:
+            free(lseat.client.nom);
+            free(lseat.config.IP);
+            write(1,"\n",strlen("\n"));
+            write(1,BYE,strlen(BYE));
+            exit(0);
+		break;
+        default:
+            write (1, ERR_INT, strlen(ERR_INT));
+        break;
+    }
+}
 
 
 int main (int argc,char **argv) {
 
-    LSEat lseat;
     char cadena[100];
+
+    signal(SIGINT, signalHandler);
 
     if ( argc != 2 ) {
         write (1, ERR_ARG, strlen(ERR_ARG));
@@ -43,11 +64,6 @@ int main (int argc,char **argv) {
     write (1, cadena, strlen(cadena));
 
     Shell(lseat);
-    /*printf("NOM: %s\n", lseat.client.nom);
-    printf("Saldo: %d\n", lseat.client.saldo);
-    printf("IP: %s\n", lseat.config.IP);
-    printf("Port: %d\n", lseat.config.Port);*/
-
 
 
     return 0;
