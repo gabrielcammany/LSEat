@@ -14,7 +14,7 @@ LOGIN2 = ls30652
 CC = gcc
 CFLAGS = -lpthread -Wall -Wextra
 COP = -o
-MAIN_CLIENT = main.c
+MAIN_CLIENT = client.c
 EXTRA_LIBS = fitxers.o shell.o utils.o
 
 all: clean fitxers utils shell $(EXE_CLIENT) 

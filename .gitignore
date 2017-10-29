@@ -39,6 +39,7 @@
 # Clion
 .idea
 cmake-build-debug
+*.dat
 
 # Debug files
 *.dSYM/

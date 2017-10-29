@@ -16,9 +16,9 @@
 #include <signal.h>
 
 //Includes propios
-#include "types.h"
-#include "fitxers.h"
-#include "shell.h"
+#include "modules/types.h"
+#include "modules/fitxers.h"
+#include "modules/shell.h"
 //Constantes
 #define ERR_ARG "Error en el nombre d'arguments!\n"
 #define WELCOME "BENVINGUT %s\n"
