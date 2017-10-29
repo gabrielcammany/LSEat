@@ -26,11 +26,19 @@
 //constantes propias
 #define ERR_OP_FILE "Error en l'obertura del fitxer!\n"
 #define ERR_EMPTY_FILE "Error el fitxer està buit!\n"
+#define ERR_SALDO_FILE "No s'ha trobat el saldo en el fitxer!\n"
+#define ERR_FORMAT_SALDO_FILE "Error en el format del saldo introduit!\n"
+#define ERR_PORT_FILE "No s'ha trobat el port introduit!\n"
+#define ERR_FORMAT_PORT_FILE "No s'ha trobat el port introduit!\n"
+#define ERR_IP_FILE "No s'ha trobat la IP en el fitxer!\n"
+#define ERROR_MEMORY "ERROR! No s'ha pogut demanar memoria per desar les dades\n"
+
+
 /**
  * Aquesta funció l'utilitzarem per llegir el fitxer de configuració del Client
  * @param  nomFitxer [Reb el nom del fitxer que ha d'obrir]
  * @return           [retorna la configuració i el client]
  */
-LSEat LecturaFitxerConfigClient(char nomFitxer[]);
+LSEat lecturaFitxerConfigClient(char nomFitxer[]);
 
 #endif

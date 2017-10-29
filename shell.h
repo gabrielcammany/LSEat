@@ -23,21 +23,43 @@
 
 //Constantes propias
 #define INTRODUCTION "Introdueixi comandes...\n"
-#define CLIENT "%s"
 #define COMMANDA_OK "[Comanda OK]\n"
 #define COMMANDA_KO "Comanda no reconeguda\n"
+#define NO_ARGS "Comanda reconeguda, pero falten arguments!\n"
+
+#define ERR_NUM "Hi ha un error en el numero d'unitats\n"
+#define ERR_PLAT "Hi ha un error en el nom del plat\n"
+
+
 #define BYE "Gràcies per fer servir LsEat. Fins la propera.\n"
-#define ERROR_MEMORY "ERROR! No s'ha pogut demanar memoria\n"
+#define ERR_MEMORY "Hi ha un problema amb la memoria del sistema.\n"
+
 /**
  * Procediment que s'ocupa de la shell personalitzada i de les inputs de l'usuari
  * @param lseat [description]
  */
-void Shell(LSEat lseat);
+void startShell(LSEat lseat);
 
-int ManageShell(char *input);
+/**
+ * Funció encarregada de gestionar les commandes per part de l'usuari
+ * @param input commanda que s'ha introduit
+ * @return
+ */
+int manageShell(char *input);
 
-void SpecialCommand(char *input);
+/**
+ * Procediment per gestionar les comandes amb arguments
+ * @param input
+ * @return
+ */
+int specialCommand(char *input);
 
-void CheckSpecialCommand(char *input, char *string);
+/**
+ * Procediment que comprova si la comanda amb arguments es correcta
+ * @param input
+ * @param index
+ * @return
+ */
+int checkSpecialCommand(char *input);
 
 #endif

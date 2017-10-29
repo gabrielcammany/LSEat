@@ -20,5 +20,7 @@
  *
  */
 int readDynamic(char** input, int fd);
-char* getArrayString(char *input,int index, char delimiter);
+
+int getArrayString(char *input, char delimiter, int *espais);
+
 #endif

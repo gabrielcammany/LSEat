@@ -9,6 +9,7 @@
  */
 
 #include "utils.h"
+
  /**
  Function that reads buffer specified in variable fd, and loads the data to
  the input char*
@@ -21,9 +22,6 @@
      while (read (fd, &buffer, sizeof(char)) > 0 && buffer != '\n') {
          temporal = (char*)realloc(*input,sizeof(char)*(indice+1));
 
-         //Utilizamos los punteros auxiliares en todos los casos para evitar
-         //problemas de memory leak. Ya que si no se puede pedir mas memoria, el bloque
-         //que ya existia, se quedaria sin hacer el free porque perderiamos el puntero
          if (temporal == NULL) {
 
              if(*input != NULL){
@@ -39,47 +37,39 @@
          indice++;
      }
 
-     temporal = (char*)realloc(*input,sizeof(char)*(indice+1));
+     if(*input != NULL){
+         temporal = (char*)realloc(*input,sizeof(char)*(indice+1));
+         if(temporal == NULL){
 
-     if(temporal == NULL){
+             free(*input);
+             return -1;
 
-         free(*input);
-         return -1;
+         }
 
+         *input = temporal;
+         (*input)[indice] = '\0';
      }
-
-     *input = temporal;
-     (*input)[indice] = '\0';
 
      return indice;
  }
 
 
- char* getArrayString(char *input,int index, char delimiter){
-     char *string = NULL;
-     int index_string = 0;
+ int getArrayString(char *input, char delimiter, int *espais){
+     int index = 0;
+     int buida = 0;
 
-     while(input[index] != delimiter && input[index] != '\0'){
+     for(*espais = 0; input[*espais] == ' ';(*espais)++){}
 
-         string = (char*) realloc (string, sizeof(char) * (index_string+1));
+     for(index = *espais; input[index] != delimiter && input[index] != '\0'; index++){
 
-         if (string == NULL) {
-
-            if(input != NULL){
-              free(input);
-            }
-            return NULL;
-
+         if(input[index] != ' '){
+             buida = 1;
          }
-
-
-         string[index_string] = input[index];
-         index++;
-         index_string++;
-         string[index_string] = '\0';
-
      }
 
+     if( buida == 0){
+         return -1;
+     }
 
-     return string;
+     return index;
  }

@@ -36,11 +36,11 @@ void signalHandler(int signum) {
             write(1,"\n",strlen("\n"));
             write(1,BYE,strlen(BYE));
             exit(0);
-		break;
         default:
             write (1, ERR_INT, strlen(ERR_INT));
         break;
     }
+
 }
 
 
@@ -55,7 +55,7 @@ int main (int argc,char **argv) {
         exit (EXIT_FAILURE);
     }
 
-    lseat = LecturaFitxerConfigClient(argv[1]);
+    lseat = lecturaFitxerConfigClient(argv[1]);
 
     sprintf(cadena, WELCOME, lseat.client.nom);
     write (1, cadena, strlen(cadena));
@@ -63,7 +63,7 @@ int main (int argc,char **argv) {
     sprintf (cadena, SALDO, lseat.client.saldo);
     write (1, cadena, strlen(cadena));
 
-    Shell(lseat);
+    startShell(lseat);
 
 
     return 0;

@@ -28,7 +28,7 @@ typedef struct{
 }Config;
 
 /*
- *
+ * Typedef principal
  */
 typedef struct{
     Config config;

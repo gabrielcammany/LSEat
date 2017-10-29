@@ -11,11 +11,13 @@
 
 #include "fitxers.h"
 
-LSEat LecturaFitxerConfigClient(char nomFitxer[]) {
+
+LSEat lecturaFitxerConfigClient(char nomFitxer[]) {
 
     int fd = 0;
     char *cadena = NULL;
     LSEat lseat;
+    int error;
 
     lseat.config.IP = NULL;
     lseat.client.nom = NULL;
@@ -29,33 +31,70 @@ LSEat LecturaFitxerConfigClient(char nomFitxer[]) {
     }
 
     //Comprovem que el fitxer no estigui buit, en cas contrari sortirem amb un EXIT_FAILURE
-    if( readDynamic(&lseat.client.nom,fd) < 0) {
+    error = readDynamic(&lseat.client.nom,fd);
+    if( error == 0) {
         write(1, ERR_EMPTY_FILE, strlen(ERR_EMPTY_FILE));
+        close(fd);
+        exit(EXIT_FAILURE);
+    }else if(error < 0){
+        write(1, ERROR_MEMORY, strlen(ERROR_MEMORY));
         close(fd);
         exit(EXIT_FAILURE);
     }
 
-    //LLegim el saldo corresponent i alliberem memoria de cadena un cop utilitzada
-    readDynamic(&cadena,fd);
-    lseat.client.saldo = atoi(cadena);
-
-    if( cadena != NULL) {
-        free(cadena);
-        cadena = NULL;
+    //LLegim el saldo corresponent
+    error = readDynamic(&cadena,fd);
+    if(!error){
+        write(1, ERR_SALDO_FILE, strlen(ERR_SALDO_FILE));
+        close(fd);
+        exit(EXIT_FAILURE);
+    }else if( error < 0){
+        write(1, ERROR_MEMORY, strlen(ERROR_MEMORY));
+        close(fd);
+        exit(EXIT_FAILURE);
+    }else{
+        lseat.client.saldo = atoi(cadena);
+        if(lseat.client.saldo == 0){
+            write(1, ERR_FORMAT_SALDO_FILE, strlen(ERR_FORMAT_SALDO_FILE));
+            close(fd);
+            exit(EXIT_FAILURE);
+        }
     }
 
     //Llegim la IP del servidor al que ens tindrem que connectar
-    readDynamic(&lseat.config.IP,fd);
+    error = readDynamic(&lseat.config.IP,fd);
+    if(!error){
+        write(1, ERR_IP_FILE, strlen(ERR_IP_FILE));
+        close(fd);
+        exit(EXIT_FAILURE);
+    }else if( error < 0){
+        write(1, ERROR_MEMORY, strlen(ERROR_MEMORY));
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
 
 
     //LLegim el port al que ens connectarem al servidor
-    //Lliberem memoria en cas de que hagi funcionat bé
-    readDynamic(&cadena,fd);
-    lseat.config.Port = atoi(cadena);
+    error = readDynamic(&cadena,fd);
+    if(!error){
+        write(1, ERR_PORT_FILE, strlen(ERR_PORT_FILE));
+        close(fd);
+        exit(EXIT_FAILURE);
+    }else if( error < 0){
+        write(1, ERROR_MEMORY, strlen(ERROR_MEMORY));
+        close(fd);
+        exit(EXIT_FAILURE);
+    }else{
+        lseat.config.Port = atoi(cadena);
+        if(lseat.config.Port == 0){
+            write(1, ERR_FORMAT_PORT_FILE, strlen(ERR_FORMAT_PORT_FILE));
+            close(fd);
+            exit(EXIT_FAILURE);
+        }
+    }
 
     if( cadena != NULL) {
         free(cadena);
-        cadena = NULL;
     }
 
     close(fd);
