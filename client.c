@@ -63,7 +63,7 @@ int main (int argc,char **argv) {
     sprintf (cadena, SALDO, lseat.client.saldo);
     write (1, cadena, strlen(cadena));
 
-    startShell(lseat);
+    startShell(&lseat);
 
 
     return 0;

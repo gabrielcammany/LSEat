@@ -9,7 +9,7 @@
  */
 #include "shell.h"
 
-void startShell(LSEat lseat) {
+void startShell(LSEat *lseat) {
 
     char cadena[50];
     char *input = NULL;
@@ -18,23 +18,20 @@ void startShell(LSEat lseat) {
     write (1, INTRODUCTION, strlen(INTRODUCTION));
 
     while ( !final ) {
-        sprintf(cadena, "%s\t", lseat.client.nom);
+        sprintf(cadena, "%s\t", (*lseat).client.nom);
         write (1, cadena, strlen(cadena));
         write (1, "> ", strlen("> "));
         error = readDynamic(&input, 0);
         if(error < 0){
             write(1, ERR_MEMORY, strlen(ERR_MEMORY));
+            freeMemory(lseat);
             exit(EXIT_FAILURE);
         }
         final = manageShell(input);
         free(input);
         input = NULL;
     }
-
-    if(input != NULL){
-        free(input);
-    }
-
+    freeMemory(lseat);
 }
 
 
@@ -89,7 +86,7 @@ int specialCommand(char *input) {
 
         if ( strcmp(buffer, "elimina") == 0 ) {
 
-            error = checkSpecialCommand(input+error+1);
+            error = checkSpecialCommand(input+error);
 
         }else if ( strcmp (buffer, "demana") == 0) {
 

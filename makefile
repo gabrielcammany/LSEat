@@ -6,8 +6,6 @@
 # @Last modified by:   Manel Manchón Gascó / Gabriel Cammany Ruiz
 # @Last modified time: 26-10-2017
 
-
-
 EXE_CLIENT = Picard
 LOGIN1 = ls31343
 LOGIN2 = ls30652
@@ -16,17 +14,18 @@ CFLAGS = -lpthread -Wall -Wextra
 COP = -o
 MAIN_CLIENT = client.c
 EXTRA_LIBS = fitxers.o shell.o utils.o
+FOLDER = modules/
 
 all: clean fitxers utils shell $(EXE_CLIENT) 
 
-fitxers: fitxers.c types.h utils.h
-	$(CC)  fitxers.c -c $(CFLAGS)
+fitxers: $(FOLDER)fitxers.c $(FOLDER)types.h $(FOLDER)utils.h
+	$(CC)  $(FOLDER)fitxers.c -c $(CFLAGS)
 
-utils: utils.c types.h
-	$(CC)  utils.c -c $(CFLAGS)
+utils: $(FOLDER)utils.c $(FOLDER)types.h
+	$(CC)  $(FOLDER)utils.c -c $(CFLAGS)
 
-shell: shell.c types.h utils.o
-	$(CC)  shell.c -c $(CFLAGS)
+shell: $(FOLDER)shell.c $(FOLDER)types.h $(FOLDER)utils.o
+	$(CC)  $(FOLDER)shell.c -c $(CFLAGS)
 
 $(EXE_CLIENT): $(EXTRA_LIBS)
 	$(CC) $(COP) $(EXE_CLIENT) $(MAIN_CLIENT) $(EXTRA_LIBS) $(CFLAGS)

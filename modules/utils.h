@@ -15,6 +15,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include "types.h"
 
 /**
  *
@@ -22,5 +23,7 @@
 int readDynamic(char** input, int fd);
 
 int getArrayString(char *input, char delimiter, int *espais);
+
+void freeMemory(LSEat *lseat);
 
 #endif

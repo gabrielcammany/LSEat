@@ -36,9 +36,9 @@
 
 /**
  * Procediment que s'ocupa de la shell personalitzada i de les inputs de l'usuari
- * @param lseat [description]
+ * @param *lseat [description]
  */
-void startShell(LSEat lseat);
+void startShell(LSEat *lseat);
 
 /**
  * Funció encarregada de gestionar les commandes per part de l'usuari

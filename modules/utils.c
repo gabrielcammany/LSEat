@@ -10,10 +10,22 @@
 
 #include "utils.h"
 
- /**
- Function that reads buffer specified in variable fd, and loads the data to
- the input char*
- **/
+/**
+ * Procediment que esborra les dades dinamiques de memoria
+ * @param lseat
+ */
+void freeMemory(LSEat *lseat){
+    free((*lseat).client.nom);
+    free((*lseat).config.IP);
+}
+
+
+/**
+ * Funcio que llegeix de manera dinamica en un file descriptor en concreet
+ * @param input buffer on desar la memoria
+ * @param fd FileDescriptor
+ * @return longitud de la cadena o error
+ */
  int readDynamic(char** input, int fd) {
      char* temporal = NULL;
      char buffer = ' ';
