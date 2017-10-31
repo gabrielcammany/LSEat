@@ -1,3 +1,5 @@
+#include <memory.h>
+#include <errno.h>
 #include "socketUtils.h"
 
 #define MSG "[Introduir missatge]"

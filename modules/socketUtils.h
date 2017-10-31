@@ -8,7 +8,6 @@
  * @Last modified time: 30-10-2017
  */
 
-
 #ifndef socketUtils_H
 #define socketUtils_H
 

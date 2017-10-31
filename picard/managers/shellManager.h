@@ -12,13 +12,8 @@
 #define LSEAT_SHELLMANAGER_H
 
 //includes del sistema
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
 #include <ctype.h>
 //Includes propios
-#include "../../modules/types.h"
 #include "../../modules/utils.h"
 #include "../../modules/shell.h"
 

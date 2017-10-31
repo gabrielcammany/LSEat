@@ -13,7 +13,6 @@
 
 //Includes propios
 #include "../modules/fitxers.h"
-#include "../modules/shell.h"
 #include "managers/shellManager.h"
 //Constantes
 #define ERR_ARG "Error en el nombre d'arguments!\n"
@@ -25,42 +24,42 @@
 LSEat lseat;
 
 void signalHandler(int signum) {
-	switch (signum) {
-		case SIGINT:
-			free(lseat.client.nom);
-			free(lseat.config.IP);
-			write(1, "\n", strlen("\n"));
-			write(1, BYE, strlen(BYE));
-			resetInput();
-			exit(0);
-		default:
-			write(1, ERR_INT, strlen(ERR_INT));
-			break;
-	}
+    switch (signum) {
+        case SIGINT:
+            free(lseat.client.nom);
+            free(lseat.config.IP);
+            write(1, "\n", strlen("\n"));
+            write(1, BYE, strlen(BYE));
+            resetInput();
+            exit(0);
+        default:
+            write(1, ERR_INT, strlen(ERR_INT));
+            break;
+    }
 
 }
 
 
 int main(int argc, char **argv) {
-	char cadena[100];
+    char cadena[100];
 
-	signal(SIGINT, signalHandler);
+    signal(SIGINT, signalHandler);
 
-	if (argc != 2) {
-		write(1, ERR_ARG, strlen(ERR_ARG));
-		exit(EXIT_FAILURE);
-	}
+    if (argc != 2) {
+        write(1, ERR_ARG, strlen(ERR_ARG));
+        exit(EXIT_FAILURE);
+    }
 
-	lseat = lecturaFitxerConfigClient(argv[1]);
+    lseat = lecturaFitxerConfigClient(argv[1]);
 
-	sprintf(cadena, WELCOME, lseat.client.nom);
-	write(1, cadena, strlen(cadena));
+    sprintf(cadena, WELCOME, lseat.client.nom);
+    write(1, cadena, strlen(cadena));
 
-	sprintf(cadena, SALDO, lseat.client.saldo);
-	write(1, cadena, strlen(cadena));
+    sprintf(cadena, SALDO, lseat.client.saldo);
+    write(1, cadena, strlen(cadena));
 
-	startShell(&lseat);
+    startShell(&lseat);
 
 
-	return 0;
+    return 0;
 }
