@@ -15,8 +15,6 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <string.h>
-#include <errno.h>
 #include <sys/types.h>
 #include "types.h"
 

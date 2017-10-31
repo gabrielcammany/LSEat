@@ -7,9 +7,7 @@
  * @Last modified by:   Manel Manchón Gascó / Gabriel Cammany Ruiz
  * @Last modified time: 27-10-2017
  */
-#include "shell.h"
 #include "shellManager.h"
-
 
 void startShell(LSEat *lseat) {
 
@@ -34,7 +32,6 @@ void startShell(LSEat *lseat) {
     resetInput();
 
 }
-
 
 int manageShell(char *input) {
     int i = 0;

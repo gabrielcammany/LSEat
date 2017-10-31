@@ -18,8 +18,9 @@
 #include <string.h>
 #include <ctype.h>
 //Includes propios
-#include "types.h"
-#include "utils.h"
+#include "../../modules/types.h"
+#include "../../modules/utils.h"
+#include "../../modules/shell.h"
 
 //Constantes propias
 #define INTRODUCTION "Introdueixi comandes...\n"
