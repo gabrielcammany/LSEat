@@ -12,7 +12,7 @@
 #define _TYPES_H_
 
 /*
- * Typedef del client on per ara tindrem el saldo i el nom.
+ * Typedef del cliente que contiene su informacion
  */
 typedef struct{
     int saldo;
@@ -20,7 +20,7 @@ typedef struct{
 }Client;
 
 /*
- * Typedef de la configuració on guardarem el port i la IP del servidor
+ * Typedef de la configuracion del servidor
  */
 typedef struct{
     char *IP;

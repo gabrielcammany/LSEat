@@ -1,156 +1,131 @@
-/**
- * @Author: Manel Manchón Gascó / Gabriel Cammany Ruiz
- * @Date:   25-10-2017
- * @Email:  ls31343@salleurl.edu ls30652@salleurl.edu
- * @Project: Práctica LSEat
- * @Filename: shell.c
- * @Last modified by:   Manel Manchón Gascó / Gabriel Cammany Ruiz
- * @Last modified time: 27-10-2017
- */
+
+#include <termios.h>
+#include <memory.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <errno.h>
 #include "shell.h"
 
-void startShell(LSEat *lseat) {
+struct termios saved_attributes;
 
-    char cadena[50];
-    char *input = NULL;
-    int final = 0, error = 0;
+void resetInput() {
+    tcsetattr (STDIN_FILENO, TCSANOW, &saved_attributes);
+}
 
-    write (1, INTRODUCTION, strlen(INTRODUCTION));
+void setInputMode (void)
+{
+    struct termios tattr;
 
-    while ( !final ) {
-        sprintf(cadena, "%s\t", (*lseat).client.nom);
-        write (1, cadena, strlen(cadena));
-        write (1, "> ", strlen("> "));
-        error = readDynamic(&input, 0);
-        if(error < 0){
-            write(1, ERR_MEMORY, strlen(ERR_MEMORY));
-            freeMemory(lseat);
-            exit(EXIT_FAILURE);
-        }
-        final = manageShell(input);
-        free(input);
-        input = NULL;
+    /* Asegurarnos del terminal */
+    if (!isatty (STDIN_FILENO))
+    {
+        //No es un terminal!
+        exit (EXIT_FAILURE);
     }
-    freeMemory(lseat);
+
+    /* Desarem els atributs per poder restaurar el terminal en el seu estat inicial*/
+    tcgetattr (STDIN_FILENO, &saved_attributes);
+
+    /* Canvi dels atributs. */
+    tcgetattr (STDIN_FILENO, &tattr);
+    tattr.c_lflag &= ~(ICANON|ECHO);
+    tattr.c_cc[VMIN] = 1;
+    tattr.c_cc[VTIME] = 1;
+    tcsetattr (STDIN_FILENO, TCSAFLUSH, &tattr);
 }
 
 
-int manageShell(char *input) {
-    int i= 0;
+void readInput(char* buffer, char* menu) {
 
-    while( input[i]) {
-        input[i] = (char) tolower(input[i]);
-        i++;
-    }
+    int index = 0, max = 1;
+    char c = ' ', aux[10];
 
-    if(strcmp( input,"connecta") == 0 ){
-        write(1, COMMANDA_OK, strlen(COMMANDA_OK));
 
-    }else if( strcmp(input,"mostra menu") == 0 ){
-        write(1, COMMANDA_OK, strlen(COMMANDA_OK));
+    memset(buffer,0,150);
+    buffer[index] = ' ';
+    buffer[max] = ' ';
+    buffer[max+1] = '\0';
 
-    }else if( strcmp(input,"pagar") == 0 ){
-        write(1, COMMANDA_OK, strlen(COMMANDA_OK));
+    while (c != '\n'){
 
-    }else if( strcmp(input,"desconnecta") == 0 ){
-        write(1, BYE, strlen(BYE));
-        return 1;
-    }else{
-        //Falta el valor de retorn. En aquesta fase no s'utilitza, ja que esta pensat per un futur.
-        specialCommand(input);
-    }
-    return 0;
-}
+        read(0,&c,1);
 
-int specialCommand(char *input) {
 
-    int error = 0, espais = 0;
-    char *buffer = NULL;
-
-    error = getArrayString(input,' ',&espais);
-
-    buffer = (char*)malloc(error*sizeof(char)+1);
-
-    if(buffer == NULL){
-        write(1, ERR_MEMORY, strlen(ERR_MEMORY));
-        return 1;
-    }
-
-    if(error < 0) {
-        write(1, COMMANDA_KO, strlen(COMMANDA_KO));
-        error = 1;
-    }else {
-
-        strncpy(buffer, input, error);
-        buffer[error] = '\0';
-
-        if ( strcmp(buffer, "elimina") == 0 ) {
-
-            error = checkSpecialCommand(input+error);
-
-        }else if ( strcmp (buffer, "demana") == 0) {
-
-            error = checkSpecialCommand(input+error);
-
-        } else {
-
-            write(1, COMMANDA_KO, strlen(COMMANDA_KO));
-            error = 1;
-
+        // is this an escape sequence?
+        if (c == 27) {
+            // "throw away" next two characters which specify escape sequence
+            read(0,&c,1);
+            read(0,&c,1);
+            switch (c){
+                case 'A': //Adalt
+                    write(1,ADALT,strlen(ADALT));
+                    break;
+                case 'D': //Esquerra
+                    if(index>0){
+                        write(1,ESQUERRA,strlen(ESQUERRA));
+                        index--;
+                    }
+                    break;
+                case 'C': //Dreta
+                    if(index<max-1){
+                        write(1,DRETA,strlen(DRETA));
+                        index++;
+                    }
+                    break;
+                case 'B': //Abaix
+                    write(1,ABAIX,strlen(ABAIX));
+                    break;
+                default:
+                    break;
+            }
+            continue;
         }
 
-    }
-    free(buffer);
-    return error;
-}
 
-int checkSpecialCommand(char *input) {
-    int num_plats = 0;
-    int total = 0, base = 0;
-    char *buffer = NULL;
+        if (c == 0x7f) {
 
-    total = getArrayString(input, ' ', &base);
+            if(index > 0){
+                write(1,"\033[1D",strlen("\033[1D"));
 
-    buffer = (char*)malloc(total*sizeof(char)+1);
+                memmove(&buffer[index-1], &(buffer[index]),sizeof(char)*max);
 
-    if(buffer == NULL){
-        write(1, ERR_MEMORY, strlen(ERR_MEMORY));
+                write(1,NETEJAR_LINIA,strlen(NETEJAR_LINIA));
+                write(1,"\r",strlen("\r"));
 
-        return 1;
-    }
+                write (1, menu, strlen(menu));
 
-    if(total < 0) {
+                if(max > 0 && max >= index)max--;
+                write(1,buffer,max);
 
-        write(1, ERR_NUM, strlen(ERR_NUM));
-        total = 1;
 
-    } else {
+                sprintf(aux,"\033[%dD",max-index+1);
+                write(1,aux,strlen(aux));
 
-        buffer[total] = '\0';
-        strncpy(buffer, input, total);
-
-        num_plats = atoi(buffer);
-
-        if ( num_plats <= 0 ){
-            write(1, ERR_NUM, strlen(ERR_NUM));
-
-            total = 1;
-
-        } else {
-
-            if(getArrayString(input+total, '\0', &base) < 0) {
-
-                write(1, ERR_PLAT, strlen(ERR_PLAT));
-                total = 1;
-
-            } else {
-                base = base+total;
-                write(1, COMMANDA_OK, strlen(COMMANDA_OK));
+                index--;
 
             }
+            continue;
         }
-    }
-    free(buffer);
-    return total;
 
+        write(1,NETEJAR_LINIA,strlen(NETEJAR_LINIA));
+        write(1,"\r",strlen("\r"));
+
+        write (1, menu, strlen(menu));
+
+        memmove(&buffer[index+1], &buffer[index],sizeof(char)*(max-index+1));
+
+        buffer[index] = c;
+        max++;
+
+        write(1,buffer,max);
+
+        sprintf(aux,"\033[%dD",max-index-1);
+        write(1,aux,strlen(aux));
+
+
+        index++;
+
+    }
+    buffer[index-1] = '\0';
 }

@@ -12,7 +12,7 @@
 #include "fitxers.h"
 
 
-LSEat lecturaFitxerConfigClient(char nomFitxer[]) {
+LSEat lecturaFitxerConfigClient(char nombreFichero[]) {
 
     int fd = 0;
     char *cadena = NULL;
@@ -23,38 +23,38 @@ LSEat lecturaFitxerConfigClient(char nomFitxer[]) {
     lseat.client.nom = NULL;
 
 
-    fd = open (nomFitxer, O_RDONLY);
+    fd = open(nombreFichero, O_RDONLY);
     //En cas de que no poguem obrir el fitxer sortirem an un EXIT_FAILURE
-    if( fd < 0 ){
+    if (fd < 0) {
         write(1, ERR_OP_FILE, strlen(ERR_OP_FILE));
         exit(EXIT_FAILURE);
     }
 
     //Comprovem que el fitxer no estigui buit, en cas contrari sortirem amb un EXIT_FAILURE
-    error = readDynamic(&lseat.client.nom,fd);
-    if( error == 0) {
+    error = readDynamic(&lseat.client.nom, fd);
+    if (error == 0) {
         write(1, ERR_EMPTY_FILE, strlen(ERR_EMPTY_FILE));
         close(fd);
         exit(EXIT_FAILURE);
-    }else if(error < 0){
+    } else if (error < 0) {
         write(1, ERROR_MEMORY, strlen(ERROR_MEMORY));
         close(fd);
         exit(EXIT_FAILURE);
     }
 
     //LLegim el saldo corresponent
-    error = readDynamic(&cadena,fd);
-    if(!error){
+    error = readDynamic(&cadena, fd);
+    if (!error) {
         write(1, ERR_SALDO_FILE, strlen(ERR_SALDO_FILE));
         close(fd);
         exit(EXIT_FAILURE);
-    }else if( error < 0){
+    } else if (error < 0) {
         write(1, ERROR_MEMORY, strlen(ERROR_MEMORY));
         close(fd);
         exit(EXIT_FAILURE);
-    }else{
+    } else {
         lseat.client.saldo = atoi(cadena);
-        if(lseat.client.saldo == 0){
+        if (lseat.client.saldo == 0) {
             write(1, ERR_FORMAT_SALDO_FILE, strlen(ERR_FORMAT_SALDO_FILE));
             close(fd);
             exit(EXIT_FAILURE);
@@ -62,12 +62,12 @@ LSEat lecturaFitxerConfigClient(char nomFitxer[]) {
     }
 
     //Llegim la IP del servidor al que ens tindrem que connectar
-    error = readDynamic(&lseat.config.IP,fd);
-    if(!error){
+    error = readDynamic(&lseat.config.IP, fd);
+    if (!error) {
         write(1, ERR_IP_FILE, strlen(ERR_IP_FILE));
         close(fd);
         exit(EXIT_FAILURE);
-    }else if( error < 0){
+    } else if (error < 0) {
         write(1, ERROR_MEMORY, strlen(ERROR_MEMORY));
         close(fd);
         exit(EXIT_FAILURE);
@@ -75,25 +75,25 @@ LSEat lecturaFitxerConfigClient(char nomFitxer[]) {
 
 
     //LLegim el port al que ens connectarem al servidor
-    error = readDynamic(&cadena,fd);
-    if(!error){
+    error = readDynamic(&cadena, fd);
+    if (!error) {
         write(1, ERR_PORT_FILE, strlen(ERR_PORT_FILE));
         close(fd);
         exit(EXIT_FAILURE);
-    }else if( error < 0){
+    } else if (error < 0) {
         write(1, ERROR_MEMORY, strlen(ERROR_MEMORY));
         close(fd);
         exit(EXIT_FAILURE);
-    }else{
+    } else {
         lseat.config.Port = atoi(cadena);
-        if(lseat.config.Port == 0){
+        if (lseat.config.Port == 0) {
             write(1, ERR_FORMAT_PORT_FILE, strlen(ERR_FORMAT_PORT_FILE));
             close(fd);
             exit(EXIT_FAILURE);
         }
     }
 
-    if( cadena != NULL) {
+    if (cadena != NULL) {
         free(cadena);
     }
 
