@@ -56,8 +56,7 @@ void signalHandler(int signum) {
 
 int main(int argc, char **argv) {
 	char cadena[100];
-	char input[150];
-	int final = 0;
+	int command = 0, fd = 0;
 
 	signal(SIGINT, signalHandler);
 
@@ -77,20 +76,15 @@ int main(int argc, char **argv) {
 
 	write(1, INTRODUCTION, strlen(INTRODUCTION));
 
-	//Modifiquem el input
-	setInputMode();
+	fd = loadHistory();
 
-	while (!final) {
+	while ( command > 0) {
 
-		sprintf(cadena, "%s\t > ", lseat.client.nom);
-		write(1, cadena, strlen(cadena));
-		readInput(input, cadena);
-		final = executeCommand(input);
+		command = readCommands(lseat.client.nom,fd);
 
 	}
 
 	//Tornem a definir el input anterior
-	resetInput();
 
 	freeMemory();
 

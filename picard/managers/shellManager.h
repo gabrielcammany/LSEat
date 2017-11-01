@@ -16,6 +16,7 @@
 //Includes propios
 #include "../../modules/utils.h"
 #include "../../modules/shell.h"
+#include "../../modules/files.h"
 
 //Constantes propias
 #define INTRODUCTION "Introdueixi comandes...\n"
@@ -28,27 +29,14 @@
 #define BYE "Gràcies per fer servir LsEat. Fins la propera.\n"
 #define ERR_MEMORY "Hi ha un problema amb la memoria del sistema.\n"
 
-/**
- * Funció encarregada de gestionar les commandes per part de l'usuari
- * @param input commanda que s'ha introduit
- * @return
- */
-int executeCommand(char *input);
+#define CMD_CONNECTA    1
+#define CMD_MENU        2
+#define CMD_DEMANA      4
+#define CMD_PAGAR       3
+#define CMD_DISCONNECT  0
 
-/**
- * Procediment per gestionar les comandes amb arguments
- * @param input
- * @return
- */
-int specialCommand(char *input);
+int loadHistory();
 
-/**
- * Procediment que comprova si la comanda amb arguments es correcta
- * @param input
- * @param index
- * @return
- */
-int checkSpecialCommand(char *input);
-
+int readCommands(char *cadena, int fd);
 
 #endif //LSEAT_SHELLMANAGER_H

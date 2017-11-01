@@ -1,5 +1,8 @@
 
 #include "shell.h"
+#include "files.h"
+
+char **cmdHistory;
 
 struct termios saved_attributes;
 
@@ -7,7 +10,7 @@ void resetInput() {
     tcsetattr (STDIN_FILENO, TCSANOW, &saved_attributes);
 }
 
-void setInputMode (void)
+int setInputMode (void)
 {
     struct termios tattr;
 
@@ -15,7 +18,7 @@ void setInputMode (void)
     if (!isatty (STDIN_FILENO))
     {
         //No es un terminal!
-        exit (EXIT_FAILURE);
+        return ERROR_CODE;
     }
 
     /* Desarem els atributs per poder restaurar el terminal en el seu estat inicial*/
@@ -27,19 +30,47 @@ void setInputMode (void)
     tattr.c_cc[VMIN] = 1;
     tattr.c_cc[VTIME] = 1;
     tcsetattr (STDIN_FILENO, TCSAFLUSH, &tattr);
+    return 0;
 }
 
 
-void readInput(char* buffer, char* menu) {
+int loadNextCommand(char *input,int fd){
+    char ** auxiliar, ;
+    int size = ARRAYSIZE(cmdHistory);
 
-    int index = 0, max = 1;
+    if(checkEmpty(fd) > 0){
+        auxiliar = (char **)realloc(cmdHistory,size*sizeof(char*)+1);
+        if(auxiliar == NULL){
+            return -1;
+        }else{
+            cmdHistory = auxiliar;
+            cmdHistory[size] = NULL;
+            if(readDynamic(&cmdHistory[size],fd) < 0){
+                (char **)realloc(cmdHistory,size*sizeof(char*));
+                return -1;
+            }
+        }
+    }
+    return 1;
+}
+
+int loadPreviousCommand(char *input,int fd){
+
+}
+
+
+void readInput(char* buffer, char* menu, int fd) {
+
+    int index = 0, max = 1, history = -1, command = 0;
     char c = ' ', aux[10];
 
 
-    memset(buffer,0,150);
+    memset(buffer,0,BUFFER);
     buffer[index] = ' ';
     buffer[max] = ' ';
     buffer[max+1] = '\0';
+
+    history = moveToStart(fd);
 
     while (c != '\n'){
 
@@ -53,7 +84,20 @@ void readInput(char* buffer, char* menu) {
             read(0,&c,1);
             switch (c){
                 case 'A': //Adalt
-                    write(1,ADALT,strlen(ADALT));
+                    if(history > 0){
+                        if(command == ARRAYSIZE(cmdHistory)-1){
+                            if(loadNextCommand(buffer,fd)){
+                                strcpy(buffer,cmdHistory[command]);
+                                command++;
+                                max = (int)strlen(buffer)+1;
+                                write(1,NETEJAR_LINIA,strlen(NETEJAR_LINIA));
+                                write(1,"\r",strlen("\r"));
+                                write (1, menu, strlen(menu));
+                                write(1,buffer,max);
+                            }
+                        }
+                        //write(1,ADALT,strlen(ADALT));
+                    }
                     break;
                 case 'D': //Esquerra
                     if(index>0){
@@ -68,7 +112,19 @@ void readInput(char* buffer, char* menu) {
                     }
                     break;
                 case 'B': //Abaix
-                    write(1,ABAIX,strlen(ABAIX));
+                    if(history > 0){
+                        memset(buffer,0,150);
+                        if(command > 0){
+                            command--;
+                            strcpy(buffer,cmdHistory[command]);
+                            max = (int)strlen(buffer)+1;
+                            write(1,NETEJAR_LINIA,strlen(NETEJAR_LINIA));
+                            write(1,"\r",strlen("\r"));
+                            write (1, menu, strlen(menu));
+                            write(1,buffer,max);
+                        }
+                        //write(1,ABAIX,strlen(ABAIX));
+                    }
                     break;
                 default:
                     break;

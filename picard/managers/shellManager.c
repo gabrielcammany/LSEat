@@ -10,7 +10,13 @@
 #include "shellManager.h"
 
 
-int executeCommand(char *input) {
+
+/**
+ * This function identifies the command from the user
+ * @param input commanda que s'ha introduit
+ * @return
+ */
+int identifyCommand(char *input) {
     int i = 0;
 
     while (input[i]) {
@@ -20,23 +26,35 @@ int executeCommand(char *input) {
 
     if (strcmp(input, "connecta") == 0) {
         write(1, COMMANDA_OK, strlen(COMMANDA_OK));
+        return CMD_CONNECTA;
 
     } else if (strcmp(input, "mostra menu") == 0) {
         write(1, COMMANDA_OK, strlen(COMMANDA_OK));
+        return CMD_MENU;
 
     } else if (strcmp(input, "pagar") == 0) {
         write(1, COMMANDA_OK, strlen(COMMANDA_OK));
+        return CMD_PAGAR;
 
     } else if (strcmp(input, "desconnecta") == 0) {
         write(1, BYE, strlen(BYE));
-        return 1;
+        return CMD_DISCONNECT;
     } else {
         //Falta el valor de retorn. En aquesta fase no s'utilitza, ja que esta pensat per un futur.
-        specialCommand(input);
+        if(specialCommand(input) == ERROR_CODE){
+            return ERROR_CODE;
+        }else{
+            return CMD_DEMANA;
+        }
+
     }
-    return 0;
 }
 
+/**
+ * Manages commands with variable arguments
+ * @param input
+ * @return
+ */
 int specialCommand(char *input) {
 
     int error = 0, espais = 0;
@@ -48,12 +66,12 @@ int specialCommand(char *input) {
 
     if (buffer == NULL) {
         write(1, ERR_MEMORY, strlen(ERR_MEMORY));
-        return 1;
+        return ERROR_CODE;
     }
 
     if (error < 0) {
         write(1, COMMANDA_KO, strlen(COMMANDA_KO));
-        error = 1;
+        error = ERROR_CODE;
     } else {
 
         strncpy(buffer, input, error);
@@ -62,15 +80,20 @@ int specialCommand(char *input) {
         if (strcmp(buffer, "elimina") == 0) {
 
             error = checkSpecialCommand(input + error);
+            if(error != ERROR_CODE){
+                error = 6;
+            }
 
         } else if (strcmp(buffer, "demana") == 0) {
 
             error = checkSpecialCommand(input + error);
-
+            if(error != ERROR_CODE){
+                error = 5;
+            }
         } else {
 
             write(1, COMMANDA_KO, strlen(COMMANDA_KO));
-            error = 1;
+            error = ERROR_CODE;
 
         }
 
@@ -79,6 +102,12 @@ int specialCommand(char *input) {
     return error;
 }
 
+/**
+ * This function checks the validity of the multi-argument command
+ * @param input
+ * @param index
+ * @return
+ */
 int checkSpecialCommand(char *input) {
     int num_plats = 0;
     int total = 0, base = 0;
@@ -91,13 +120,13 @@ int checkSpecialCommand(char *input) {
     if (buffer == NULL) {
         write(1, ERR_MEMORY, strlen(ERR_MEMORY));
 
-        return 1;
+        return ERROR_CODE;
     }
 
     if (total < 0) {
 
         write(1, ERR_NUM, strlen(ERR_NUM));
-        total = 1;
+        total = ERROR_CODE;
 
     } else {
 
@@ -109,14 +138,14 @@ int checkSpecialCommand(char *input) {
         if (num_plats <= 0) {
             write(1, ERR_NUM, strlen(ERR_NUM));
 
-            total = 1;
+            total = ERROR_CODE;
 
         } else {
 
             if (getArrayString(input + total, '\0', &base) < 0) {
 
                 write(1, ERR_PLAT, strlen(ERR_PLAT));
-                total = 1;
+                total = ERROR_CODE;
 
             } else {
                 base = base + total;
@@ -127,5 +156,29 @@ int checkSpecialCommand(char *input) {
     }
     free(buffer);
     return total;
+
+}
+
+int readCommands(char *cadena,int fd){
+    char input[BUFFER];
+    int command = 0;
+    sprintf(cadena, "%s\t > ", cadena);
+    write(1, cadena, strlen(cadena));
+    command = setInputMode();
+    if(!command){
+        readInput(input, cadena, fd);
+        resetInput();
+        command = identifyCommand(input);
+    }
+    return command;
+}
+
+
+int loadHistory(){
+    int fd;
+
+    fd = openFile(".cmd_history", 3);
+
+    return fd;
 
 }

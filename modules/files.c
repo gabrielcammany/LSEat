@@ -21,29 +21,24 @@ int openFile(char *name, int status) {
 		case 2:
 			fd = open(name, O_RDWR);
 			break;
+		case 3:
+			fd=open(name, O_RDWR | O_APPEND | O_CREAT, 0777);
+			break;
 		default:
-			write(1, ERR_ARGUMENT, strlen(ERR_ARGUMENT));
-			return -1;
+			return ERROR_CODE;
 	}
 
 	if (fd < 0) {
-		write(1, ERR_OP_FILE, strlen(ERR_OP_FILE));
-		return -1;
+		return ERROR_CODE;
 	}
-	empty = read(fd, &c, 1);
+	empty = (int)read(fd, &c, 1);
 	if (empty == 0) {
-		write(1, ERR_EMPTY_FILE, strlen(ERR_EMPTY_FILE));
 		return 0;
 	}
 	lseek(fd, 0, SEEK_SET);
 	return fd;
 }
 
-/*
-int createFile(char *nom, char *permissions){
-   return 0;
-}
-*/
 
 int readNetworkConfig(int fd, Config *config) {
 	char *cadena = NULL;
@@ -54,12 +49,12 @@ int readNetworkConfig(int fd, Config *config) {
 	if (!error) {
 		write(1, ERR_IP_FILE, strlen(ERR_IP_FILE));
 		close(fd);
-		error = -1;
+		error = ERROR_CODE;
 	} else if (error < 0) {
 		write(1, ERROR_MEMORY, strlen(ERROR_MEMORY));
 		close(fd);
 	}
-	if (error != -1) {
+	if (error != ERROR_CODE) {
 		error = readDynamic(&cadena, fd);
 		if (!error) {
 			write(1, ERR_PORT_FILE, strlen(ERR_PORT_FILE));
@@ -96,7 +91,7 @@ int readClientConfig(char *name, ClientLSEat *lseat) {
 
 	fd = openFile(name, 1);
 	if (fd < 0) {
-		return -1;
+		return ERROR_CODE;
 	}
 
 	error = readDynamic(&lseat->client.nom, fd);
@@ -111,7 +106,7 @@ int readClientConfig(char *name, ClientLSEat *lseat) {
 		if (!error) {
 			write(1, ERR_SALDO_FILE, strlen(ERR_SALDO_FILE));
 			close(fd);
-			error = -1;
+			error = ERROR_CODE;
 		} else if (error < 0) {
 			write(1, ERROR_MEMORY, strlen(ERROR_MEMORY));
 			close(fd);
@@ -120,7 +115,7 @@ int readClientConfig(char *name, ClientLSEat *lseat) {
 			if (lseat->client.saldo == 0) {
 				write(1, ERR_FORMAT_SALDO_FILE, strlen(ERR_FORMAT_SALDO_FILE));
 				close(fd);
-				error = -1;
+				error = ERROR_CODE;
 			}
 		}
 	}
@@ -135,4 +130,19 @@ int readClientConfig(char *name, ClientLSEat *lseat) {
 		free(cadena);
 	}
 	return error;
+}
+
+int moveToStart(int fd){
+	return (int)lseek(fd, 0, SEEK_SET);
+}
+
+int checkEmpty(int fd){
+	char c;
+	int empty = 0;
+	empty = (int)read(fd, &c, 1);
+	if (empty == 0) {
+		return -1;
+	}
+	lseek(fd, 0, SEEK_SET);
+	return empty;
 }

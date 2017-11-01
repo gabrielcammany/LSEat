@@ -11,7 +11,7 @@ LOGIN = ls30652
 FASE = 2
 
 CC = gcc
-COP = -O
+COP =
 CFLAGS = -lpthread -Wall -Wextra
 
 MODULES_PATH = modules/

@@ -19,6 +19,8 @@
 #include <sys/types.h>
 #include "types.h"
 
+#define ERROR_CODE -1
+
 /**
  * Funcion encargada de leer dinamicamente de un file descriptor
  * @param input Estructura donde se volcara los datos

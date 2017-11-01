@@ -13,10 +13,10 @@ int connectToEnterprise(ClientLSEat *lsEat, char *configFile){
 	if(error < 0){
 		exit(EXIT_FAILURE);
 	}
-	socket = createConnectionClient(lsEat->config.Port,lsEat->config.IP);
+	/*socket = createConnectionClient(lsEat->config.Port,lsEat->config.IP);
 	if(socket < 0){
 		write(1,ERR_CONNECTION,strlen(ERR_CONNECTION));
 		exit(EXIT_FAILURE);
-	}
+	}*/
 	return socket;
 }

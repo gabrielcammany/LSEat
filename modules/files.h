@@ -31,15 +31,15 @@ int readClientConfig(char *name, ClientLSEat *lseat);
 int readNetworkConfig(int socket, Config *config);
 
 /**
- * Funcion que abre un fichero
- * @param name Nombre del fichero
- * @param status En caso de 1, abrira el fichero en O_RDONLY y 2 en O_RDWR
- * @return File descriptor del fichero
+ * Function that opens a file
+ * @param name Name of file
+ * @param status In case of beign 1, O_RDONLY, 2 O_RDWR and 3 O_RDWR and creation of file with 0777
+ * @return File descriptor
  */
 int openFile(char *name, int status);
 
-//int createFile(char *nom, char *permissions);
+int moveToStart(int fd);
 
-
+int checkEmpty(int fd);
 
 #endif

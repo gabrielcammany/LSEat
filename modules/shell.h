@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include "utils.h
 
 #ifndef _SHELL_H_
 #define _SHELL_H_
@@ -23,10 +24,12 @@
 #define ESQUERRA "\033[1D"
 #define NETEJAR_LINIA "\033[2K"
 
+#define BUFFER 150
+#define ARRAYSIZE(a) (sizeof(a) / sizeof(a[0]))
 /**
  * Establece el modo de input
  */
-void setInputMode();
+int setInputMode();
 
 /**
  * Resetea el input que hemos modificado
@@ -38,6 +41,6 @@ void resetInput();
  * @param buffer Estructura de datos donde se vuelca los datos introducidos
  * @param menu Cadena de caracters que incluye el prompt
  */
-void readInput(char *buffer, char *menu);
+void readInput(char *buffer, char *menu, int fd);
 
 #endif

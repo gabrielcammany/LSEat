@@ -38,8 +38,11 @@
 
 # Clion
 .idea
-cmake-build-debug
+cmake-build-debug/
+CMakeLists.txt
 *.dat
+.idea/
+.ftpconfig
 
 # Debug files
 *.dSYM/
@@ -55,9 +58,3 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
-
-# IDE
-.idea/
-cmake-build-debug/
-CMakeLists.txt
-.ftpconfig
