@@ -30,7 +30,7 @@ int createConnectionClient(int portInput, char *ipInput) {
 	uint16_t port;
 	if (portInput < 1 || portInput > 65535) {
 		fprintf(stderr, ERR_PORT, portInput);
-		exit(EXIT_FAILURE);
+		return -1;
 	}
 	port = portInput;
 	// comprovem la validesa de l'adre￿a IP
@@ -38,14 +38,14 @@ int createConnectionClient(int portInput, char *ipInput) {
 	struct in_addr ip_addr;
 	if (inet_aton(ipInput, &ip_addr) == 0) {
 		fprintf(stderr, ERR_ATON, ipInput, strerror(errno));
-		exit(EXIT_FAILURE);
+		return -1;
 	}
 	// creem el socket
 	int sockfd;
 	sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (sockfd < 0) {
 		perror("socket TCP");
-		exit(EXIT_FAILURE);
+		return -1;
 	}
 	// especifiquem l'adre￿a del servidor
 	struct sockaddr_in s_addr;
@@ -56,7 +56,7 @@ int createConnectionClient(int portInput, char *ipInput) {
 
 	if (connect(sockfd, (void *) &s_addr, sizeof(s_addr)) < 0) {
 		perror("connect");
-		exit(EXIT_FAILURE);
+		return -1;
 	}
 	return sockfd;
 }

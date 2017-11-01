@@ -36,10 +36,4 @@ int readDynamic(char **input, int fd);
  */
 int getArrayString(char *input, char delimiter, int *espais);
 
-/**
- * Funcion encargada de borrar la memoria dinamica
- * @param lseat Variable a borrar
- */
-void freeMemory(LSEat *lseat);
-
 #endif

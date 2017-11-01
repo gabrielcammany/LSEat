@@ -20,19 +20,48 @@ typedef struct{
 }Client;
 
 /*
- * Typedef de la configuracion del servidor
+ * Typedef de un enterprise
  */
 typedef struct{
-    char *IP;
-    int Port;
-}Config;
+	int refresh;
+	char *nom;
+}Enterprise;
 
 /*
- * Typedef principal
+ * Typedef de configuracion de red
  */
+typedef struct{
+	char *IP;
+	int Port;
+}Config;
+
+
+/*
+ * Typedef del cliente base
+ */
+
 typedef struct{
     Config config;
     Client client;
-}LSEat;
+}ClientLSEat;
+
+/*
+ * Typedef del enterprise base
+ */
+typedef struct{
+	Config picards;
+	Config data;
+	Enterprise enterprise;
+}EnterpriseLSEat;
+
+/*
+ * Typedef del data base
+ */
+typedef struct{
+	Config config;
+	int p_enterprise;
+}DataLSEat;
+
+
 
 #endif

@@ -44,7 +44,7 @@ void signalHandler(int signum) {
     }
 }
 
-
+/*
 void gestionaTrama(Trama *trama){
     int aux;
     char cadena[10];
@@ -55,7 +55,7 @@ void gestionaTrama(Trama *trama){
 
     }
 }
-
+*/
 
 void* connectionHandler(void* arg){
 
@@ -70,7 +70,7 @@ void* connectionHandler(void* arg){
         read(socket,&trama, sizeof(trama));
 
         write(1, MSG_RECIEVED_CONNECTION,strlen(MSG_RECIEVED_CONNECTION));
-        gestionaTrama(&trama);
+        //gestionaTrama(&trama);
         write(socket,&trama, sizeof(trama));
         write(1, MSG_PROCESSED_CONNECTION, strlen(MSG_PROCESSED_CONNECTION));
 

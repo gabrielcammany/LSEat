@@ -1,0 +1,18 @@
+Alitas de pollo
+10
+4
+Bravas
+25
+3
+Pulpo a la gallega
+15
+9
+Chipirones
+5
+8
+Morro
+20
+3
+Callos
+5
+5

@@ -9,31 +9,8 @@
  */
 #include "shellManager.h"
 
-void startShell(LSEat *lseat) {
 
-    char cadena[50];
-    char input[150];
-    int final = 0;
-
-    write(1, INTRODUCTION, strlen(INTRODUCTION));
-
-    setInputMode();
-
-    while (!final) {
-
-        sprintf(cadena, "%s\t > ", (*lseat).client.nom);
-        write(1, cadena, strlen(cadena));
-        readInput(input, cadena);
-        final = manageShell(input);
-
-    }
-
-    freeMemory(lseat);
-    resetInput();
-
-}
-
-int manageShell(char *input) {
+int executeCommand(char *input) {
     int i = 0;
 
     while (input[i]) {

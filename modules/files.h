@@ -7,25 +7,18 @@
  * @Last modified by:   Manel Manchón Gascó / Gabriel Cammany Ruiz
  * @Last modified time: 30-10-2017
  */
-#ifndef _FITXERS_H_
-#define _FITXERS_H_
+#ifndef _FILES_H_
+#define _FILES_H_
 
-
-//inlcludes del sistema
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
 //includes propios
 #include "types.h"
 #include "utils.h"
+
 //constantes propias
+#define ERR_ARGUMENT "Format d'obertura no suportat\n"
+#define ERR_EMPTY_FILE "El fitxer de configuracio esta buit!\n"
 #define ERR_OP_FILE "Error en l'obertura del fitxer!\n"
-#define ERR_EMPTY_FILE "Error el fitxer està buit!\n"
 #define ERR_SALDO_FILE "No s'ha trobat el saldo en el fitxer!\n"
 #define ERR_FORMAT_SALDO_FILE "Error en el format del saldo introduit!\n"
 #define ERR_PORT_FILE "No s'ha trobat el port introduit!\n"
@@ -33,12 +26,20 @@
 #define ERR_IP_FILE "No s'ha trobat la IP en el fitxer!\n"
 #define ERROR_MEMORY "ERROR! No s'ha pogut demanar memoria per desar les dades\n"
 
+int readClientConfig(char *name, ClientLSEat *lseat);
+
+int readNetworkConfig(int socket, Config *config);
 
 /**
- * Funcion que se encarga de leer el fichero de configuracion del usuario
- * @param  nombreFichero Recibe el nombre del fichero
- * @return  Retorna la variable con los datos extraidos del fichero
+ * Funcion que abre un fichero
+ * @param name Nombre del fichero
+ * @param status En caso de 1, abrira el fichero en O_RDONLY y 2 en O_RDWR
+ * @return File descriptor del fichero
  */
-LSEat lecturaFitxerConfigClient(char *nombreFichero);
+int openFile(char *name, int status);
+
+//int createFile(char *nom, char *permissions);
+
+
 
 #endif

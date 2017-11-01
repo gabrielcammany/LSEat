@@ -25,22 +25,15 @@
 #define ERR_NUM "Hi ha un error en el numero d'unitats\n"
 #define ERR_PLAT "Hi ha un error en el nom del plat\n"
 
-
 #define BYE "Gràcies per fer servir LsEat. Fins la propera.\n"
 #define ERR_MEMORY "Hi ha un problema amb la memoria del sistema.\n"
-
-/**
- * Procediment que s'ocupa de la shell personalitzada i de les inputs de l'usuari
- * @param *lseat [description]
- */
-void startShell(LSEat *lseat);
 
 /**
  * Funció encarregada de gestionar les commandes per part de l'usuari
  * @param input commanda que s'ha introduit
  * @return
  */
-int manageShell(char *input);
+int executeCommand(char *input);
 
 /**
  * Procediment per gestionar les comandes amb arguments

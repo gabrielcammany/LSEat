@@ -11,7 +11,7 @@ LOGIN = ls30652
 FASE = 2
 
 CC = gcc
-COP = -o
+COP = -O
 CFLAGS = -lpthread -Wall -Wextra
 
 MODULES_PATH = modules/
@@ -22,7 +22,7 @@ EXE = picard enterprise data
 all: clean $(patsubst %,%.build,$(EXE))
 
 %.build:
-	$(CC) $(COP) $*/$(patsubst %,%.exe,$*) $(MODULES_SRC) $(shell find $*/$(MANAGERS_PATH) -name '*.c') $(patsubst %,%.c,$*/$*) $(CFLAGS)
+	$(CC) $(COP) -o $*/$*.exe $(MODULES_SRC) $(shell find $*/$(MANAGERS_PATH) -name '*.c') $(patsubst %,%.c,$*/$*) $(CFLAGS)
 
 stop:
 	ps -u $(LOGIN) | grep $(EXE_CLIENT) | awk '{print $$1}' | xargs kill
@@ -30,7 +30,7 @@ stop:
 	ps -u $(LOGIN) | grep $(EXE_DATA) | awk '{print $$1}' | xargs kill
 
 clean:
-	rm -f $(EXE_CLIENT) $(EXE_ENTERPRISE) $(EXE_DATA)
+	rm -f $(patsubst %,%.exe,$*)
 
 tar:
 	tar -cvf G13_F$(FASE)_$(LOGIN)_$(LOGIN1).tar ./

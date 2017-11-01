@@ -11,12 +11,6 @@
 #include <memory.h>
 #include "utils.h"
 
-void freeMemory(LSEat *lseat) {
-
-    free((*lseat).client.nom);
-    free((*lseat).config.IP);
-
-}
 
 int readDynamic(char **input, int fd) {
 
