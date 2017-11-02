@@ -1,186 +1,385 @@
 
 #include "shell.h"
-#include "files.h"
 
-char **cmdHistory;
+History history;
 
 struct termios saved_attributes;
 
 void resetInput() {
-    tcsetattr (STDIN_FILENO, TCSANOW, &saved_attributes);
+	tcsetattr(STDIN_FILENO, TCSANOW, &saved_attributes);
 }
 
-int setInputMode (void)
-{
-    struct termios tattr;
+int setInputMode(void) {
+	struct termios tattr;
 
-    /* Asegurarnos del terminal */
-    if (!isatty (STDIN_FILENO))
-    {
-        //No es un terminal!
-        return ERROR_CODE;
-    }
+	/* Asegurarnos del terminal */
+	if (!isatty(STDIN_FILENO)) {
+		//No es un terminal!
+		return ERROR_CODE;
+	}
 
-    /* Desarem els atributs per poder restaurar el terminal en el seu estat inicial*/
-    tcgetattr (STDIN_FILENO, &saved_attributes);
+	/* Desarem els atributs per poder restaurar el terminal en el seu estat inicial*/
+	tcgetattr(STDIN_FILENO, &saved_attributes);
 
-    /* Canvi dels atributs. */
-    tcgetattr (STDIN_FILENO, &tattr);
-    tattr.c_lflag &= ~(ICANON|ECHO);
-    tattr.c_cc[VMIN] = 1;
-    tattr.c_cc[VTIME] = 1;
-    tcsetattr (STDIN_FILENO, TCSAFLUSH, &tattr);
-    return 0;
+	/* Canvi dels atributs. */
+	tcgetattr(STDIN_FILENO, &tattr);
+	tattr.c_lflag &= ~(ICANON | ECHO);
+	tattr.c_cc[VMIN] = 1;
+	tattr.c_cc[VTIME] = 1;
+	tcsetattr(STDIN_FILENO, TCSAFLUSH, &tattr);
+	return 0;
 }
 
+int loadNextCommand() {
 
-int loadNextCommand(char *input,int fd){
-    char ** auxiliar, ;
-    int size = ARRAYSIZE(cmdHistory);
+	char **auxiliar = NULL, *buffer, *aux = NULL;
+	int size = history.length;
 
-    if(checkEmpty(fd) > 0){
-        auxiliar = (char **)realloc(cmdHistory,size*sizeof(char*)+1);
-        if(auxiliar == NULL){
-            return -1;
-        }else{
-            cmdHistory = auxiliar;
-            cmdHistory[size] = NULL;
-            if(readDynamic(&cmdHistory[size],fd) < 0){
-                (char **)realloc(cmdHistory,size*sizeof(char*));
-                return -1;
-            }
-        }
-    }
-    return 1;
+	memset(&buffer, 0, BUFFER);
+
+	if (read(history.historyfd, &buffer, BUFFER) > 0) {
+
+		auxiliar = (char **) realloc(history.cmdHistory, size * sizeof(char **) + 1);
+
+		if (auxiliar == NULL) {
+
+			return -1;
+
+		} else {
+
+			history.cmdHistory = auxiliar;
+			history.cmdHistory[size] = NULL;
+			aux = (char *) realloc(history.cmdHistory[size], sizeof(char) * strlen(buffer));
+
+			if (aux == NULL) {
+
+				auxiliar = (char **) realloc(history.cmdHistory, size * sizeof(char *));
+
+				if (auxiliar == NULL) {
+
+					int i;
+					for (i = 0; i < size; i++) {
+
+						free(history.cmdHistory[i]);
+
+					}
+
+					free(history.cmdHistory);
+				}
+
+				return -1;
+
+			} else {
+
+				history.cmdHistory[size] = aux;
+				memset(history.cmdHistory[size], 0, BUFFER);
+				strcpy(history.cmdHistory[size], buffer);
+
+			}
+
+			history.length++;
+		}
+
+	}
+
+	return 1;
 }
 
-int loadPreviousCommand(char *input,int fd){
-
+int loadBatch() {
+	int i;
+	for (i = 0; i < BATCH_HISTORY / 2 && loadNextCommand() > 0; i++) {}
+	history.length += i;
+	return i == 0 ? -1 : i;
 }
 
+void saveCommand(char *input) {
 
-void readInput(char* buffer, char* menu, int fd) {
+	char **auxiliar = NULL;
+	int size = history.lengthSession;
 
-    int index = 0, max = 1, history = -1, command = 0;
-    char c = ' ', aux[10];
+	auxiliar = (char **) realloc(history.cmdSession, (size + 1) * sizeof(char **) );
 
+	if (auxiliar != NULL) {
 
-    memset(buffer,0,BUFFER);
-    buffer[index] = ' ';
-    buffer[max] = ' ';
-    buffer[max+1] = '\0';
+		history.cmdSession = auxiliar;
+		history.cmdSession[size] = NULL;
+		history.cmdSession[size] = (char *) malloc(strlen(input));
 
-    history = moveToStart(fd);
+		if (history.cmdSession[size] != NULL) {
 
-    while (c != '\n'){
+			memset(history.cmdSession[size],0,strlen(history.cmdSession[size]));
 
-        read(0,&c,1);
+			strcpy(history.cmdSession[size], input);
+			history.lengthSession++;
 
+		} else {
 
-        // is this an escape sequence?
-        if (c == 27) {
-            // "throw away" next two characters which specify escape sequence
-            read(0,&c,1);
-            read(0,&c,1);
-            switch (c){
-                case 'A': //Adalt
-                    if(history > 0){
-                        if(command == ARRAYSIZE(cmdHistory)-1){
-                            if(loadNextCommand(buffer,fd)){
-                                strcpy(buffer,cmdHistory[command]);
-                                command++;
-                                max = (int)strlen(buffer)+1;
-                                write(1,NETEJAR_LINIA,strlen(NETEJAR_LINIA));
-                                write(1,"\r",strlen("\r"));
-                                write (1, menu, strlen(menu));
-                                write(1,buffer,max);
-                            }
-                        }
-                        //write(1,ADALT,strlen(ADALT));
-                    }
-                    break;
-                case 'D': //Esquerra
-                    if(index>0){
-                        write(1,ESQUERRA,strlen(ESQUERRA));
-                        index--;
-                    }
-                    break;
-                case 'C': //Dreta
-                    if(index<max-1){
-                        write(1,DRETA,strlen(DRETA));
-                        index++;
-                    }
-                    break;
-                case 'B': //Abaix
-                    if(history > 0){
-                        memset(buffer,0,150);
-                        if(command > 0){
-                            command--;
-                            strcpy(buffer,cmdHistory[command]);
-                            max = (int)strlen(buffer)+1;
-                            write(1,NETEJAR_LINIA,strlen(NETEJAR_LINIA));
-                            write(1,"\r",strlen("\r"));
-                            write (1, menu, strlen(menu));
-                            write(1,buffer,max);
-                        }
-                        //write(1,ABAIX,strlen(ABAIX));
-                    }
-                    break;
-                default:
-                    break;
-            }
-            continue;
-        }
+			auxiliar = (char **) realloc(history.cmdSession, size * sizeof(char **));
 
+			if (auxiliar == NULL) {
 
-        if (c == 0x7f) {
+				int i;
 
-            if(index > 0){
-                write(1,"\033[1D",strlen("\033[1D"));
+				for (i = 0; i < size; i++) {
 
-                memmove(&buffer[index-1], &(buffer[index]),sizeof(char)*max);
+					free(history.cmdSession[i]);
 
-                write(1,NETEJAR_LINIA,strlen(NETEJAR_LINIA));
-                write(1,"\r",strlen("\r"));
+				}
 
-                write (1, menu, strlen(menu));
+				free(history.cmdSession);
 
-                if(max > 0 && max >= index)max--;
-                write(1,buffer,max);
+			} else {
+
+				history.cmdSession = auxiliar;
+
+			}
+
+		}
+	}
+}
+
+void saveToFile() {
+	int i = 0;
+	char buffer[BUFFER];
+
+	memset(buffer, 0, BUFFER);
+
+	for (i = 0; i < history.lengthSession; i++) {
+
+		memset(buffer, 0, BUFFER);
+		strcpy(buffer, history.cmdSession[i]);
+
+		if (write(history.historyfd, buffer, BUFFER) < 0) {
+
+			break;
+
+		}
+	}
+
+	if (i < BATCH_HISTORY) {
+
+		for (i = 0; i < history.length && i + history.lengthSession < BATCH_HISTORY; i++) {
+
+			memset(buffer, 0, BUFFER);
+			strcpy(buffer, history.cmdHistory[i]);
+
+			if (write(history.historyfd, buffer, BUFFER) < 0) {
+
+				break;
+
+			}
+
+		}
+
+	}
+}
+
+void readInput(char *buffer, char *menu) {
+
+	int index = 0, max = 1, hEnabled = 1,
+			command = history.length, commandSession = history.lengthSession;
+	char c = ' ', aux[10];
 
 
-                sprintf(aux,"\033[%dD",max-index+1);
-                write(1,aux,strlen(aux));
+	memset(buffer, 0, BUFFER);
+	buffer[index] = ' ';
+	buffer[max] = ' ';
+	buffer[max + 1] = '\0';
 
-                index--;
+	while (c != '\n') {
 
-            }
-
-            continue;
-        }
-
-        if(index < 150){
-            write(1,NETEJAR_LINIA,strlen(NETEJAR_LINIA));
-            write(1,"\r",strlen("\r"));
+		read(0, &c, 1);
 
 
-            write (1, menu, strlen(menu));
+		// is this an escape sequence?
+		if (c == 27) {
+			// "throw away" next two characters which specify escape sequence
+			read(0, &c, 1);
+			read(0, &c, 1);
+			switch (c) {
+				case 'A': //Adalt
+					if(history.lengthSession > 0 || history.length > 0){
 
-            memmove(&buffer[index+1], &buffer[index],sizeof(char)*(max-index+1));
+						if (commandSession > 0) {
 
-            buffer[index] = c;
-            max++;
+							commandSession--;
+							memset(buffer,0,BUFFER);
+							strcpy(buffer, history.cmdSession[commandSession]);
 
-            write(1,buffer,max);
+						} else if (command > 0) {
 
-            sprintf(aux,"\033[%dD",max-index-1);
-            write(1,aux,strlen(aux));
+							command--;
+							memset(buffer,0,BUFFER);
+							strcpy(buffer, history.cmdHistory[command]);
+
+						} else {
+
+							hEnabled = 0;
+
+							continue;
+
+						}
+						if (hEnabled > 0) {
+
+							hEnabled = 1;
+							index = max-1;
+							max = (int) strlen(buffer) + 1;
+
+							sprintf(aux, "\033[%dD", index);
+							write(1, aux, strlen(aux));
+
+							write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
+							write(1, "\r", strlen("\r"));
+							write(1, menu, strlen(menu));
+							write(1, buffer, max);
+
+						}
+					}
+					break;
+				case 'D': //Esquerra
+					if (index > 0) {
+
+						write(1, ESQUERRA, strlen(ESQUERRA));
+						index--;
+
+					}
+					break;
+				case 'C': //Dreta
+					if (index < max - 1) {
+
+						write(1, DRETA, strlen(DRETA));
+						index++;
+
+					}
+					break;
+				case 'B': //Abaix
+					if(history.lengthSession > 0 || history.length > 0) {
+
+						if (commandSession < history.lengthSession) {
+
+							memset(buffer, 0, BUFFER);
+
+							strcpy(buffer, history.cmdSession[commandSession]);
+
+							commandSession++;
 
 
-            index++;
-        }
+						} else if (command < history.length) {
+
+							memset(buffer, 0, BUFFER);
+
+							strcpy(buffer, history.cmdHistory[command]);
+
+							command++;
 
 
-    }
-    buffer[index-1] = '\0';
+						} else {
+
+							hEnabled = 2;
+
+							continue;
+
+						}
+						if (hEnabled < 2) {
+
+							max = (int) strlen(buffer) + 1;
+							index = max-1;
+
+							sprintf(aux, "\033[%dD", index-1);
+							write(1, aux, strlen(aux));
+
+							write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
+							write(1, "\r", strlen("\r"));
+							write(1, menu, strlen(menu));
+							write(1, buffer, max);
+
+						}
+					}
+
+					break;
+				default:
+					break;
+			}
+
+			continue;
+		}
+
+
+		if (c == 0x7f) {
+
+			if (index > 0) {
+
+				write(1, "\033[1D", strlen("\033[1D"));
+
+				memmove(&buffer[index - 1], &(buffer[index]), sizeof(char) * max);
+
+				write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
+				write(1, "\r", strlen("\r"));
+
+				write(1, menu, strlen(menu));
+
+				if (max > 0 && max >= index)max--;
+				write(1, buffer, max);
+
+
+				sprintf(aux, "\033[%dD", max - index + 1);
+				write(1, aux, strlen(aux));
+
+				index--;
+
+			}
+
+			continue;
+		}
+
+		if (index < BUFFER) {
+
+			write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
+			write(1, "\r", strlen("\r"));
+
+			write(1, menu, strlen(menu));
+
+			memmove(&buffer[index + 1], &buffer[index], sizeof(char) * (max - index + 1));
+
+			buffer[index] = c;
+			max++;
+
+			write(1, buffer, max);
+
+			sprintf(aux, "\033[%dD", max - index - 1);
+			write(1, aux, strlen(aux));
+
+
+			index++;
+		}
+
+
+	}
+	buffer[max - 2] = '\0';
+	saveCommand(buffer);
+}
+
+void initializeHistory (int fd) {
+	history.length = 0;
+	history.lengthSession = 0;
+	history.cmdSession = NULL;
+	history.cmdHistory = NULL;
+	history.historyfd = fd;
+}
+
+void freeAndClose(){
+	int i = 0;
+	if(history.cmdSession != NULL){
+		for(i = 0; i < history.length; i++){
+			free(history.cmdHistory[i]);
+		}
+		free(history.cmdHistory);
+	}
+	if(history.cmdHistory != NULL) {
+		for (i = 0; i < history.lengthSession; i++) {
+			free(history.cmdSession[i]);
+		}
+		free(history.cmdSession);
+	}
+	close(history.historyfd);
 }

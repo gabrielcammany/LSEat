@@ -9,6 +9,7 @@
  */
 
 #include <memory.h>
+#include <ctype.h>
 #include "utils.h"
 
 
@@ -53,11 +54,11 @@ int readDynamic(char **input, int fd) {
 }
 
 
-int getArrayString(char *input, char delimiter, int *espais) {
+int getArrayString(const char *input, char delimiter, int *espais) {
 
     int index = 0, buida = 0;
 
-    for (*espais = 0; input[*espais] == ' '; (*espais)++) {}
+    for (*espais = 0; input[*espais] == ' ' || input[*espais] == '\t'; (*espais)++) {}
 
     for (index = *espais; input[index] != delimiter && input[index] != '\0'; index++) {
 
@@ -66,9 +67,18 @@ int getArrayString(char *input, char delimiter, int *espais) {
         }
     }
 
-    if (buida == 0) {
+    if (!buida) {
         return -1;
     }
 
     return index;
+}
+
+char* toLower(char *input){
+	int i = 0;
+	while (input[i]) {
+		input[i] = (char) tolower(input[i]);
+		i++;
+	}
+	return input;
 }

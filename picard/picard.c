@@ -13,7 +13,8 @@
 
 //Includes propios
 #include "managers/shellManager.h"
-#include "managers/connectionManager.h"
+#include "managers/networkManager.h"
+#include "../modules/types.h"
 
 //Constantes
 #define ERR_ARG "Error en el nombre d'arguments!\n"
@@ -41,10 +42,15 @@ void signalHandler(int signum) {
 		case SIGINT:
 			free(lseat.client.nom);
 			free(lseat.config.IP);
+
 			write(1, "\n", strlen("\n"));
 			write(1, BYE, strlen(BYE));
+
 			resetInput();
+			saveHistory();
+
 			close(socketfd);
+
 			exit(0);
 		default:
 			write(1, ERR_INT, strlen(ERR_INT));
@@ -53,10 +59,21 @@ void signalHandler(int signum) {
 
 }
 
+void missatgesInici() {
+	char cadena[100];
+	//Missatges de entrada del usuari
+	sprintf(cadena, WELCOME, lseat.client.nom);
+	write(1, cadena, strlen(cadena));
+
+	sprintf(cadena, SALDO, lseat.client.saldo);
+	write(1, cadena, strlen(cadena));
+
+	write(1, INTRODUCTION, strlen(INTRODUCTION));
+}
+
 
 int main(int argc, char **argv) {
-	char cadena[100];
-	int command = 0, fd = 0;
+	Command command;
 
 	signal(SIGINT, signalHandler);
 
@@ -67,24 +84,17 @@ int main(int argc, char **argv) {
 
 	socketfd = connectToEnterprise(&lseat, argv[1]);
 
-	//Missatges de entrada del usuari
-	sprintf(cadena, WELCOME, lseat.client.nom);
-	write(1, cadena, strlen(cadena));
+	missatgesInici();
 
-	sprintf(cadena, SALDO, lseat.client.saldo);
-	write(1, cadena, strlen(cadena));
+	loadHistory();
 
-	write(1, INTRODUCTION, strlen(INTRODUCTION));
+	while (command.id != CMD_DISCONNECT) {
 
-	fd = loadHistory();
-
-	while ( command > 0) {
-
-		command = readCommands(lseat.client.nom,fd);
+		command = readCommands(lseat.client.nom);
 
 	}
 
-	//Tornem a definir el input anterior
+	saveHistory();
 
 	freeMemory();
 

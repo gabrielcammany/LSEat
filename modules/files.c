@@ -22,7 +22,10 @@ int openFile(char *name, int status) {
 			fd = open(name, O_RDWR);
 			break;
 		case 3:
-			fd=open(name, O_RDWR | O_APPEND | O_CREAT, 0777);
+			fd = open(name, O_RDWR | O_APPEND | O_CREAT, 0666);
+			break;
+		case 4:
+			fd = open(name, O_RDWR | O_APPEND);
 			break;
 		default:
 			return ERROR_CODE;
@@ -31,7 +34,7 @@ int openFile(char *name, int status) {
 	if (fd < 0) {
 		return ERROR_CODE;
 	}
-	empty = (int)read(fd, &c, 1);
+	empty = (int) read(fd, &c, 1);
 	if (empty == 0) {
 		return 0;
 	}
@@ -132,17 +135,10 @@ int readClientConfig(char *name, ClientLSEat *lseat) {
 	return error;
 }
 
-int moveToStart(int fd){
-	return (int)lseek(fd, 0, SEEK_SET);
+int moveToStart(int fd) {
+	return (int) lseek(fd, 0, SEEK_SET);
 }
 
-int checkEmpty(int fd){
-	char c;
-	int empty = 0;
-	empty = (int)read(fd, &c, 1);
-	if (empty == 0) {
-		return -1;
-	}
-	lseek(fd, 0, SEEK_SET);
-	return empty;
+int checkEmpty(int fd) {
+	return (int) lseek(fd, 64, SEEK_SET);;
 }

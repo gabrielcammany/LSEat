@@ -36,6 +36,9 @@ int readDynamic(char **input, int fd);
  * @param espais Valor por referencia que contiene los espacios hasta el primer caracter
  * @return Retorna -1 en caso de que el input este vacio sino, el indice hasta el delimitador
  */
-int getArrayString(char *input, char delimiter, int *espais);
+int getArrayString(const char *input, char delimiter, int *espais);
+
+
+char* toLower(char *input);
 
 #endif

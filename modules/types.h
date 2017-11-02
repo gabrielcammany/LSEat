@@ -14,53 +14,53 @@
 /*
  * Typedef del cliente que contiene su informacion
  */
-typedef struct{
-    int saldo;
-    char *nom;
-}Client;
+typedef struct {
+	int saldo;
+	char *nom;
+} Client;
 
 /*
  * Typedef de un enterprise
  */
-typedef struct{
+typedef struct {
 	int refresh;
 	char *nom;
-}Enterprise;
+} Enterprise;
 
 /*
  * Typedef de configuracion de red
  */
-typedef struct{
+typedef struct {
 	char *IP;
 	int Port;
-}Config;
+} Config;
 
 
 /*
  * Typedef del cliente base
  */
 
-typedef struct{
-    Config config;
-    Client client;
-}ClientLSEat;
+typedef struct {
+	Config config;
+	Client client;
+} ClientLSEat;
 
 /*
  * Typedef del enterprise base
  */
-typedef struct{
+typedef struct {
 	Config picards;
 	Config data;
 	Enterprise enterprise;
-}EnterpriseLSEat;
+} EnterpriseLSEat;
 
 /*
  * Typedef del data base
  */
-typedef struct{
+typedef struct {
 	Config config;
 	int p_enterprise;
-}DataLSEat;
+} DataLSEat;
 
 
 

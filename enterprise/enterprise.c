@@ -5,7 +5,7 @@
  */
 
 #include <signal.h>
-#include "managers/connectionManager.h"
+#include "managers/networkManager.h"
 
 #define ERR_INT "Interrupció desconeguda!\n"
 #define ERR_ARGS "Error: falta especificar els arxius!\n"

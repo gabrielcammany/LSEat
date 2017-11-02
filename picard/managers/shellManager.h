@@ -35,8 +35,15 @@
 #define CMD_PAGAR       3
 #define CMD_DISCONNECT  0
 
-int loadHistory();
+typedef struct {
+	char id;
+	char **data;
+} Command;
 
-int readCommands(char *cadena, int fd);
+void loadHistory();
+
+void saveHistory();
+
+Command readCommands(char *cadena);
 
 #endif //LSEAT_SHELLMANAGER_H
