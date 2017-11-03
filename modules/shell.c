@@ -23,7 +23,7 @@ int setInputMode(void) {
 
 	/* Canvi dels atributs. */
 	tcgetattr(STDIN_FILENO, &tattr);
-	tattr.c_lflag &= ~(ICANON | ECHO);
+	tattr.c_lflag &= ~(ICANON | ECHO | ECHOE);
 	tattr.c_cc[VMIN] = 1;
 	tattr.c_cc[VTIME] = 1;
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &tattr);
@@ -32,12 +32,13 @@ int setInputMode(void) {
 
 int loadNextCommand() {
 
-	char **auxiliar = NULL, *buffer, *aux = NULL;
+	char **auxiliar = NULL, buffer[BUFFER], *aux = NULL;
 	int size = history.length;
 
 	memset(&buffer, 0, BUFFER);
 
 	if (read(history.historyfd, &buffer, BUFFER) > 0) {
+		printf("Commanda -%s-\n",buffer);
 
 		auxiliar = (char **) realloc(history.cmdHistory, size * sizeof(char **) + 1);
 
@@ -74,6 +75,7 @@ int loadNextCommand() {
 				history.cmdHistory[size] = aux;
 				memset(history.cmdHistory[size], 0, BUFFER);
 				strcpy(history.cmdHistory[size], buffer);
+				printf("Commanda -%s-\n",buffer);
 
 			}
 
@@ -97,7 +99,7 @@ void saveCommand(char *input) {
 	char **auxiliar = NULL;
 	int size = history.lengthSession;
 
-	auxiliar = (char **) realloc(history.cmdSession, (size + 1) * sizeof(char **) );
+	auxiliar = (char **) realloc(history.cmdSession, (size + 1) * sizeof(char **));
 
 	if (auxiliar != NULL) {
 
@@ -107,7 +109,7 @@ void saveCommand(char *input) {
 
 		if (history.cmdSession[size] != NULL) {
 
-			memset(history.cmdSession[size],0,strlen(history.cmdSession[size]));
+			memset(history.cmdSession[size], 0, strlen(history.cmdSession[size]));
 
 			strcpy(history.cmdSession[size], input);
 			history.lengthSession++;
@@ -182,34 +184,31 @@ void readInput(char *buffer, char *menu) {
 
 
 	memset(buffer, 0, BUFFER);
-	buffer[index] = ' ';
-	buffer[max] = ' ';
-	buffer[max + 1] = '\0';
+	buffer[0] = ' ';
 
 	while (c != '\n') {
 
 		read(0, &c, 1);
 
+		if(c == '\n'){
+			break;
+		}
 
-		// is this an escape sequence?
 		if (c == 27) {
-			// "throw away" next two characters which specify escape sequence
 			read(0, &c, 1);
 			read(0, &c, 1);
 			switch (c) {
 				case 'A': //Adalt
-					if(history.lengthSession > 0 || history.length > 0){
+					if (history.lengthSession > 0 || history.length > 0) {
 
 						if (commandSession > 0) {
 
 							commandSession--;
-							memset(buffer,0,BUFFER);
 							strcpy(buffer, history.cmdSession[commandSession]);
 
 						} else if (command > 0) {
 
 							command--;
-							memset(buffer,0,BUFFER);
 							strcpy(buffer, history.cmdHistory[command]);
 
 						} else {
@@ -222,16 +221,14 @@ void readInput(char *buffer, char *menu) {
 						if (hEnabled > 0) {
 
 							hEnabled = 1;
+							max = (int) strlen(buffer);
 							index = max-1;
-							max = (int) strlen(buffer) + 1;
-
-							sprintf(aux, "\033[%dD", index);
-							write(1, aux, strlen(aux));
 
 							write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
-							write(1, "\r", strlen("\r"));
+							write(1, "\r", 1);
 							write(1, menu, strlen(menu));
-							write(1, buffer, max);
+							write(1, buffer, strlen(buffer)-1);
+
 
 						}
 					}
@@ -253,11 +250,9 @@ void readInput(char *buffer, char *menu) {
 					}
 					break;
 				case 'B': //Abaix
-					if(history.lengthSession > 0 || history.length > 0) {
+					if (history.lengthSession > 0 || history.length > 0) {
 
 						if (commandSession < history.lengthSession) {
-
-							memset(buffer, 0, BUFFER);
 
 							strcpy(buffer, history.cmdSession[commandSession]);
 
@@ -265,8 +260,6 @@ void readInput(char *buffer, char *menu) {
 
 
 						} else if (command < history.length) {
-
-							memset(buffer, 0, BUFFER);
 
 							strcpy(buffer, history.cmdHistory[command]);
 
@@ -282,16 +275,14 @@ void readInput(char *buffer, char *menu) {
 						}
 						if (hEnabled < 2) {
 
-							max = (int) strlen(buffer) + 1;
+							max = (int) strlen(buffer);
 							index = max-1;
 
-							sprintf(aux, "\033[%dD", index-1);
-							write(1, aux, strlen(aux));
-
 							write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
-							write(1, "\r", strlen("\r"));
+							write(1, "\r", 1);
 							write(1, menu, strlen(menu));
-							write(1, buffer, max);
+							write(1, buffer, strlen(buffer)-1);
+
 
 						}
 					}
@@ -308,8 +299,6 @@ void readInput(char *buffer, char *menu) {
 		if (c == 0x7f) {
 
 			if (index > 0) {
-
-				write(1, "\033[1D", strlen("\033[1D"));
 
 				memmove(&buffer[index - 1], &(buffer[index]), sizeof(char) * max);
 
@@ -332,9 +321,10 @@ void readInput(char *buffer, char *menu) {
 			continue;
 		}
 
-		if (index < BUFFER) {
+		if (index < BUFFER-1) {
 
 			write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
+
 			write(1, "\r", strlen("\r"));
 
 			write(1, menu, strlen(menu));
@@ -342,24 +332,25 @@ void readInput(char *buffer, char *menu) {
 			memmove(&buffer[index + 1], &buffer[index], sizeof(char) * (max - index + 1));
 
 			buffer[index] = c;
-			max++;
+
+			if(max < BUFFER)max++;
 
 			write(1, buffer, max);
 
 			sprintf(aux, "\033[%dD", max - index - 1);
 			write(1, aux, strlen(aux));
 
-
 			index++;
 		}
 
 
 	}
-	buffer[max - 2] = '\0';
-	saveCommand(buffer);
+	buffer[max] = '\0';
+	write(1, "\n", 1);
+	if(!checkEmptyString(buffer))saveCommand(buffer);
 }
 
-void initializeHistory (int fd) {
+void initializeHistory(int fd) {
 	history.length = 0;
 	history.lengthSession = 0;
 	history.cmdSession = NULL;
@@ -367,15 +358,15 @@ void initializeHistory (int fd) {
 	history.historyfd = fd;
 }
 
-void freeAndClose(){
+void freeAndClose() {
 	int i = 0;
-	if(history.cmdSession != NULL){
-		for(i = 0; i < history.length; i++){
+	if (history.cmdSession != NULL) {
+		for (i = 0; i < history.length; i++) {
 			free(history.cmdHistory[i]);
 		}
 		free(history.cmdHistory);
 	}
-	if(history.cmdHistory != NULL) {
+	if (history.cmdHistory != NULL) {
 		for (i = 0; i < history.lengthSession; i++) {
 			free(history.cmdSession[i]);
 		}

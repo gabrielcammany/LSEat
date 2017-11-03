@@ -45,7 +45,7 @@ void signalHandler(int signum) {
 
 			write(1, "\n", strlen("\n"));
 			write(1, BYE, strlen(BYE));
-
+			tcflush(0,TCIOFLUSH);
 			resetInput();
 			saveHistory();
 

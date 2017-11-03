@@ -11,8 +11,7 @@
 #include "files.h"
 
 int openFile(char *name, int status) {
-	int fd = 0, empty;
-	char c;
+	int fd = 0;
 
 	switch (status) {
 		case 1:
@@ -34,11 +33,6 @@ int openFile(char *name, int status) {
 	if (fd < 0) {
 		return ERROR_CODE;
 	}
-	empty = (int) read(fd, &c, 1);
-	if (empty == 0) {
-		return 0;
-	}
-	lseek(fd, 0, SEEK_SET);
 	return fd;
 }
 
@@ -140,5 +134,5 @@ int moveToStart(int fd) {
 }
 
 int checkEmpty(int fd) {
-	return (int) lseek(fd, 64, SEEK_SET);;
+	return (int) lseek(fd, 1, SEEK_CUR);
 }

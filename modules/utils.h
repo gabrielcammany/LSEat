@@ -38,6 +38,7 @@ int readDynamic(char **input, int fd);
  */
 int getArrayString(const char *input, char delimiter, int *espais);
 
+int checkEmptyString(const char *input);
 
 char* toLower(char *input);
 

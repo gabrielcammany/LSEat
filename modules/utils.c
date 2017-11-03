@@ -82,3 +82,17 @@ char* toLower(char *input){
 	}
 	return input;
 }
+
+
+int checkEmptyString(const char *input){
+    int index = 0;
+
+    for (index = 0; index < (int)strlen(input); index++) {
+
+        if (input[index] != ' ') {
+            return 0;
+        }
+    }
+    return 1;
+
+}

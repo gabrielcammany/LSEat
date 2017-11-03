@@ -251,14 +251,16 @@ Command readCommands(char *cadena) {
 }
 
 void saveHistory() {
-	saveToFile();
+	//saveToFile();
 	freeAndClose();
 }
 
 void loadHistory() {
-	int fileHistory = openFile(".cmd_history", 3);
-	if (fileHistory != ERROR_CODE) {
-		initializeHistory(fileHistory);
-		if (checkEmpty(fileHistory) > 0)loadBatch();
-	}
+	//int fileHistory = openFile(".cmd_history", 3);
+	initializeHistory(-1);
+	/*if (fileHistory != ERROR_CODE) {
+		if (checkEmpty(fileHistory) > 0){
+			loadBatch();
+		}
+	}*/
 }
