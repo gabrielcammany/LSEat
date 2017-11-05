@@ -234,6 +234,7 @@ Command readCommands(char *cadena) {
 	Command command;
 	command.id = ERROR_CODE;
 
+	memset(input,0,BUFFER);
 	sprintf(auxiliar, "%s\t > ", cadena);
 	write(1, auxiliar, strlen(auxiliar));
 

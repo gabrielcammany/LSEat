@@ -43,6 +43,7 @@ CMakeLists.txt
 *.dat
 .idea/
 .ftpconfig
+.profile
 
 # Debug files
 *.dSYM/

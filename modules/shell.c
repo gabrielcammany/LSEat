@@ -105,35 +105,38 @@ void saveCommand(char *input) {
 
 		history.cmdSession = auxiliar;
 		history.cmdSession[size] = NULL;
-		history.cmdSession[size] = (char *) malloc(strlen(input));
+		history.cmdSession[size] = (char *) malloc((strlen(input)+1) * sizeof(char));
 
 		if (history.cmdSession[size] != NULL) {
 
-			memset(history.cmdSession[size], 0, strlen(history.cmdSession[size]));
+			memset(history.cmdSession[size], 0, strlen(input));
 
 			strcpy(history.cmdSession[size], input);
 			history.lengthSession++;
 
 		} else {
 
-			auxiliar = (char **) realloc(history.cmdSession, size * sizeof(char **));
+			if(size > 1){
+				auxiliar = (char **) realloc(history.cmdSession, size * sizeof(char **));
+				if (auxiliar == NULL) {
 
-			if (auxiliar == NULL) {
+					int i;
 
-				int i;
+					for (i = 0; i < size; i++) {
 
-				for (i = 0; i < size; i++) {
+						free(history.cmdSession[i]);
 
-					free(history.cmdSession[i]);
+					}
+
+					free(history.cmdSession);
+
+				} else {
+
+					history.cmdSession = auxiliar;
 
 				}
-
+			}else{
 				free(history.cmdSession);
-
-			} else {
-
-				history.cmdSession = auxiliar;
-
 			}
 
 		}
@@ -360,13 +363,13 @@ void initializeHistory(int fd) {
 
 void freeAndClose() {
 	int i = 0;
-	if (history.cmdSession != NULL) {
+	if (history.cmdHistory != NULL) {
 		for (i = 0; i < history.length; i++) {
 			free(history.cmdHistory[i]);
 		}
 		free(history.cmdHistory);
 	}
-	if (history.cmdHistory != NULL) {
+	if (history.cmdSession != NULL) {
 		for (i = 0; i < history.lengthSession; i++) {
 			free(history.cmdSession[i]);
 		}

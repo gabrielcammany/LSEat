@@ -2,8 +2,8 @@
 // Created by gabriel on 31/10/17.
 //
 
-#ifndef LSEAT_CONNECTIONMANAGER_H
-#define LSEAT_CONNECTIONMANAGER_H
+#ifndef LSEAT_NETWORKMANAGER_H
+#define LSEAT_NETWORKMANAGER_H
 
 #define MSG_RECIEVED_CONNECTION "[Connexion recibida]\n"
 #define MSG_PROCESSED_CONNECTION "[Connexion procesada]\n"
@@ -15,4 +15,4 @@
 
 int connectToEnterprise(ClientLSEat *lsEat, char *s);
 
-#endif //LSEAT_CONNECTIONMANAGER_H
+#endif //LSEAT_NETWORKMANAGER_H

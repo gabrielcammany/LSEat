@@ -71,6 +71,15 @@ void missatgesInici() {
 	write(1, INTRODUCTION, strlen(INTRODUCTION));
 }
 
+void startValues(Command *command){
+	lseat.client.nom = NULL;
+	lseat.client.saldo = 0;
+	lseat.config.IP = NULL;
+	lseat.config.Port = 0;
+	command->data = NULL;
+	command->id = -1;
+}
+
 
 int main(int argc, char **argv) {
 	Command command;
@@ -81,6 +90,8 @@ int main(int argc, char **argv) {
 		write(1, ERR_ARG, strlen(ERR_ARG));
 		exit(EXIT_FAILURE);
 	}
+
+	startValues(&command);
 
 	socketfd = connectToEnterprise(&lseat, argv[1]);
 
