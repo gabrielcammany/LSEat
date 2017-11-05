@@ -7,7 +7,7 @@
  * @Last modified by:   Manel Manchón Gascó / Gabriel Cammany Ruiz
  * @Last modified time: 27-10-2017
  */
-#include "shellManager.h"
+#include "../include/shellManager.h"
 
 /**
  * This function checks the validity of the multi-argument command
@@ -215,7 +215,6 @@ Command identifyCommand(char *input) {
 
 	} else if (strcmp(input, "desconnecta") == 0) {
 
-		write(1, BYE, strlen(BYE));
 		command.id = CMD_DISCONNECT;
 		command.data = NULL;
 		return command;
@@ -234,7 +233,6 @@ Command readCommands(char *cadena) {
 	Command command;
 	command.id = ERROR_CODE;
 
-	memset(input,0,BUFFER);
 	sprintf(auxiliar, "%s\t > ", cadena);
 	write(1, auxiliar, strlen(auxiliar));
 

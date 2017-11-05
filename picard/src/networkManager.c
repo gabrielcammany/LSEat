@@ -2,8 +2,7 @@
 // Created by gabriel on 31/10/17.
 //
 
-#include "networkManager.h"
-#include "../../modules/types.h"
+#include "../include/picardController.h"
 
 
 int connectToEnterprise(ClientLSEat *lsEat, char *configFile){

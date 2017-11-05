@@ -10,9 +10,7 @@
 #define MSG_DISCONNECT "El client procede a desconectarse\n"
 #define ERR_CONNECTION "Error en la connexio amb Enterprise!\n"
 
-#include "../../modules/socketUtils.h"
-#include "../../modules/files.h"
+#include "../../lib/includes/socketUtils.h"
 
-int connectToEnterprise(ClientLSEat *lsEat, char *s);
 
 #endif //LSEAT_NETWORKMANAGER_H

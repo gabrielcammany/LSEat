@@ -14,9 +14,9 @@
 //includes del sistema
 #include <ctype.h>
 //Includes propios
-#include "../../modules/utils.h"
-#include "../../modules/shell.h"
-#include "../../modules/files.h"
+#include "../../lib/includes/utils.h"
+#include "../../lib/includes/shell.h"
+#include "../../lib/includes/files.h"
 
 //Constantes propias
 #define INTRODUCTION "Introdueixi comandes...\n"
@@ -25,8 +25,6 @@
 
 #define ERR_NUM "Hi ha un error en el numero d'unitats\n"
 #define ERR_PLAT "Hi ha un error en el nom del plat\n"
-
-#define BYE "Gràcies per fer servir LsEat. Fins la propera.\n"
 #define ERR_MEMORY "Hi ha un problema amb la memoria del sistema.\n"
 
 #define CMD_CONNECTA    1
@@ -39,6 +37,7 @@ typedef struct {
 	char id;
 	char **data;
 } Command;
+
 
 void loadHistory();
 

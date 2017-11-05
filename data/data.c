@@ -5,7 +5,7 @@
  */
 
 #include <signal.h>
-#include "../modules/socketUtils.h"
+#include "../lib/includes/socketUtils.h"
 
 #define ERR_PORT "Error: %d es un port invalid\n"
 #define ERR_ATON "inet_aton (%s): %s\n"
@@ -29,19 +29,6 @@ typedef struct{
 
 void emptyMemory(){
 
-}
-
-void signalHandler(int signum) {
-    switch (signum) {
-        case SIGINT:
-            close(sockfd);
-            emptyMemory();
-            exit(0);
-
-        default:
-            write (1, ERR_INT, strlen(ERR_INT));
-            break;
-    }
 }
 
 /*
@@ -92,9 +79,9 @@ int main (int argc, char *argv[])
     int exit = EXIT_SUCCESS;
     sockfd = 0;
 
-    signal(SIGINT, signalHandler);
+    //signal(SIGINT, signalHandler);
 
-    if (argc < 3)
+    if (argc < 1)
     {
         write(1,ERR_ARGS,strlen(ERR_ARGS));
         exit = EXIT_FAILURE;

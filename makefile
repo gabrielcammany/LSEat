@@ -14,15 +14,14 @@ CC = gcc
 COP =
 CFLAGS = -lpthread -Wall -Wextra
 
-MODULES_PATH = modules/
-MANAGERS_PATH = managers/
-MODULES_SRC = $(shell find $(MODULES_PATH) -name '*.c')
+LIBS_PATH = lib/src/
+LIBS_SRC = $(shell find $(LIBS_PATH) -name '*.c')
 EXE = picard enterprise data
 
 all: clean $(patsubst %,%.build,$(EXE))
 
 %.build:
-	$(CC) $(COP) -o $*/$*.exe $(MODULES_SRC) $(shell find $*/$(MANAGERS_PATH) -name '*.c') $(patsubst %,%.c,$*/$*) $(CFLAGS)
+	$(CC) $(COP) -o bin/$*.exe $(LIBS_SRC) $(shell find $*/src/ -name '*.c') $(patsubst %,%.c,$*/$*) $(CFLAGS)
 
 stop:
 	ps -u $(LOGIN) | grep $(EXE_CLIENT) | awk '{print $$1}' | xargs kill

@@ -10,7 +10,7 @@
 
 #include <memory.h>
 #include <ctype.h>
-#include "utils.h"
+#include "../includes/utils.h"
 
 
 int readDynamic(char **input, int fd) {
