@@ -8,7 +8,7 @@
  * @Last modified time: 26-10-2017
  */
 
-#include "../includes/files.h"
+#include "../include/files.h"
 
 int openFile(char *name, int status) {
 	int fd = 0;

@@ -1,5 +1,3 @@
-#include <signal.h>
-#include "include/picardController.h"
 
 /**
  * @Author: Manel Manchón Gascó / Gabriel Cammany Ruiz
@@ -11,40 +9,43 @@
  * @Last modified time: 27-10-2017
  */
 
+#include "include/controller.h"
+
 
 int main(int argc, char **argv) {
 	Command command;
+
     int error = 0;
-	signal(SIGINT, signalHandler);
+	signal(SIGINT, control_signalHandler);
 
 	if (argc != 2) {
 		write(1, ERR_ARG, strlen(ERR_ARG));
 		exit(EXIT_FAILURE);
 	}
 
-	startValues(&command);
+	basic_startValues(&command);
 
-	//socketfd = connectToEnterprise(&lseat, argv[1]);
-    error = readClientConfig(argv[1],&lseat);
+    error = basic_readClientConfig(argv[1], &lseat);
     if(error < 0){
         exit(EXIT_FAILURE);
     }
 
-	startupMissages();
+	basic_startupMissages();
 
-	loadHistory();
+	interface_loadHistory();
 
 	while (command.id != 0) {
 
-		command = readCommands(lseat.client.nom);
-		manageCommand(command, lseat);
+		command = interface_readCommand(lseat.client.nom);
+
+		control_executeCommand(command, lseat);
 	}
 
 	write(1, BYE, strlen(BYE));
 
-	saveHistory();
+	interface_saveHistory();
 
-	freeMemory();
+	basic_freeMemory();
 
 	close(socketfd);
 

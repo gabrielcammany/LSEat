@@ -53,4 +53,7 @@ int checkEmptyString(const char *input);
  */
 char* toLower(char *input);
 
+
+char* createBuffer(int num, ...);
+
 #endif

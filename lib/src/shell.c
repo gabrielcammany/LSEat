@@ -1,5 +1,5 @@
 
-#include "../includes/shell.h"
+#include "../include/shell.h"
 
 History history;
 
@@ -188,6 +188,7 @@ void readInput(char *buffer, char *menu) {
 
 	memset(buffer, 0, BUFFER);
 	buffer[0] = ' ';
+	buffer[1] = ' ';
 
 	while (c != '\n') {
 
@@ -348,9 +349,12 @@ void readInput(char *buffer, char *menu) {
 
 
 	}
-	buffer[max-1] = '\0';
+
+	buffer[max] = '\0';
 	write(1, "\n", 1);
 	if(!checkEmptyString(buffer))saveCommand(buffer);
+
+	buffer[max-1] = '\0';
 }
 
 void initializeHistory(int fd) {

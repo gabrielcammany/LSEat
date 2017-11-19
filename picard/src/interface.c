@@ -7,7 +7,7 @@
  * @Last modified by:   Manel Manchón Gascó / Gabriel Cammany Ruiz
  * @Last modified time: 27-10-2017
  */
-#include "../include/shellManager.h"
+#include "../include/interface.h"
 
 /**
  * This function checks the validity of the multi-argument command
@@ -15,7 +15,7 @@
  * @param index
  * @return
  */
-Command checkSpecialCommand(char *input) {
+Command interface_checkSpecialCommand(char *input) {
 	int total = 0, base = 0,num_plats = 0;
 	char *buffer = NULL;
 	Command command;
@@ -120,7 +120,7 @@ Command checkSpecialCommand(char *input) {
  * @param input
  * @return
  */
-Command specialCommand(char *input) {
+Command interface_specialCommand(char *input) {
 
 	int nextObjective = 0, espais = 0;
 	char *buffer = NULL;
@@ -153,7 +153,7 @@ Command specialCommand(char *input) {
 
 		if (strcmp(buffer, "elimina") == 0) {
 
-			command = checkSpecialCommand(input + nextObjective);
+			command = interface_checkSpecialCommand(input + nextObjective);
 			if (command.id != ERROR_CODE) {
 
 				command.id = 6;
@@ -162,7 +162,7 @@ Command specialCommand(char *input) {
 
 		} else if (strcmp(buffer, "demana") == 0) {
 
-			command = checkSpecialCommand(input + nextObjective);
+			command = interface_checkSpecialCommand(input + nextObjective);
 			if (command.id != ERROR_CODE) {
 
 				command.id = 5;
@@ -185,7 +185,7 @@ Command specialCommand(char *input) {
  * @param input commanda que s'ha introduit
  * @return
  */
-Command identifyCommand(char *input) {
+Command interface_identifyCommand(char *input) {
 
 	Command command;
 
@@ -221,13 +221,13 @@ Command identifyCommand(char *input) {
 
 	} else {
 
-		return specialCommand(input);
+		return interface_specialCommand(input);
 
 	}
 }
 
 
-Command readCommands(char *cadena) {
+Command interface_readCommand(char *cadena) {
 	char input[BUFFER];
 	char auxiliar[10];
 	Command command;
@@ -242,7 +242,7 @@ Command readCommands(char *cadena) {
 
 		resetInput();
 
-		command = identifyCommand(input);
+		command = interface_identifyCommand(input);
 
 
 	}
@@ -250,12 +250,12 @@ Command readCommands(char *cadena) {
 	return command;
 }
 
-void saveHistory() {
+void interface_saveHistory() {
 	//saveToFile();
 	freeAndClose();
 }
 
-void loadHistory() {
+void interface_loadHistory() {
 	//int fileHistory = openFile(".cmd_history", 3);
 	initializeHistory(-1);
 	/*if (fileHistory != ERROR_CODE) {

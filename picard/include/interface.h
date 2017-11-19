@@ -8,22 +8,21 @@
  * @Last modified time: 30-10-2017
  */
 
-#ifndef LSEAT_SHELLMANAGER_H
-#define LSEAT_SHELLMANAGER_H
+#ifndef LSEAT_INTERFACE_H
+#define LSEAT_INTERFACE_H
 
-//includes del sistema
+//include del sistema
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 //Includes propios
-#include "../../lib/includes/utils.h"
-#include "../../lib/includes/shell.h"
-#include "../../lib/includes/files.h"
-#include "../../lib/includes/socketUtils.h"
+#include "../../lib/include/utils.h"
+#include "../../lib/include/shell.h"
+#include "../../lib/include/files.h"
+#include "../../lib/include/network.h"
 
 //Constantes propias
-#define INTRODUCTION "Introdueixi comandes...\n"
 #define COMMANDA_OK "[Comanda OK]\n"
 #define COMMANDA_KO "Comanda no reconeguda\n"
 
@@ -43,15 +42,15 @@ typedef struct {
 } Command;
 
 
-void loadHistory();
+void interface_loadHistory();
 
-void saveHistory();
+void interface_saveHistory();
 
 /**
  * Reads commands form user
  * @param cadena user name
  * @return command
  */
-Command readCommands(char *cadena);
+Command interface_readCommand(char *cadena);
 
 #endif //LSEAT_SHELLMANAGER_H

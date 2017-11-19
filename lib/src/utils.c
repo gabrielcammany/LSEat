@@ -10,7 +10,8 @@
 
 #include <memory.h>
 #include <ctype.h>
-#include "../includes/utils.h"
+#include <stdarg.h>
+#include "../include/utils.h"
 
 
 int readDynamic(char **input, int fd) {
@@ -94,5 +95,43 @@ int checkEmptyString(const char *input){
         }
     }
     return 1;
+
+}
+
+char* createBuffer(int num, ...){
+
+	char* buffer = NULL, *bufferAux = NULL, *aux = NULL;
+	int size, i;
+
+	va_list a_list;
+	va_start( a_list, num );
+
+	aux = va_arg ( a_list, char * );
+	size = (int)strlen(aux);
+
+	buffer = malloc(sizeof(char)* size);
+
+	if(buffer == NULL){
+		return NULL;
+	}
+
+	strcat(buffer,aux);
+
+	for (i = 0; i < num; i++) {
+		strcat(buffer,"&");
+
+		aux = va_arg ( a_list, char * );
+		size = size + (int)strlen(aux);
+
+		bufferAux = realloc(buffer, sizeof(char) * size);
+
+		if(bufferAux == NULL){
+			free(buffer);
+			return NULL;
+		}
+
+		strcat(buffer,aux);
+	}
+	return buffer;
 
 }
