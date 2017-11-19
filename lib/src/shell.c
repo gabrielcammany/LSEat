@@ -196,12 +196,12 @@ void readInput(char *buffer, char *menu) {
 		if(c == '\n'){
 			break;
 		}
-
+		//ASCII number for space
 		if (c == 27) {
 			read(0, &c, 1);
 			read(0, &c, 1);
 			switch (c) {
-				case 'A': //Adalt
+				case 'A': //Move up the history
 					if (history.lengthSession > 0 || history.length > 0) {
 
 						if (commandSession > 0) {
@@ -236,7 +236,7 @@ void readInput(char *buffer, char *menu) {
 						}
 					}
 					break;
-				case 'D': //Esquerra
+				case 'D': //Move left through command
 					if (index > 0) {
 
 						write(1, ESQUERRA, strlen(ESQUERRA));
@@ -244,7 +244,7 @@ void readInput(char *buffer, char *menu) {
 
 					}
 					break;
-				case 'C': //Dreta
+				case 'C': //Move rigth through the command
 					if (index < max - 1) {
 
 						write(1, DRETA, strlen(DRETA));
@@ -252,7 +252,7 @@ void readInput(char *buffer, char *menu) {
 
 					}
 					break;
-				case 'B': //Abaix
+				case 'B': //Move down history
 					if (history.lengthSession > 0 || history.length > 0) {
 
 						if (commandSession < history.lengthSession) {
@@ -298,7 +298,7 @@ void readInput(char *buffer, char *menu) {
 			continue;
 		}
 
-
+		//ASCII number in hexa for delete
 		if (c == 0x7f) {
 
 			if (index > 0) {
@@ -348,7 +348,7 @@ void readInput(char *buffer, char *menu) {
 
 
 	}
-	buffer[max] = '\0';
+	buffer[max-1] = '\0';
 	write(1, "\n", 1);
 	if(!checkEmptyString(buffer))saveCommand(buffer);
 }

@@ -4,15 +4,19 @@
  * ls30652 - ls31343
  */
 
+//Includes propios
 #include <signal.h>
 #include "../lib/includes/socketUtils.h"
+#include "../data/include/dataController.h"
 
+//Constantes propias
 #define ERR_PORT "Error: %d es un port invalid\n"
 #define ERR_ATON "inet_aton (%s): %s\n"
 
 #define MSG_RECIEVED_CONNECTION "[Connexion recibida]\n"
 #define MSG_PROCESSED_CONNECTION "[Connexion procesada]\n"
 #define MSG_DISCONNECT "El client procede adesconectarse\n"
+#define EXE "Executant Data\n"
 
 #define ERR_FILE "\nS'ha produit un error al obrir el fitxer!\n"
 #define ERR_INT "Interrupció desconeguda!\n"
@@ -47,19 +51,26 @@ void gestionaTrama(Trama *trama){
 void* connectionHandler(void* arg){
 
     int socket = *(int*)arg;
+    char *type = NULL, *header = NULL, *length = NULL, *data = NULL;
+    char trama[155];
 
-    Trama trama;
-    bzero(trama.data,63);
-    trama.type = 0;
-
-    while(trama.type != 8){
+    while(1){
 
         read(socket,&trama, sizeof(trama));
+        printf("%s\n", trama);
+        /*read(socket,&type, sizeof(char));
+        printf("%s\n",type);
 
-        write(1, MSG_RECIEVED_CONNECTION,strlen(MSG_RECIEVED_CONNECTION));
+        read(socket,&header, sizeof(char) * 10);
+        printf("%s\n",header);
+
+        read(socket,&length, sizeof(char) * 2);
+        printf("%s\n",length);
+*/
+        //write(1, MSG_RECIEVED_CONNECTION,strlen(MSG_RECIEVED_CONNECTION));
         //gestionaTrama(&trama);
-        write(socket,&trama, sizeof(trama));
-        write(1, MSG_PROCESSED_CONNECTION, strlen(MSG_PROCESSED_CONNECTION));
+       // write(socket,&trama, sizeof(trama));
+      //  write(1, MSG_PROCESSED_CONNECTION, strlen(MSG_PROCESSED_CONNECTION));
 
     }
 
@@ -74,10 +85,9 @@ void* connectionHandler(void* arg){
 
 int main (int argc, char *argv[])
 {
-    char* port = NULL;
-    char* ip = NULL;
     int exit = EXIT_SUCCESS;
     sockfd = 0;
+    Data data;
 
     //signal(SIGINT, signalHandler);
 
@@ -87,13 +97,15 @@ int main (int argc, char *argv[])
         exit = EXIT_FAILURE;
     }
 
-    if(readServerConfigFile(&port ,&ip, argv[1])){
+    if(readDataConfig(argv[1],&data) < 0){
         write(1,ERR_FILE,strlen(ERR_FILE));
         exit = EXIT_FAILURE;
     }
 
+    write(1, EXE, strlen(EXE));
+
     if(exit != EXIT_FAILURE){
-        exit = serialHandler(port,ip,connectionHandler);
+        exit = serialHandler_Data(data.config.picardPort,data.config.IP,connectionHandler);
     }
     emptyMemory();
 

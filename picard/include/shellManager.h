@@ -13,10 +13,14 @@
 
 //includes del sistema
 #include <ctype.h>
+#include <stdlib.h>
+#include <stdio.h>
+
 //Includes propios
 #include "../../lib/includes/utils.h"
 #include "../../lib/includes/shell.h"
 #include "../../lib/includes/files.h"
+#include "../../lib/includes/socketUtils.h"
 
 //Constantes propias
 #define INTRODUCTION "Introdueixi comandes...\n"
@@ -43,6 +47,11 @@ void loadHistory();
 
 void saveHistory();
 
+/**
+ * Reads commands form user
+ * @param cadena user name
+ * @return command
+ */
 Command readCommands(char *cadena);
 
 #endif //LSEAT_SHELLMANAGER_H

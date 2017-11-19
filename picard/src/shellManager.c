@@ -244,6 +244,7 @@ Command readCommands(char *cadena) {
 
 		command = identifyCommand(input);
 
+
 	}
 
 	return command;

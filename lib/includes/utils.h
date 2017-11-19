@@ -37,8 +37,20 @@ int readDynamic(char **input, int fd);
  */
 int getArrayString(const char *input, char delimiter, int *espais);
 
+
+/**
+ * Function in charge of controling empty inputs
+ * @param input users command
+ * @return
+ */
+
 int checkEmptyString(const char *input);
 
+/**
+ * Function in charge to lower all characters from string
+ * @param input users command
+ * @return all string in lower case
+ */
 char* toLower(char *input);
 
 #endif

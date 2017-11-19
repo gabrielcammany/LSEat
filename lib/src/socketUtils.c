@@ -27,11 +27,11 @@ int readClientConfigFile(char **ip, char **port, char *fileName) {
 int createConnectionClient(int portInput, char *ipInput) {
 
 	// comprovem la validesa del port
-	uint16_t port;
 	if (portInput < 1 || portInput > 65535) {
 		fprintf(stderr, ERR_PORT, portInput);
 		return -1;
 	}
+	uint16_t port;
 	port = portInput;
 	// comprovem la validesa de l'adre￿a IP
 	// i la convertim a format binari
@@ -126,23 +126,23 @@ int readServerConfigFile(char **port, char **ip, char *fileName) {
 }
 
 
-int serialHandler(char *port, char *ip, void *(*handler)(void *)) {
+int serialHandler_Data(char *port, char *ip, void *(*handler)(void *)) {
 	int sockfd;
 	sockfd = createConnectionServer(atoi(port), ip);
 
-	free(ip);
-	free(port);
+	//free(ip);
+	//free(port);
 	if (sockfd < 0) {
 		return -1;
 	}
 
-	write(1, MSG, strlen(MSG));
+	write(1, WAIT_CLIENT, strlen(WAIT_CLIENT));
 
 	while (1) {
 		struct sockaddr_in c_addr;
 		socklen_t c_len = sizeof(c_addr);
 
-		write(1, MSG, strlen(MSG));
+		//write(1, MSG, strlen(MSG));
 
 		int newsock = accept(sockfd, (void *) &c_addr, &c_len);
 		if (newsock < 0) {
@@ -150,7 +150,36 @@ int serialHandler(char *port, char *ip, void *(*handler)(void *)) {
 			exit(EXIT_FAILURE);
 		}
 
-		write(1, MSG, strlen(MSG));
+		//write(1, MSG, strlen(MSG));
+		handler((void *) &newsock);
+	}
+}
+
+int serialHandler_Enterprise(char *port, char *ip, void *(*handler)(void *)) {
+	int sockfd;
+	sockfd = createConnectionServer(atoi(port), ip);
+
+	//free(ip);
+	//free(port);
+	if (sockfd < 0) {
+		return -1;
+	}
+
+	//write(1, MSG, strlen(MSG));
+
+	while (1) {
+		struct sockaddr_in c_addr;
+		socklen_t c_len = sizeof(c_addr);
+
+		//write(1, MSG, strlen(MSG));
+
+		int newsock = accept(sockfd, (void *) &c_addr, &c_len);
+		if (newsock < 0) {
+			perror("accept");
+			exit(EXIT_FAILURE);
+		}
+
+		//write(1, MSG, strlen(MSG));
 		handler((void *) &newsock);
 	}
 }

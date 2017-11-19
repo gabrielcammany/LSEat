@@ -14,7 +14,7 @@
 
 int main(int argc, char **argv) {
 	Command command;
-
+    int error = 0;
 	signal(SIGINT, signalHandler);
 
 	if (argc != 2) {
@@ -24,7 +24,11 @@ int main(int argc, char **argv) {
 
 	startValues(&command);
 
-	socketfd = connectToEnterprise(&lseat, argv[1]);
+	//socketfd = connectToEnterprise(&lseat, argv[1]);
+    error = readClientConfig(argv[1],&lseat);
+    if(error < 0){
+        exit(EXIT_FAILURE);
+    }
 
 	startupMissages();
 
@@ -33,7 +37,7 @@ int main(int argc, char **argv) {
 	while (command.id != 0) {
 
 		command = readCommands(lseat.client.nom);
-
+		manageCommand(command, lseat);
 	}
 
 	write(1, BYE, strlen(BYE));
