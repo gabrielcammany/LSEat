@@ -118,7 +118,7 @@ int basic_readClientConfig(char *name, ClientLSEat *lseat) {
 		}
 	}
 
-	//Now it's time for the network configuration (IP and port)
+	//Now it's time for the network configuration (ip and port)
 	if (error > 0) {
 		error = basic_readNetworkConfig(fd, &lseat->config);
 	}

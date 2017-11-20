@@ -19,14 +19,18 @@
  * port: Port to connect to enterprise
  */
 typedef struct{
-	char* IP;
-	int port;
+	char* ip;
 	char* name;
+	int port;
+	char numberClients;
 }Enterprise;
 
-Enterprise enterprise;
+Enterprise *enterprise;
+int socketPic, socketEnt;
 
-void* connection_Handler(void* arg);
+void addEnterprise();
+
+void dNetwork_executeData(int portE, int portP, char* ip);
 
 
 #endif //LSEAT_CONNECTION_H

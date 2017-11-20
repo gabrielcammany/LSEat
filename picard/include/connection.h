@@ -37,10 +37,9 @@
 
 #define CONNECTING "Connectant amb LsEat...\n"
 #define CONNECTION_DATA "[Connexió amb Data OK]\n"
-#define CONNECTION_NDATA "[Connexió amb Data KK]\n"
+#define CONNECTION_NDATA "[Connexió amb Data KO]\n"
 #define CONNECTION_ENT "[Connexió amb Enterprise OK]\n"
 #define CONNECTION_NENT "[Connexió amb Enterprise KO]\n"
-#define CONNECTION_OK "Connexió realitzada!\n"
 
 
 /**

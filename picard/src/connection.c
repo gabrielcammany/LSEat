@@ -8,28 +8,47 @@
 
 char *connection_data(int port, char *ip, char *name) {
 	int socket;
-	char *data = NULL;
+	Packet packet;
+
+	packet.data = NULL;
 
 	write(1, CONNECTING, strlen(CONNECTING));
 	socket = createConnectionClient(port, ip);
+
 	if (socket < 0) {
+
 		write(1, ERR_CONN, strlen(ERR_CONN));
+
 	} else {
-		Packet packet = createPacket(CONNECT, HEADER_PICINF, (int) strlen(name), name);
+
+		packet = createPacket(CONNECT, HEADER_PICDAT, (unsigned short) strlen(name), name);
+
 		if (packet.type > 0) {
+
 			if (sendSerialized(socket, packet) > 0) {
+
 				packet = extractIncomingFrame(socket);
-				if (packet.type == 1 && !strcmp(packet.header, HEADER_CON)) {
+
+
+				if (packet.type == 1 && !strcmp(packet.header, HEADER_DATPIC)) {
+
 					write(0, CONNECTION_DATA, strlen(CONNECTION_DATA));
+
 				} else {
+
 					write(0, CONNECTION_NDATA, strlen(CONNECTION_NDATA));
+
 				}
 			}
 
 		}
 	}
-	return data;
+
+	close(socket);
+
+	return packet.data;
 }
+
 
 void extractEnterpriseData(char *data, char **nom, int *port, char **ip) {
 
@@ -87,11 +106,11 @@ int connection_enterprise(char *data, char *nameUser, int saldo) {
 
 			sprintf(money, "%d", saldo);
 
-			userData = createBuffer(2,nameUser, money);
+			userData = createBuffer(2, nameUser, money);
 
 			if (userData != NULL) {
 
-				Packet packet = createPacket(CONNECT, HEADER_PICINF, (int)strlen(userData), userData);
+				Packet packet = createPacket(CONNECT, HEADER_PICINF, (int) strlen(userData), userData);
 
 				if (packet.type > 0) {
 

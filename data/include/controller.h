@@ -26,15 +26,14 @@
 #define ERR_PORT "Error: %d es un port invalid\n"
 #define ERR_ATON "inet_aton (%s): %s\n"
 
-#define MSG_RECIEVED_CONNECTION "[Connexion recibida]\n"
-#define MSG_PROCESSED_CONNECTION "[Connexion procesada]\n"
-#define MSG_DISCONNECT "El client procede adesconectarse\n"
 #define EXE "Executant Data\n"
 
 #define ERR_FILE "\nS'ha produit un error al obrir el fitxer!\n"
 #define ERR_INT "Interrupció desconeguda!\n"
 #define ERR_ARGS "Error: falta especificar els arxius!\n"
+
 #define BYE "Apagant el servidor Data...\n"
+#define NBYE "Error en Data. Apagant el servidor...\n"
 
 
 /**
@@ -44,20 +43,17 @@
  * enterprisePort: Port where enterprise will connect
  */
 typedef struct{
-    char* IP;
-    char* picardPort;
-    char* enterprisePort;
+    char* ip;
+    int picardPort;
+    int enterprisePort;
 }Data;
 
 
 int socketfd;
+Data data;
 
 
-void control_signalHandler(int signum);
-
-
-int control_executeData(Data *data);
-
+void dControl_signalHandler(int signum);
 
 /**
  * Function which reads the configuration of data

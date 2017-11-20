@@ -2,8 +2,6 @@
 #include <errno.h>
 #include "../include/network.h"
 
-#define MSG "[Introduir missatge]"
-
 int createConnectionClient(int portInput, char *ipInput) {
 
 	// comprovem la validesa del port
@@ -13,7 +11,7 @@ int createConnectionClient(int portInput, char *ipInput) {
 	}
 	uint16_t port;
 	port = portInput;
-	// comprovem la validesa de l'adre￿a IP
+	// comprovem la validesa de l'adre￿a ip
 	// i la convertim a format binari
 	struct in_addr ip_addr;
 	if (inet_aton(ipInput, &ip_addr) == 0) {
@@ -65,7 +63,7 @@ int createConnectionServer(int portInput, char *ipInput) {
 		return -1;
 	}
 	// especifiquem l'adreca que volem vincular al nostre socket
-	// admetrem connexions dirigides a qualsevol IP de la nostra m￿quina
+	// admetrem connexions dirigides a qualsevol ip de la nostra m￿quina
 	// al port especificat per linia de comandes
 	struct sockaddr_in s_addr;
 	bzero(&s_addr, sizeof(s_addr));
@@ -84,35 +82,38 @@ int createConnectionServer(int portInput, char *ipInput) {
 	return sockfd;
 }
 
-int serialHandler(char *port, char *ip, void *(*handler)(void *)) {
-	int sockfd;
-	sockfd = createConnectionServer(atoi(port), ip);
+void serialHandler(int socketfd, void *(*handler)(void *)) {
 
-	if (sockfd < 0) {
-		return EXIT_FAILURE;
+	if (socketfd < 0) {
+		exit(EXIT_FAILURE);
 	}
-
-	write(1, WAIT_CLIENT, strlen(WAIT_CLIENT));
 
 	while (1) {
 		struct sockaddr_in c_addr;
 		socklen_t c_len = sizeof(c_addr);
 
+		write(1, WAIT_CLIENT, strlen(WAIT_CLIENT));
 
-		int newsock = accept(sockfd, (void *) &c_addr, &c_len);
+		int newsock = accept(socketfd, (void *) &c_addr, &c_len);
 		if (newsock < 0) {
 			perror("accept");
-			return EXIT_FAILURE;
+			exit(EXIT_FAILURE);
 		}
 
 		handler((void *) &newsock);
 	}
 }
 
-void parallelHandler(char *port, char *ip, void *(*handler)(void *), void *arg) {
+void parallelHandler(int port, char *ip, void *(*handler)(void *), void *arg) {
 	char *buff = NULL;
 	int sockfd;
-	sockfd = createConnectionServer(atoi(port), ip);
+
+	if(ip != NULL){
+		sockfd = createConnectionServer(port, ip);
+	}else{
+		sockfd = port;
+	}
+
 	pthread_t thread_id;
 
 	while (1) {
@@ -137,101 +138,117 @@ void parallelHandler(char *port, char *ip, void *(*handler)(void *), void *arg) 
 	}
 }
 
-int sendSerialized(int socket, Packet packet){
-	char* buffer;
+int sendSerialized(int socket, Packet packet) {
+	char *buffer;
 
-	buffer = (char*) malloc(sizeof(char) * (SIMPLE_PACKET_LENGTH + strlen(packet.data)));
-	if(buffer == NULL){
+	unsigned short size = (unsigned short) (SIMPLE_PACKET_LENGTH + strlen(packet.data));
+
+	buffer = (char *) malloc(sizeof(char) * size);
+	if (buffer == NULL) {
 		return 0;
 	}
-	strcat(buffer,&packet.type);
-	strcat(buffer,packet.header);
-	strcat(buffer,packet.length);
 
-	if(packet.data != NULL){
-		strcat(buffer,packet.data);
+	memset(buffer, 0, size);
+
+	if (packet.data != NULL) {
+
+		buffer[0] = packet.type;
+		memcpy(buffer + sizeof(char), packet.header, HEADER_SIZE);
+
+		buffer[HEADER_SIZE + TYPE_SIZE] = (char) (packet.length & 0x0F);
+		buffer[HEADER_SIZE + TYPE_SIZE + 1] = (char) ((packet.length & 0xF0) >> 8);
+
+		memcpy(buffer+SIMPLE_PACKET_LENGTH,packet.data,packet.length);
+
+		write(0,buffer,size);
+
+
+		if (write(socket, buffer, size) == size) {
+
+			free(buffer);
+			return 1;
+		}
+
 	}
 
-	if(write(socket,buffer,strlen(buffer)) == (int)strlen(buffer)){
-		free(buffer);
-		return 1;
-	}
 
 	free(buffer);
 	return 0;
 
 }
 
-Packet createPacket(char type, char *header, int length, char *data){
+Packet createPacket(char type, char *header, unsigned short length, char *data) {
 
 	Packet packet;
-	char auxLength[LENGTH_SIZE];
-	memset(packet.header,'\0',sizeof(char)*HEADER_SIZE);
+
+	memset(packet.header, '\0', sizeof(char) * HEADER_SIZE);
 
 	packet.type = type;
-	strcpy(packet.header, header);
 
-	if(length > 0){
-		sprintf(auxLength,"%d",length);
-		strcpy(packet.length,auxLength);
-	}else{
-		memset(packet.length,0,sizeof(char)*LENGTH_SIZE);
-	}
+	memcpy(packet.header, header,HEADER_SIZE);
 
-	if(data != NULL){
-		packet.data = (char*)malloc(sizeof(char) * strlen(data));
-		if(packet.data == NULL){
+	packet.length = length;
+
+	if (data != NULL && length > 0) {
+
+		packet.data = (char *) malloc(sizeof(char) * strlen(data));
+
+		if (packet.data == NULL) {
+
 			packet.type = 0;
 			return packet;
-		}
-		memset(packet.data,0,sizeof(char)*strlen(data));
-		strcpy(packet.data,data);
-	}else{
-		packet.data = NULL;
-	}
 
+		}
+
+		memset(packet.data, 0, sizeof(char) * packet.length);
+
+		memcpy(packet.data, data, packet.length);
+
+	} else {
+		packet.type = 0;
+	}
 
 
 	return packet;
 
 }
 
-int readSimpleResponse(int socket){
+int readSimpleResponse(int socket) {
 
 	char header[HEADER_SIZE], type;
 
-	read(socket,&type,sizeof(char));
+	read(socket, &type, sizeof(char));
 
-	switch (type){
+	switch (type) {
 		case CONNECT || DISCONNECT:
-			read(socket,header,HEADER_SIZE * sizeof(char));
+			read(socket, header, HEADER_SIZE * sizeof(char));
 
-			return (strcmp(header,HEADER_CON) == 0 ? 1 : 0);
+			return (strcmp(header, HEADER_CON) == 0);
 		case MENU:
 
-			read(socket,header,HEADER_SIZE * sizeof(char));
+			read(socket, header, HEADER_SIZE * sizeof(char));
 
-			return (strcmp(header,HEADER_ENDMENU) == 0 ? 1 : 0);
+			return (strcmp(header, HEADER_ENDMENU) == 0);
 		case DISH:
 
-			read(socket,header,HEADER_SIZE * sizeof(char));
+			read(socket, header, HEADER_SIZE * sizeof(char));
 
-			return (strcmp(header,HEADER_ORD) == 0 ? 1 : 0);
+			return (strcmp(header, HEADER_ORD) == 0);
 		case DEL_DISH:
 
-			read(socket,header,HEADER_SIZE * sizeof(char));
+			read(socket, header, HEADER_SIZE * sizeof(char));
 
-			return (strcmp(header,HEADER_ORD) == 0 ? 1 : 0);
+			return (strcmp(header, HEADER_ORD) == 0);
 		case PAY:
 
-			read(socket,header,HEADER_SIZE * sizeof(char));
+			read(socket, header, HEADER_SIZE * sizeof(char));
 
-			return (strcmp(header,HEADER_PAY) == 0 ? 1 : 0);
+			return (strcmp(header, HEADER_PAY) == 0);
 		case UPDATE:
 
-			read(socket,header,HEADER_SIZE * sizeof(char));
+			read(socket, header, HEADER_SIZE * sizeof(char));
 
-			return (strcmp(header,HEADER_NUPDATE) == 0 ? 1 : 0);
+			return (strcmp(header, HEADER_NUPDATE) == 0);
 		default:
 			break;
 	}
@@ -239,32 +256,41 @@ int readSimpleResponse(int socket){
 
 }
 
-Packet extractIncomingFrame(int socket){
+Packet extractIncomingFrame(int socket) {
 
-	char type, header[HEADER_SIZE], length[LENGTH_SIZE], *data = NULL;
-	int convert = 0;
+	char type, header[HEADER_SIZE], *data = NULL;
+	unsigned short length = 0;
 	Packet packet;
 
+	memset(header,'\0',HEADER_SIZE);
+
 	read(socket, &type, sizeof(char));
+
 	read(socket, &header, sizeof(char) * HEADER_SIZE);
+
 
 	if (!strcmp(header, HEADER_NCON)) {
 
 		close(socket);
 
 	} else {
-		read(socket, &length, sizeof(char) * LENGTH_SIZE);
 
-		convert = atoi(length);
-		if (convert > 0) {
-			data = (char *) malloc(sizeof(char) * convert);
-			if (data != NULL) {
-				if(read(socket, data, sizeof(char) * convert) > 0){
-					return createPacket(type,header,convert,data);
-				}
+		read(socket, &length, sizeof(unsigned short));
+
+		data = (char *) malloc(sizeof(char) * length);
+
+		if (data != NULL) {
+
+			if (read(socket, data, sizeof(char) * length) > 0) {
+
+				printf("Aqui!\n");
+
+				return createPacket(type, header, length, data);
 
 			}
+
 		}
+
 	}
 	packet.type = 0;
 	return packet;

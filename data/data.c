@@ -8,9 +8,9 @@
 
 int main (int argc, char *argv[])
 {
-    Data data;
 
-    signal(SIGINT, control_signalHandler);
+    signal(SIGINT, dControl_signalHandler);
+	signal(SIGUSR1, dControl_signalHandler);
 
     if (argc < 1)
     {
@@ -27,6 +27,8 @@ int main (int argc, char *argv[])
 
     write(1, EXE, strlen(EXE));
 
-	return control_executeData(&data);
+	dNetwork_executeData(&data);
+
+	return EXIT_SUCCESS;
 
 }

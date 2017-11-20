@@ -53,7 +53,7 @@ int basic_readDataConfig(char* name,Data *data) {
 	if (fd < 0) {
 		return ERROR_CODE;
 	}
-	//We read Data IP from config file
+	//We read Data ip from config file
 	error = readDynamic(&data->IP, fd);
 	if (error < 0) {
 		write(1, ERR_IP, strlen(ERR_IP));

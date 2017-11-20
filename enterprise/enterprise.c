@@ -17,7 +17,7 @@ int sockfd;
 int main (int argc, char *argv[])
 {
 
-    //signal(SIGINT, control_signalHandler);
-
+    argc = argc;
+    argv = argv;
     return EXIT_SUCCESS;
 }

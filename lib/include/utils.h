@@ -56,4 +56,6 @@ char* toLower(char *input);
 
 char* createBuffer(int num, ...);
 
+char* deletePadding(char* input, int max);
+
 #endif

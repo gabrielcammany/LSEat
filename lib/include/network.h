@@ -35,14 +35,9 @@
 typedef struct {
 	char type;
 	char header[HEADER_SIZE];
-	char length[LENGTH_SIZE];
+	unsigned short length;
 	char *data;
 } Packet;
-
-typedef struct {
-	int socket;
-	void* data;
-} Forward;
 
 #define CONNECTION_KO 1,"[CONKO]",0,"\0"
 #define DISCONNECT_KO 1,"[CONKO]",0,"\0"
@@ -68,6 +63,8 @@ typedef struct {
 #define HEADER_NCON "[CONOK]"
 
 #define HEADER_PICINF "[PIC_INF]"
+#define HEADER_PICDAT "[PIC_NAME]"
+#define HEADER_DATPIC "[ENT_INF]"
 
 
 #define HEADER_ORD "[ORDOK]"
@@ -120,13 +117,13 @@ int createConnectionClient(int portInput, char *ipInput);
 
 int createConnectionServer(int portInput, char *ipInput);
 
-int serialHandler(char* port, char* ip, void *(*handler)(void*));
+void serialHandler(int socketfd, void *(*handler)(void *));
 
-void parallelHandler(char *port, char *ip, void *(*handler)(void *), void *arg);
+void parallelHandler(int port, char *ip, void *(*handler)(void *), void *arg);
 
 int sendSerialized(int socket, Packet packet);
 
-Packet createPacket(char type, char *header, int length, char *data);
+Packet createPacket(char type, char *header, unsigned short length, char *data);
 
 int readSimpleResponse(int socket);
 
