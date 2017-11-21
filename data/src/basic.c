@@ -10,8 +10,8 @@ void basic_freeMemory(Data *data) {
 
 void basic_startValues(Data *data) {
 	data->ip = NULL;
-	data->enterprisePort = 10;
-	data->picardPort = 10;
+	data->enterprisePort = 0;
+	data->picardPort = 0;
 	socketPic = 5;
 	socketEnt = 6;
 }
@@ -59,13 +59,13 @@ int basic_readDataConfig(char* name,Data *data) {
 	error = readDynamic(&data->ip, fd);
 	if (error < 0) {
 		write(1, ERR_IP, strlen(ERR_IP));
+		printf("Close 1: %d\n", fd);
 		close(fd);
 		return EXIT_FAILURE;
 	}
 	if ( basic_readPorts(fd,&data->picardPort) != EXIT_FAILURE ) {
 		error = basic_readPorts(fd,&data->enterprisePort);
 	}
-
 
 	close(fd);
 

@@ -12,7 +12,7 @@ int main (int argc, char *argv[])
     signal(SIGINT, dControl_signalHandler);
 	signal(SIGUSR1, dControl_signalHandler);
 
-    if (argc < 1)
+    if (argc < 2)
     {
         write(1,ERR_ARGS,strlen(ERR_ARGS));
 		exit(EXIT_FAILURE);
@@ -20,7 +20,7 @@ int main (int argc, char *argv[])
 
 	basic_startValues(&data);
 
-    if(basic_readDataConfig(argv[1],&data) < 0){
+    if(basic_readDataConfig(argv[1],&data) == EXIT_FAILURE){
         write(1,ERR_FILE,strlen(ERR_FILE));
 		exit(EXIT_FAILURE);
     }

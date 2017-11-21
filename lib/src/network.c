@@ -41,6 +41,8 @@ int createConnectionClient(int portInput, char *ipInput) {
 
 int createConnectionServer(int portInput, char *ipInput) {
 
+	int retVal;
+
 	// comprovem la validesa del port
 	uint16_t port;
 	if (portInput < 1 || portInput > 65535) {
@@ -50,7 +52,7 @@ int createConnectionServer(int portInput, char *ipInput) {
 	port = portInput;
 
 	struct in_addr ip_addr;
-	if (inet_aton(ipInput, &ip_addr) == 0) {
+	if (inet_aton(ipInput, &ip_addr) != 1) {
 		fprintf(stderr, ERR_ATON, ipInput, strerror(errno));
 		return -1;
 	}
@@ -67,10 +69,12 @@ int createConnectionServer(int portInput, char *ipInput) {
 	bzero(&s_addr, sizeof(s_addr));
 	s_addr.sin_family = AF_INET;
 	s_addr.sin_port = htons(port);
-	s_addr.sin_addr = ip_addr;//INADDR_ANY;
+	s_addr.sin_addr.s_addr = inet_addr(ipInput);//INADDR_ANY;
 
-	if (bind(sockfd, (void *) &s_addr, sizeof(s_addr)) < 0) {
+	retVal = bind(sockfd, (void *) &s_addr, sizeof(s_addr));
+	if (retVal < 0) {
 		perror("bind");
+		close(sockfd);
 		return -1;
 	}
 
@@ -80,21 +84,27 @@ int createConnectionServer(int portInput, char *ipInput) {
 
 void serialHandler(int socketfd, void *(*handler)(void *)) {
 
+	struct sockaddr_in c_addr;
+	socklen_t c_len = sizeof(c_addr);
+	printf("Socket: %d\n", socketfd);
+
 	if (socketfd < 0) {
 		exit(EXIT_FAILURE);
 	}
 
 	while (1) {
-		struct sockaddr_in c_addr;
-		socklen_t c_len = sizeof(c_addr);
 
 		write(1, WAIT_CLIENT, strlen(WAIT_CLIENT));
 
 		int newsock = accept(socketfd, (void *) &c_addr, &c_len);
+		printf("Close 5: %d\n", newsock);
 		if (newsock < 0) {
 			perror("accept");
+			printf("Close 4: %d\n", socketfd);
+			close(socketfd);
 			exit(EXIT_FAILURE);
 		}
+
 
 		handler((void *) &newsock);
 	}

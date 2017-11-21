@@ -40,7 +40,6 @@
 .idea
 cmake-build-debug/
 CMakeLists.txt
-*.dat
 .idea/
 .ftpconfig
 .profile

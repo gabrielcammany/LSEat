@@ -30,7 +30,9 @@ void *connection_handlerClient(void *arg) {
 	Packet packet, aux;
 	char convert[10], *buffer;
 
+	printf("Close 9: %d\n", socketPic);
 	packet = extractIncomingFrame(socket);
+	printf("Close 10: %d\n", socketPic);
 
 	if (packet.type != 1 || strcmp(packet.header, HEADER_PICINF) == 0) {
 
@@ -79,23 +81,27 @@ void *connection_handlerClient(void *arg) {
 }
 
 void* connection_clientListener(void *socket){
-
-	serialHandler(*((int*)socket),connection_handlerClient);
-	return NULL;
+	serialHandler(socketPic,connection_handlerClient);
+	return socket;
 }
 
 void dNetwork_executeData(int portE, int portP, char* ip){
-	int socketPic;
 
 	if((socketPic = createConnectionServer(portP, ip)) > 0){
+		pthread_t thread_id;
 
-		serialHandler(socketPic,connection_handlerClient);
+		if (pthread_create(&thread_id, NULL, connection_clientListener, NULL) < 0) {
+			perror("could not create thread");
+			close(socketPic);
+		}
 
 	}
 
-	/*if((socketEnt = createConnectionServer(portE, ip) > 0)) {
-		serialHandler(socketEnt, connection_handlerClient);
+
+	if((socketEnt = createConnectionServer(portE, ip) > 0)) {
+
+		serialHandler(socketEnt, connection_handlerEnterprise);
 	}
 
-	kill(getpid(),SIGUSR1);*/
+	kill(getpid(),SIGUSR1);
 }
