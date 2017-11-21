@@ -29,7 +29,6 @@ char *connection_data(int port, char *ip, char *name) {
 
 				packet = extractIncomingFrame(socket);
 
-
 				if (packet.type == 1 && !strcmp(packet.header, HEADER_DATPIC)) {
 
 					write(0, CONNECTION_DATA, strlen(CONNECTION_DATA));

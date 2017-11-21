@@ -7,16 +7,26 @@
 
 void addEnterprise() {
 
+	enterprise = (Enterprise*)malloc(sizeof(Enterprise));
+	if(enterprise == NULL){
+		exit(EXIT_FAILURE);
+	}
+
+	enterprise->port = 8063;
+	enterprise->ip = "127.0.0.1";
+	enterprise->numberClients = 0;
+	enterprise->name = "Prova";
+
 }
 
 
 void *connection_handlerEnterprise(void *arg) {
-
+	return NULL;
 }
 
 void *connection_handlerClient(void *arg) {
 
-	int socket = *(int *) arg;
+	int socket = socketPic;
 	Packet packet, aux;
 	char convert[10], *buffer;
 
@@ -32,19 +42,20 @@ void *connection_handlerClient(void *arg) {
 	write(0, CONNECTING, strlen(CONNECTING));
 	write(0, '\0', sizeof(char));
 
-	write(0, packet.data, packet.length * sizeof(char));
-	write(0, '\0', sizeof(char));
+	sprintf(convert, "%d", enterprise->port);
 
-	sprintf(convert, "%d", enterprise.port);
-
-	buffer = createBuffer(3, enterprise.name, convert, enterprise.IP);
+	buffer = createBuffer(3, enterprise->name, convert, enterprise->ip);
 
 	if (buffer == NULL) {
+
+		printf("Error\n");
 
 		close(socket);
 		return NULL;
 
 	}
+
+	printf("Buffere: -%s-\n",buffer);
 
 	aux = createPacket(CONNECT, HEADER_CON, (unsigned short) strlen(buffer), buffer);
 
@@ -68,21 +79,23 @@ void *connection_handlerClient(void *arg) {
 }
 
 void* connection_clientListener(void *socket){
+
 	serialHandler(*((int*)socket),connection_handlerClient);
+	return NULL;
 }
 
 void dNetwork_executeData(int portE, int portP, char* ip){
-	pthread_t thread_id;
+	int socketPic;
 
-	if((socketPic = createConnectionServer(portE, ip) > 0){
-		if (pthread_create(&thread_id, NULL, connection_clientListener, (void *)socketPic) < 0) {
-			perror("could not create thread");
-			exit(EXIT_FAILURE);
-		}
+	if((socketPic = createConnectionServer(portP, ip)) > 0){
+
+		serialHandler(socketPic,connection_handlerClient);
+
 	}
 
-	if((socketEnt = createConnectionServer(portE, ip) > 0))
-		serialHandler(socketEnt, connect);
+	/*if((socketEnt = createConnectionServer(portE, ip) > 0)) {
+		serialHandler(socketEnt, connection_handlerClient);
+	}
 
-	kill(getpid(),SIGUSR1);
+	kill(getpid(),SIGUSR1);*/
 }

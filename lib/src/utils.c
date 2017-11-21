@@ -103,16 +103,13 @@ char* createBuffer(int num, ...){
 	char* buffer = NULL, *bufferAux = NULL, *aux = NULL;
 	int size, i;
 
-
+	printf("Dintre 2buffer\n");
 	va_list a_list;
 	va_start( a_list, num );
 
-	printf("Dintre buffer2\n");
-
 	aux = va_arg ( a_list, char*);
 
-	printf("Aux: -%s-\n",aux);
-
+	size = (int)strlen(aux);
 
 	buffer = malloc(sizeof(char)* size);
 
@@ -125,7 +122,6 @@ char* createBuffer(int num, ...){
 
 	for (i = 0; i < num; i++) {
 		strcat(buffer,"&");
-		printf("Dintre 2buffer\n");
 
 		aux = va_arg ( a_list, char * );
 		size = size + (int)strlen(aux);

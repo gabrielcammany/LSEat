@@ -27,11 +27,11 @@ int openFile(char *name, int status) {
 			fd = open(name, O_RDWR | O_APPEND);
 			break;
 		default:
-			return ERROR_CODE;
+			return EXIT_FAILURE;
 	}
 
 	if (fd < 0) {
-		return ERROR_CODE;
+		return EXIT_FAILURE;
 	}
 	return fd;
 }

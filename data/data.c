@@ -25,9 +25,12 @@ int main (int argc, char *argv[])
 		exit(EXIT_FAILURE);
     }
 
+
+	addEnterprise();
+
     write(1, EXE, strlen(EXE));
 
-	dNetwork_executeData(&data);
+	dNetwork_executeData(data.enterprisePort, data.picardPort, data.ip);
 
 	return EXIT_SUCCESS;
 

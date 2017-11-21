@@ -14,7 +14,8 @@ void dControl_signalHandler(int signum) {
 			write(1, "\n", strlen("\n"));
 			write(1, BYE, strlen(BYE));
 
-			close(socketfd);
+			close(socketEnt);
+			close(socketPic);
 
 			exit(EXIT_SUCCESS);
 
@@ -25,7 +26,8 @@ void dControl_signalHandler(int signum) {
 			write(1, "\n", strlen("\n"));
 			write(1, NBYE, strlen(BYE));
 
-			close(socketfd);
+			close(socketEnt);
+			close(socketPic);
 
 			exit(EXIT_FAILURE);
 		default:

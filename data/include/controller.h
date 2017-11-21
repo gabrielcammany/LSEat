@@ -48,8 +48,6 @@ typedef struct{
     int enterprisePort;
 }Data;
 
-
-int socketfd;
 Data data;
 
 

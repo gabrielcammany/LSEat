@@ -62,22 +62,18 @@ int createConnectionServer(int portInput, char *ipInput) {
 		perror("socket TCP");
 		return -1;
 	}
-	// especifiquem l'adreca que volem vincular al nostre socket
-	// admetrem connexions dirigides a qualsevol ip de la nostra m￿quina
-	// al port especificat per linia de comandes
+
 	struct sockaddr_in s_addr;
 	bzero(&s_addr, sizeof(s_addr));
 	s_addr.sin_family = AF_INET;
 	s_addr.sin_port = htons(port);
 	s_addr.sin_addr = ip_addr;//INADDR_ANY;
-	// al cridar bind, hem de fer un cast:
-	// bind espera struct sockaddr *
-	// i nosaltres passem struct sockaddr_in *
+
 	if (bind(sockfd, (void *) &s_addr, sizeof(s_addr)) < 0) {
 		perror("bind");
 		return -1;
 	}
-	// ara obrim el port, 5 es un valor tipic
+
 	listen(sockfd, 64);
 	return sockfd;
 }
@@ -159,9 +155,6 @@ int sendSerialized(int socket, Packet packet) {
 		buffer[HEADER_SIZE + TYPE_SIZE + 1] = (char) ((packet.length & 0xF0) >> 8);
 
 		memcpy(buffer+SIMPLE_PACKET_LENGTH,packet.data,packet.length);
-
-		write(0,buffer,size);
-
 
 		if (write(socket, buffer, size) == size) {
 
@@ -283,7 +276,6 @@ Packet extractIncomingFrame(int socket) {
 
 			if (read(socket, data, sizeof(char) * length) > 0) {
 
-				printf("Aqui!\n");
 
 				return createPacket(type, header, length, data);
 
