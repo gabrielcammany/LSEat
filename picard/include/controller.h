@@ -63,7 +63,10 @@ int basic_readClientConfig(char *name, ClientLSEat *lseat);
 
 void basic_startupMissages();
 
-
+/**
+ * Function to initialize all variables from command
+ * @param command structure that contains command data
+ */
 void basic_startValues(Command *command);
 
 

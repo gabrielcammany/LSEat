@@ -43,3 +43,4 @@ int moveToStart(int fd) {
 int checkEmpty(int fd) {
 	return (int) lseek(fd, 1, SEEK_CUR);
 }
+

@@ -32,15 +32,19 @@
 
 #define SIMPLE_PACKET_LENGTH (HEADER_SIZE+LENGTH_SIZE+TYPE_SIZE)
 
+/**
+ * Structure where we are going to save data
+ * to be able to comunicate between servers and clients
+ */
 typedef struct {
-	char type;
-	char header[HEADER_SIZE];
-	unsigned short length;
-	char *data;
+    char type;
+    char header[HEADER_SIZE];
+    unsigned short length;
+    char *data;
 } Packet;
 
-#define CONNECTION_KO 1,"[CONKO]",0,"\0"
-#define DISCONNECT_KO 1,"[CONKO]",0,"\0"
+#define CONNECTION_KO "1[CONKO]\0\00\0"
+#define DISCONNECT_KO "1[CONKO]1\0"
 
 /**
  * Types
@@ -60,7 +64,7 @@ typedef struct {
  */
 
 #define HEADER_CON "[CONOK]"
-#define HEADER_NCON "[CONOK]"
+#define HEADER_NCON "[CONKO]"
 
 #define HEADER_PICINF "[PIC_INF]"
 #define HEADER_PICDAT "[PIC_NAME]"
@@ -121,9 +125,23 @@ void serialHandler(int socketfd, void *(*handler)(void *));
 
 void parallelHandler(int port, char *ip, void *(*handler)(void *), void *arg);
 
+/**
+ * Sned serialized packet to server
+ * @param socket file descriptor of connection
+ * @param packet information structure
+ * @return
+ */
 int sendSerialized(int socket, Packet packet);
 
-Packet createPacket(char type, char *header, unsigned short length, char *data);
+/**
+ * Puts all information in packet structure
+ * @param type id of packet
+ * @param header name of packet
+ * @param length size of data
+ * @param data information
+ * @return packet structure filled
+ */
+Packet createPacket(int type, char *header, unsigned short length, char *data);
 
 int readSimpleResponse(int socket);
 

@@ -7,101 +7,108 @@
 
 void addEnterprise() {
 
-	enterprise = (Enterprise*)malloc(sizeof(Enterprise));
-	if(enterprise == NULL){
-		exit(EXIT_FAILURE);
-	}
+    enterprise = (Enterprise *) malloc(sizeof(Enterprise));
+    if (enterprise == NULL) {
+        exit(EXIT_FAILURE);
+    }
 
-	enterprise->port = 8063;
-	enterprise->ip = "127.0.0.1";
-	enterprise->numberClients = 0;
-	enterprise->name = "Prova";
+    enterprise->port = 8063;
+    enterprise->ip = "127.0.1.1";
+    enterprise->numberClients = 0;
+    enterprise->name = "Prova";
 
 }
 
 
 void *connection_handlerEnterprise(void *arg) {
-	return NULL;
+    return NULL;
 }
 
 void *connection_handlerClient(void *arg) {
 
-	int socket = socketPic;
-	Packet packet, aux;
-	char convert[10], *buffer;
+    int socket = *((int *) arg);
+    Packet packet, aux;
+    char convert[10], *buffer;
 
-	printf("Close 9: %d\n", socketPic);
-	packet = extractIncomingFrame(socket);
-	printf("Close 10: %d\n", socketPic);
+    //We extract the information of the clients packet
+    packet = extractIncomingFrame(socket);
 
-	if (packet.type != 1 || strcmp(packet.header, HEADER_PICINF) == 0) {
+    //We know there will be only the type 1 of packet from clients
+    if (packet.type != '1' || strcmp(packet.header, HEADER_PICINF) == 0) {
+        sendConnexionKOPacket(socket);
+        return NULL;
+    }
 
-		close(socket);
-		return NULL;
+    //Because is type 1 we know that data contains the client name
+    write(1, CONNECTING, strlen(CONNECTING));
+    write(1, packet.data, packet.length);
+    write(1, "\n\0", sizeof(char) * 2);
 
-	}
+    //We create the buffer that will be the data in response to the client
+    sprintf(convert, "%d", enterprise->port);
+    buffer = createBuffer(3, enterprise->name, convert, enterprise->ip);
 
-	write(0, CONNECTING, strlen(CONNECTING));
-	write(0, '\0', sizeof(char));
+    //In case we are not able to create the buffer we close everything
+    if (buffer == NULL) {
+        sendConnexionKOPacket(socket);
+        return NULL;
+    }
 
-	sprintf(convert, "%d", enterprise->port);
+    //we create packet to response client
+    aux = createPacket(CONNECT, HEADER_DATPIC, (unsigned short) strlen(buffer), buffer);
 
-	buffer = createBuffer(3, enterprise->name, convert, enterprise->ip);
 
-	if (buffer == NULL) {
+    if (aux.type > 0) {
+        //if everything is ok then we send information of the enterprise back to the client
+        sendSerialized(socket, aux);
+        write(1, DISCONNECTING, strlen(DISCONNECTING));
+        write(1, packet.data, packet.length);
+        write(1, "\n\0", sizeof(char) * 2);
 
-		printf("Error\n");
-
-		close(socket);
-		return NULL;
-
-	}
-
-	printf("Buffere: -%s-\n",buffer);
-
-	aux = createPacket(CONNECT, HEADER_CON, (unsigned short) strlen(buffer), buffer);
-
-	if (aux.type > 0) {
-
-		sendSerialized(socket, aux);
-		write(0, DISCONNECTING, strlen(DISCONNECTING));
-		write(0, packet.data, strlen(packet.data) * sizeof(char));
-		write(0, '\0', sizeof(char));
-
-	} else {
-
-		write(0, ERR_CLIENT, strlen(ERR_CLIENT));
-		write(0, packet.data, strlen(packet.data) * sizeof(char));
-		write(0, '\0', sizeof(char));
-
-	}
-
-	free(buffer);
-	return NULL;
+    } else {
+        sendConnexionKOPacket(socket);
+        return NULL;
+    }
+    //Once we know if the connexion has been done then we close the file descriptor
+    close(socket);
+    free(buffer);
+    return NULL;
 }
 
-void* connection_clientListener(void *socket){
-	serialHandler(socketPic,connection_handlerClient);
-	return socket;
+void *connection_clientListener(void *socket) {
+    serialHandler(socketPic, connection_handlerClient);
+    return socket;
 }
 
-void dNetwork_executeData(int portE, int portP, char* ip){
+void dNetwork_executeData(int portE, int portP, char *ip) {
 
-	if((socketPic = createConnectionServer(portP, ip)) > 0){
-		pthread_t thread_id;
+    if ((socketPic = createConnectionServer(portP, ip)) > 0) {
+        pthread_t thread_id;
+        if (pthread_create(&thread_id, NULL, connection_clientListener, NULL) < 0) {
+            perror("could not create thread");
+            close(socketPic);
+        }
 
-		if (pthread_create(&thread_id, NULL, connection_clientListener, NULL) < 0) {
-			perror("could not create thread");
-			close(socketPic);
-		}
-
-	}
+    }
 
 
-	if((socketEnt = createConnectionServer(portE, ip) > 0)) {
+    if((socketEnt = createConnectionServer(portE, ip) > 0)) {
 
-		serialHandler(socketEnt, connection_handlerEnterprise);
-	}
+        serialHandler(socketEnt, connection_handlerEnterprise);
+    }
 
-	kill(getpid(),SIGUSR1);
+    while (1) {}
+
+    //kill(getpid(),SIGUSR1);
+}
+
+void sendConnexionKOPacket(int socket) {
+    Packet aux;
+    //if not we send the KO packet to the client
+    aux = createPacket(CONNECT, HEADER_NCON, (unsigned short) 0,"\0");
+    sendSerialized(socket, aux);
+    write(1, ERR_CLIENT, strlen(ERR_CLIENT));
+    write(1, '\0', sizeof(char));
+    close(socket);
+
 }

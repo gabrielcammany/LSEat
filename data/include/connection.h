@@ -9,6 +9,8 @@
 #include <stdio.h>
 
 #include "../../lib/include/network.h"
+#include "controller.h"
+
 #define CONNECTING "Connectant "
 #define DISCONNECTING "Desconnectant "
 #define ERR_CLIENT "Error en la connexió de "
@@ -32,5 +34,5 @@ void addEnterprise();
 
 void dNetwork_executeData(int portE, int portP, char* ip);
 
-
+void sendConnexionKOPacket(int socket);
 #endif //LSEAT_CONNECTION_H

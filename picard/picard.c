@@ -23,13 +23,16 @@ int main(int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 
+	//we initialize all variables
 	basic_startValues(&command);
 
+	//Read configuration for the picard
     error = basic_readClientConfig(argv[1], &lseat);
+
     if(error < 0){
         exit(EXIT_FAILURE);
     }
-
+	//start message when executing picard client
 	basic_startupMissages();
 
 	interface_loadHistory();
@@ -37,7 +40,7 @@ int main(int argc, char **argv) {
 	while (command.id != 0) {
 
 		command = interface_readCommand(lseat.client.nom);
-
+		//
 		control_executeCommand(command, lseat);
 	}
 

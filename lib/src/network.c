@@ -1,5 +1,6 @@
 #include <memory.h>
 #include <errno.h>
+#include <stdlib.h>
 #include "../include/network.h"
 
 int createConnectionClient(int portInput, char *ipInput) {
@@ -58,7 +59,7 @@ int createConnectionServer(int portInput, char *ipInput) {
 	}
 
 	// creem el socket
-	int sockfd;
+	int sockfd = -1;
 	sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (sockfd < 0) {
 		perror("socket TCP");
@@ -86,7 +87,6 @@ void serialHandler(int socketfd, void *(*handler)(void *)) {
 
 	struct sockaddr_in c_addr;
 	socklen_t c_len = sizeof(c_addr);
-	printf("Socket: %d\n", socketfd);
 
 	if (socketfd < 0) {
 		exit(EXIT_FAILURE);
@@ -97,10 +97,8 @@ void serialHandler(int socketfd, void *(*handler)(void *)) {
 		write(1, WAIT_CLIENT, strlen(WAIT_CLIENT));
 
 		int newsock = accept(socketfd, (void *) &c_addr, &c_len);
-		printf("Close 5: %d\n", newsock);
 		if (newsock < 0) {
 			perror("accept");
-			printf("Close 4: %d\n", socketfd);
 			close(socketfd);
 			exit(EXIT_FAILURE);
 		}
@@ -145,7 +143,7 @@ void parallelHandler(int port, char *ip, void *(*handler)(void *), void *arg) {
 }
 
 int sendSerialized(int socket, Packet packet) {
-	char *buffer;
+	char *buffer = NULL;
 
 	unsigned short size = (unsigned short) (SIMPLE_PACKET_LENGTH + strlen(packet.data));
 
@@ -158,12 +156,16 @@ int sendSerialized(int socket, Packet packet) {
 
 	if (packet.data != NULL) {
 
+
 		buffer[0] = packet.type;
+
 		memcpy(buffer + sizeof(char), packet.header, HEADER_SIZE);
 
-		buffer[HEADER_SIZE + TYPE_SIZE] = (char) (packet.length & 0x0F);
-		buffer[HEADER_SIZE + TYPE_SIZE + 1] = (char) ((packet.length & 0xF0) >> 8);
+		//buffer[HEADER_SIZE + TYPE_SIZE] = (char) (packet.length & 0x0F);
 
+		//buffer[HEADER_SIZE + TYPE_SIZE + 1] = (char) ((packet.length & 0xF0) >> 8);
+		//memcpy(buffer+HEADER_SIZE + TYPE_SIZE,(char*)packet.length,2);
+		buffer[HEADER_SIZE + TYPE_SIZE] = (char)packet.length;
 		memcpy(buffer+SIMPLE_PACKET_LENGTH,packet.data,packet.length);
 
 		if (write(socket, buffer, size) == size) {
@@ -180,16 +182,15 @@ int sendSerialized(int socket, Packet packet) {
 
 }
 
-Packet createPacket(char type, char *header, unsigned short length, char *data) {
+Packet createPacket(int type, char *header, unsigned short length, char *data) {
 
 	Packet packet;
 
+	//We put \0 in the header so if it has less length we always send 10 bytes
+	//We also copy the type, the header and the length this funcions recives
 	memset(packet.header, '\0', sizeof(char) * HEADER_SIZE);
-
-	packet.type = type;
-
+	sprintf(&packet.type,"%d",type);
 	memcpy(packet.header, header,HEADER_SIZE);
-
 	packet.length = length;
 
 	if (data != NULL && length > 0) {
@@ -204,7 +205,6 @@ Packet createPacket(char type, char *header, unsigned short length, char *data) 
 		}
 
 		memset(packet.data, 0, sizeof(char) * packet.length);
-
 		memcpy(packet.data, data, packet.length);
 
 	} else {
@@ -268,12 +268,10 @@ Packet extractIncomingFrame(int socket) {
 	memset(header,'\0',HEADER_SIZE);
 
 	read(socket, &type, sizeof(char));
-
 	read(socket, &header, sizeof(char) * HEADER_SIZE);
 
 
 	if (!strcmp(header, HEADER_NCON)) {
-
 		close(socket);
 
 	} else {
@@ -287,7 +285,7 @@ Packet extractIncomingFrame(int socket) {
 			if (read(socket, data, sizeof(char) * length) > 0) {
 
 
-				return createPacket(type, header, length, data);
+				return createPacket(type-'0', header, length, data);
 
 			}
 

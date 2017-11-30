@@ -75,20 +75,20 @@ int getArrayString(const char *input, char delimiter, int *espais) {
     return index;
 }
 
-char* toLower(char *input){
-	int i = 0;
-	while (input[i]) {
-		input[i] = (char) tolower(input[i]);
-		i++;
-	}
-	return input;
+char *toLower(char *input) {
+    int i = 0;
+    while (input[i]) {
+        input[i] = (char) tolower(input[i]);
+        i++;
+    }
+    return input;
 }
 
 
-int checkEmptyString(const char *input){
+int checkEmptyString(const char *input) {
     int index = 0;
 
-    for (index = 0; index < (int)strlen(input); index++) {
+    for (index = 0; index < (int) strlen(input); index++) {
 
         if (input[index] != ' ') {
             return 0;
@@ -98,45 +98,51 @@ int checkEmptyString(const char *input){
 
 }
 
-char* createBuffer(int num, ...){
+char *createBuffer(int num, ...) {
 
-	char* buffer = NULL, *bufferAux = NULL, *aux = NULL;
-	int size, i;
+    char *buffer = NULL, *bufferAux = NULL, *aux = NULL;
+    int size, i;
 
-	printf("Dintre 2buffer\n");
-	va_list a_list;
-	va_start( a_list, num );
+    va_list a_list;
+    va_start(a_list, num);
 
-	aux = va_arg ( a_list, char*);
+    aux = va_arg(a_list, char * );
 
-	size = (int)strlen(aux);
+    size = (int) strlen(aux);
 
-	buffer = malloc(sizeof(char)* size);
+    buffer = malloc(sizeof(char) * size);
 
-	if(buffer == NULL){
-		return NULL;
-	}
+    if (buffer == NULL) {
+        return NULL;
+    }
 
 
-	strcat(buffer,aux);
+    strcat(buffer, aux);
 
-	for (i = 0; i < num; i++) {
-		strcat(buffer,"&");
+    for (i = 0; i < num-1; i++) {
+        strcat(buffer, "&");
 
-		aux = va_arg ( a_list, char * );
-		size = size + (int)strlen(aux);
+        aux = va_arg(a_list,char*);
+        size = size + (int) strlen(aux);
 
-		bufferAux = realloc(buffer, sizeof(char) * size);
+        bufferAux = realloc(buffer, sizeof(char) * size);
 
-		if(bufferAux == NULL){
-			free(buffer);
-			return NULL;
-		}
+        if (bufferAux == NULL) {
+            free(buffer);
+            return NULL;
+        }
 
-		strcat(buffer,aux);
-	}
+        strcat(buffer, aux);
+    }
 
-	va_end(a_list);
-	return buffer;
+    va_end(a_list);
+    return buffer;
 
+}
+
+void debugSTRING(char *string) {
+    char cadena[100];
+
+    sprintf(cadena, "String: %s\n", string);
+    write(1, string, 50);
 }

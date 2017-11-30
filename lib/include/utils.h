@@ -58,4 +58,6 @@ char* createBuffer(int num, ...);
 
 char* deletePadding(char* input, int max);
 
+void debugSTRING(char *string);
+
 #endif

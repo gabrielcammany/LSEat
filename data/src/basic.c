@@ -59,15 +59,29 @@ int basic_readDataConfig(char* name,Data *data) {
 	error = readDynamic(&data->ip, fd);
 	if (error < 0) {
 		write(1, ERR_IP, strlen(ERR_IP));
-		printf("Close 1: %d\n", fd);
 		close(fd);
 		return EXIT_FAILURE;
 	}
-	if ( basic_readPorts(fd,&data->picardPort) != EXIT_FAILURE ) {
+	if ( (error = basic_readPorts(fd,&data->picardPort)) != EXIT_FAILURE ) {
 		error = basic_readPorts(fd,&data->enterprisePort);
 	}
 
 	close(fd);
 
 	return error;
+}
+
+int analysePacketPicard(Packet packet){
+
+	switch(packet.type){
+		case '1':
+			write(1, CONNECTING, strlen(CONNECTING));
+			write(1, packet.data, packet.length);
+			write(1, "\0\n", sizeof(char)*2);
+			break;
+		default:
+			break;
+	}
+
+	return 0;
 }

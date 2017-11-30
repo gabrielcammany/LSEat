@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "../../lib/include/network.h"
 
 #define ERR_ARG "Error en el nombre d'arguments!\n"
 #define WELCOME "BENVINGUT %s\n"
@@ -60,6 +61,37 @@ int connection_sendInfoData(int socket);
 
 char * connection_data(int port, char *ip, char *name);
 
+/**
+ *
+ * @param data
+ * @param nom
+ * @param saldo
+ * @return
+ */
+
 int connection_enterprise(char* data,char* nom,int saldo);
 
-#endif //LSEAT_NETWORK_H
+/**
+ *
+ * @param packet
+ * @return
+ */
+
+int analyseDataPacket(Packet packet);
+
+ /**
+  *
+  * @param socket
+  */
+
+void sendConnexionKOPacket(int socket);
+
+/**
+ *
+ * @param packet
+ * @return
+ */
+int analyseDataPacket(Packet packet);
+
+
+#endif

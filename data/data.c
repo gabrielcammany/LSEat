@@ -12,7 +12,7 @@ int main (int argc, char *argv[])
     signal(SIGINT, dControl_signalHandler);
 	signal(SIGUSR1, dControl_signalHandler);
 
-    if (argc < 2)
+    if (argc != 2)
     {
         write(1,ERR_ARGS,strlen(ERR_ARGS));
 		exit(EXIT_FAILURE);

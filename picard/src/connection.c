@@ -3,7 +3,6 @@
 //
 
 #include "../include/connection.h"
-#include "../../lib/include/network.h"
 
 
 char *connection_data(int port, char *ip, char *name) {
@@ -13,6 +12,7 @@ char *connection_data(int port, char *ip, char *name) {
 	packet.data = NULL;
 
 	write(1, CONNECTING, strlen(CONNECTING));
+	//Returns the socket of the client with one of the servers
 	socket = createConnectionClient(port, ip);
 
 	if (socket < 0) {
@@ -20,7 +20,7 @@ char *connection_data(int port, char *ip, char *name) {
 		write(1, ERR_CONN, strlen(ERR_CONN));
 
 	} else {
-
+		//We serialize the packet with the information
 		packet = createPacket(CONNECT, HEADER_PICDAT, (unsigned short) strlen(name), name);
 
 		if (packet.type > 0) {
@@ -28,16 +28,22 @@ char *connection_data(int port, char *ip, char *name) {
 			if (sendSerialized(socket, packet) > 0) {
 
 				packet = extractIncomingFrame(socket);
+                /*printf("PACKET TYPE: %c\n", packet.type);
+                printf("PACKET Header: %s\n", packet.header);
+                printf("PACKET Length: %d\n", packet.length);
+                printf("PACKET data: %s\n", packet.data);*/
 
-				if (packet.type == 1 && !strcmp(packet.header, HEADER_DATPIC)) {
+                analyseDataPacket(packet);
 
-					write(0, CONNECTION_DATA, strlen(CONNECTION_DATA));
+                /*if (packet.type == 1 && !strcmp(packet.header, HEADER_DATPIC)) {
+
+					write(1, CONNECTION_DATA, strlen(CONNECTION_DATA));
 
 				} else {
 
-					write(0, CONNECTION_NDATA, strlen(CONNECTION_NDATA));
+					write(1, CONNECTION_NDATA, strlen(CONNECTION_NDATA));
 
-				}
+				}*/
 			}
 
 		}
@@ -135,11 +141,29 @@ int connection_enterprise(char *data, char *nameUser, int saldo) {
 
 		}
 	} else {
-		write(0, ERR_DATA, strlen(ERR_DATA));
+		write(1, ERR_DATA, strlen(ERR_DATA));
 	}
 
 	free(userData);
 	return socket;
+}
 
+int analyseDataPacket(Packet packet){
 
+    switch (packet.type){
+        case '1':
+            if (packet.length == 0){
+                //If there is any error during the connection then we will recive a length of 0
+                write(1, CONNECTION_NDATA, strlen(CONNECTION_NDATA));
+
+            } else {
+                write(1, CONNECTION_DATA, strlen(CONNECTION_DATA));
+
+            }
+            break;
+        default:
+            break;
+    }
+
+    return 0;
 }
