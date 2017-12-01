@@ -28,6 +28,7 @@ typedef struct{
 }Enterprise;
 
 Enterprise *enterprise;
+
 int socketPic, socketEnt;
 
 void addEnterprise();

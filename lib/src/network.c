@@ -44,7 +44,7 @@ int createConnectionServer(int portInput, char *ipInput) {
 
 	int retVal;
 
-	// comprovem la validesa del port
+	// we check if the port is alright
 	uint16_t port;
 	if (portInput < 1 || portInput > 65535) {
 		fprintf(stderr, ERR_PORT, portInput);
@@ -58,7 +58,7 @@ int createConnectionServer(int portInput, char *ipInput) {
 		return -1;
 	}
 
-	// creem el socket
+	// now its time to create the socket
 	int sockfd = -1;
 	sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (sockfd < 0) {
@@ -72,6 +72,7 @@ int createConnectionServer(int portInput, char *ipInput) {
 	s_addr.sin_port = htons(port);
 	s_addr.sin_addr.s_addr = inet_addr(ipInput);//INADDR_ANY;
 
+
 	retVal = bind(sockfd, (void *) &s_addr, sizeof(s_addr));
 	if (retVal < 0) {
 		perror("bind");
@@ -80,7 +81,7 @@ int createConnectionServer(int portInput, char *ipInput) {
 	}
 
 	listen(sockfd, 64);
-	return sockfd;
+    return sockfd;
 }
 
 void serialHandler(int socketfd, void *(*handler)(void *)) {
@@ -94,7 +95,6 @@ void serialHandler(int socketfd, void *(*handler)(void *)) {
 
 	while (1) {
 
-		write(1, WAIT_CLIENT, strlen(WAIT_CLIENT));
 
 		int newsock = accept(socketfd, (void *) &c_addr, &c_len);
 		if (newsock < 0) {

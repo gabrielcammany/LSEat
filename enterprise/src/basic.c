@@ -3,7 +3,7 @@
 //
 
 #include "../include/basic.h"
-
+#include "../../lib/include/network.h"
 
 void basic_freeMemory() {
 
@@ -32,7 +32,7 @@ int basic_readPorts(int fd, int *portNumber) {
 }
 
 int basic_readConfigEnterprise(char *fitxer, char *menu, Enterprise *enterprise) {
-    int fd = 0, fd2 = 0, i = 0;
+    int fd = 0, i = 0;
     int error = 0;
 
     fd = openFile(fitxer, 1);
@@ -79,21 +79,28 @@ int basic_readConfigEnterprise(char *fitxer, char *menu, Enterprise *enterprise)
         close(fd);
         return EXIT_FAILURE;
     }
+    close(fd);
+
+    //Show welcome message
+    write (1, WELCOME, strlen(WELCOME));
+    write (1, enterprise->restaurant.name, strlen(enterprise->restaurant.name));
+    write (1, "\n\0", sizeof(char)*2);
 
     //Now its time for the menu structure
-    fd2 = openFile(menu, 1);
+    fd = openFile(menu, 1);
     enterprise->menu = (Dish*) malloc (sizeof(Dish));
 
     //because this functions returns the number of bytes we read
     //we can know when its end of file
-    while( readDynamic(&enterprise->menu[i].name, fd2) > 0 ) {
-        basic_readPorts(fd2, &enterprise->menu[i].unities);
-        basic_readPorts(fd2, &enterprise->menu[i].price);
+    while( readDynamic(&enterprise->menu[i].name, fd) > 0 ) {
+        basic_readPorts(fd, &enterprise->menu[i].unities);
+        basic_readPorts(fd, &enterprise->menu[i].price);
         i++;
         enterprise->menu = (Dish*) realloc (enterprise->menu, sizeof(Dish)*(i+1));
     }
+
+    write(1, MENU_READY, strlen(MENU_READY));
     enterprise->num_menu = i;
-    close(fd2);
     close(fd);
 
     return error;

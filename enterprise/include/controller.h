@@ -10,7 +10,8 @@
 
 //Includes propios
 #include "basic.h"
-
+#include "../../lib/include/network.h"
+#include "../../lib/include/utils.h"
 
 /**
  * Error constants
@@ -20,12 +21,8 @@
 #define ERR_ARGS "Error: falta especificar els arxius!\n"
 #define ERR_FILE "\nS'ha produit un error al obrir el fitxer!\n"
 
-/**
- * General Constants
- */
-#define BYE "Tancant restaurant...\n"
-
-int sockfd;
+int socketData;
+int socketPic;
 
 /**
  * Function that reads enterprise configuration

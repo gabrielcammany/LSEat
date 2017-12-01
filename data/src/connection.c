@@ -21,6 +21,14 @@ void addEnterprise() {
 
 
 void *connection_handlerEnterprise(void *arg) {
+    Packet packet;
+    int socket = *((int*)arg);
+    packet = extractIncomingFrame(socket);
+    printf("Packet type: %c\n",packet.type);
+    printf("Packet header: %s\n",packet.header);
+    printf("Packet length: %d\n",packet.length);
+    printf("Packet data: %s\n",packet.data);
+    close(socket);
     return NULL;
 }
 
@@ -76,24 +84,25 @@ void *connection_handlerClient(void *arg) {
 }
 
 void *connection_clientListener(void *socket) {
+    write(1, WAIT_CLIENT, strlen(WAIT_CLIENT));
     serialHandler(socketPic, connection_handlerClient);
     return socket;
 }
 
 void dNetwork_executeData(int portE, int portP, char *ip) {
 
-    if ((socketPic = createConnectionServer(portP, ip)) > 0) {
+   /* if ((socketPic = createConnectionServer(portP, ip)) > 0) {
         pthread_t thread_id;
         if (pthread_create(&thread_id, NULL, connection_clientListener, NULL) < 0) {
             perror("could not create thread");
             close(socketPic);
         }
 
-    }
+    }*/
 
 
-    if((socketEnt = createConnectionServer(portE, ip) > 0)) {
-
+    //We listen enterprise port
+    if((socketEnt = createConnectionServer(portE, ip)) > 0) {
         serialHandler(socketEnt, connection_handlerEnterprise);
     }
 

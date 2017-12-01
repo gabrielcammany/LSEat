@@ -28,10 +28,7 @@ char *connection_data(int port, char *ip, char *name) {
 			if (sendSerialized(socket, packet) > 0) {
 
 				packet = extractIncomingFrame(socket);
-                /*printf("PACKET TYPE: %c\n", packet.type);
-                printf("PACKET Header: %s\n", packet.header);
-                printf("PACKET Length: %d\n", packet.length);
-                printf("PACKET data: %s\n", packet.data);*/
+
 
                 analyseDataPacket(packet);
 

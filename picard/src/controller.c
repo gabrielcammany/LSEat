@@ -37,9 +37,9 @@ void control_executeCommand(Command command, ClientLSEat lseat) {
 	switch (command.id) {
 		case CMD_CONNECTA:
 			enterpriseData = connection_data(lseat.config.Port, lseat.config.IP, lseat.client.nom);
-			if (enterpriseData != NULL) {
+			/*if (enterpriseData != NULL) {
 				socketfd = connection_enterprise(enterpriseData,lseat.client.nom,lseat.client.saldo);
-			}
+			}*/
 			break;
 		case CMD_MENU:
 			break;

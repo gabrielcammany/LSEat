@@ -48,9 +48,17 @@ Enterprise enterprise;
  */
 
 #define ERR_IP "ERROR en llegir la configuració IP\n"
-#define ERR_PORT "ERROR en llegir la configuració del port\n"
 #define ERR_ENTNAME "ERROR en llegir el nom de l'enterprise\n"
 #define ERR_SEC "ERROR en llegir la configuració IP\n"
+
+
+/**
+ * General Constants
+ */
+#define BYE "Tancant restaurant...\n"
+#define WELCOME "Benvingut al restaurant "
+#define MENU_READY "Carregat Menu!\n"
+
 
 /**
  * Funcion encargada de borrar la memoria dinamica
