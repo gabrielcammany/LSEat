@@ -78,6 +78,6 @@ int basic_readConfigEnterprise(char *fitxer, char *menu, Enterprise *enterprise)
  * Function that initializes all variables
  * @param enterprise structure with all information
  */
-void basic_startValues(Enterprise *enterprise);
+//void basic_startValues(Enterprise *enterprise);
 
     #endif //LSEAT_BASIC_H

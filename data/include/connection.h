@@ -13,7 +13,6 @@
 
 #define CONNECTING "Connectant "
 #define DISCONNECTING "Desconnectant "
-#define ERR_CLIENT "Error en la connexió de "
 
 /**
  * Structure to save information of Enterprise
@@ -27,13 +26,12 @@ typedef struct{
 	char numberClients;
 }Enterprise;
 
-Enterprise *enterprise;
+Enterprise enterprise;
 
 int socketPic, socketEnt;
 
-void addEnterprise();
+Enterprise extractInfoEnterprise(Packet packet);
 
 void dNetwork_executeData(int portE, int portP, char* ip);
 
-void sendConnexionKOPacket(int socket);
 #endif //LSEAT_CONNECTION_H

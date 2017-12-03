@@ -42,7 +42,16 @@
 #define CONNECTION_ENT "[Connexió amb Enterprise OK]\n"
 #define CONNECTION_NENT "[Connexió amb Enterprise KO]\n"
 
+typedef struct{
+    char* ip;
+    char* name;
+    int port;
+    char numberClients;
+}Enterprise;
 
+Enterprise enterprise;
+
+int socketfd;
 /**
  * Function to make the first connection with Data
  * @param socket
@@ -92,6 +101,8 @@ void sendConnexionKOPacket(int socket);
  * @return
  */
 int analyseDataPacket(Packet packet);
+
+Enterprise extractInfoEnterprise(Packet packet);
 
 
 #endif

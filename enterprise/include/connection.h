@@ -7,12 +7,19 @@
 
 #include "controller.h"
 
-#define ENT_INF "[ENT_INF]"
-#define CONNECT 1
+#include <pthread.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#define ERR_CONNECTION "Hi ha hagut un problema de connexio amb Data!\n"
 
 
-void connection_executeEnterprise();
+void connection_executeEnterpriseClient();
 
-void *connection_handlerData();
+void connection_createConnectionPicards();
+
+void sendInfoData();
+
+void *connection_Picard();
 
 #endif //LSEAT_CONNECTION_H

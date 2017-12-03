@@ -39,7 +39,6 @@ typedef struct {
 } ClientLSEat;
 
 
-int socketfd;
 ClientLSEat lseat;
 
 

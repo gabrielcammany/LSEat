@@ -5,30 +5,23 @@
 #include <signal.h>
 #include "../include/connection.h"
 
-void addEnterprise() {
+void *connection_handlerEnterprise(void *arg) {
+    Packet packet, response;
+    int socket = *((int *) arg);
+    packet = extractIncomingFrame(socket);
 
-    enterprise = (Enterprise *) malloc(sizeof(Enterprise));
-    if (enterprise == NULL) {
-        exit(EXIT_FAILURE);
+    if (packet.type == '1' && (strcmp(packet.header, HEADER_DATPIC) == 0) && packet.length > 0) {
+        enterprise = extractInfoEnterprise(packet);
+        sendConnexionOKPacket(socket);
+        close(socket);
+        //response = createPacket(CONNECT, HEADER_CON, (unsigned short) 0, "\0");
+    } else {
+        sendConnexionKOPacket(socket);
+       // response = createPacket(CONNECT, HEADER_NCON, (unsigned short) 0, "\0");
     }
 
-    enterprise->port = 8063;
-    enterprise->ip = "127.0.1.1";
-    enterprise->numberClients = 0;
-    enterprise->name = "Prova";
+   // sendSerialized(socket, response);
 
-}
-
-
-void *connection_handlerEnterprise(void *arg) {
-    Packet packet;
-    int socket = *((int*)arg);
-    packet = extractIncomingFrame(socket);
-    printf("Packet type: %c\n",packet.type);
-    printf("Packet header: %s\n",packet.header);
-    printf("Packet length: %d\n",packet.length);
-    printf("Packet data: %s\n",packet.data);
-    close(socket);
     return NULL;
 }
 
@@ -53,8 +46,8 @@ void *connection_handlerClient(void *arg) {
     write(1, "\n\0", sizeof(char) * 2);
 
     //We create the buffer that will be the data in response to the client
-    sprintf(convert, "%d", enterprise->port);
-    buffer = createBuffer(3, enterprise->name, convert, enterprise->ip);
+    sprintf(convert, "%d", enterprise.port);
+    buffer = createBuffer(3, enterprise.name, convert, enterprise.ip);
 
     //In case we are not able to create the buffer we close everything
     if (buffer == NULL) {
@@ -91,33 +84,53 @@ void *connection_clientListener(void *socket) {
 
 void dNetwork_executeData(int portE, int portP, char *ip) {
 
-   /* if ((socketPic = createConnectionServer(portP, ip)) > 0) {
-        pthread_t thread_id;
-        if (pthread_create(&thread_id, NULL, connection_clientListener, NULL) < 0) {
-            perror("could not create thread");
-            close(socketPic);
-        }
+     if ((socketPic = createConnectionServer(portP, ip)) > 0) {
+         pthread_t thread_id;
+         if (pthread_create(&thread_id, NULL, connection_clientListener, NULL) < 0) {
+             perror("could not create thread");
+             close(socketPic);
+         }
 
-    }*/
-
+     }
 
     //We listen enterprise port
-    if((socketEnt = createConnectionServer(portE, ip)) > 0) {
+    if ((socketEnt = createConnectionServer(portE, ip)) > 0) {
         serialHandler(socketEnt, connection_handlerEnterprise);
     }
-
-    while (1) {}
-
-    //kill(getpid(),SIGUSR1);
 }
 
-void sendConnexionKOPacket(int socket) {
-    Packet aux;
-    //if not we send the KO packet to the client
-    aux = createPacket(CONNECT, HEADER_NCON, (unsigned short) 0,"\0");
-    sendSerialized(socket, aux);
-    write(1, ERR_CLIENT, strlen(ERR_CLIENT));
-    write(1, '\0', sizeof(char));
-    close(socket);
 
+
+Enterprise extractInfoEnterprise(Packet packet) {
+    char *port;
+    int i = 0, j = 0;
+    Enterprise enterprise;
+
+    enterprise.name = (char *) malloc(sizeof(char));
+
+    while (packet.data[i] != '&' && i < packet.length) {
+        enterprise.name[i] = packet.data[i];
+        i++;
+        enterprise.name = (char *) realloc(enterprise.name, sizeof(char) * (i + 1));
+    }
+    i++;
+    port = (char *) malloc(sizeof(char));
+
+    while (packet.data[i] != '&' && i < packet.length) {
+        port[j] = packet.data[i];
+        i++;j++;
+        port = (char *) realloc(port, sizeof(char) * (j + 1));
+    }
+
+    enterprise.port = atoi(port);
+    i++;
+    j=0;
+    enterprise.ip = (char *) malloc(sizeof(char));
+    while (packet.data[i] != '&' && i < packet.length) {
+        enterprise.ip[j] = packet.data[i];
+        i++;j++;
+        enterprise.ip = (char *) realloc(enterprise.ip, sizeof(char) * (j + 1));
+    }
+
+    return enterprise;
 }

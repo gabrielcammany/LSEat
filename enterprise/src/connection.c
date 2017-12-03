@@ -4,33 +4,66 @@
 
 #include "../include/connection.h"
 
-void *connection_handlerData(){
+void sendInfoData() {
     //int socket = *((int*)arg);
-    Packet packet;
-    char *buffer = NULL;
+    Packet packet, response;
+    char *buffer = NULL, convert[10];
+    while (1) {
+        if ((socketData = createConnectionClient(enterprise.data.port, enterprise.data.ip)) > 0) {
+            sprintf(convert, "%d", enterprise.picard.port);
+            buffer = createBuffer(3, enterprise.restaurant.name, convert, enterprise.picard.ip);
+            packet = createPacket(CONNECT, HEADER_DATPIC, (unsigned short) strlen(buffer), buffer);
+            sendSerialized(socketData, packet);
+            response = extractIncomingFrame(socketData);
 
-    while(1){
-        buffer = createBuffer(3,enterprise.restaurant.name,enterprise.picard.port,enterprise.picard.ip);
-        packet = createPacket(CONNECT,ENT_INF,(unsigned short) strlen(buffer), buffer);
-        sendSerialized(socketData,packet);
-        alarm(enterprise.restaurant.seconds);
-        pause();
+            if (response.type == '1') {
+                close(socketData);
+                sleep(enterprise.restaurant.seconds);
+                //pause();
+            } else {
+                if (buffer != NULL) {
+                    free(buffer);
+                }
+                exit(EXIT_FAILURE);
+                close(socketData);
+
+            }
+        }
     }
-
     //Faltaria tancar el socket.
 }
 
-void *connection_dataListener(void *socket) {
-    serialHandler(socketPic, connection_handlerData);
-    return socket;
+void *connection_dataListener(void *arg) {
+   // alarm(enterprise.restaurant.seconds);
+    sendInfoData();
+    return arg;
 }
 
-void connection_executeEnterprise(){
-    if((socketData = createConnectionClient(enterprise.data.port,enterprise.data.ip)) > 0){
-        pthread_t thread_id;
-        if (pthread_create(&thread_id, NULL, connection_dataListener, NULL) < 0) {
-            perror("could not create thread");
-            close(socketPic);
-        }
+void connection_executeEnterpriseClient() {
+    int error = 0;
+
+    pthread_t thread_id;
+    error = pthread_create(&thread_id, NULL, connection_dataListener, NULL);
+    if (error != 0) {
+        perror("could not create thread");
+        close(socketData);
     }
+}
+
+void *connection_Picard(void *arg){
+    Packet packet;
+    int socket = *((int*)arg);
+    packet = extractIncomingFrame(socket);
+    if(packet.type == '1' && (strcmp(packet.header,HEADER_PICINF) == 0) && packet.length >0){
+        sendConnexionOKPacket(socket);
+    }else{
+        sendConnexionKOPacket(socket);
+    }
+
+    return NULL;
+}
+
+void connection_createConnectionPicards() {
+    parallelHandler(enterprise.picard.port, enterprise.picard.ip,connection_Picard/*,NULL*/);
+
 }

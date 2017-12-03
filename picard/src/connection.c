@@ -6,16 +6,17 @@
 
 
 char *connection_data(int port, char *ip, char *name) {
-	int socket;
+	//int socketfd;
 	Packet packet;
 
 	packet.data = NULL;
 
 	write(1, CONNECTING, strlen(CONNECTING));
-	//Returns the socket of the client with one of the servers
-	socket = createConnectionClient(port, ip);
 
-	if (socket < 0) {
+	//Returns the socketfd of the client with one of the servers
+	socketfd = createConnectionClient(port, ip);
+
+	if (socketfd < 0) {
 
 		write(1, ERR_CONN, strlen(ERR_CONN));
 
@@ -25,28 +26,16 @@ char *connection_data(int port, char *ip, char *name) {
 
 		if (packet.type > 0) {
 
-			if (sendSerialized(socket, packet) > 0) {
-
-				packet = extractIncomingFrame(socket);
-
-
+			if (sendSerialized(socketfd, packet) > 0) {
+				packet = extractIncomingFrame(socketfd);
                 analyseDataPacket(packet);
 
-                /*if (packet.type == 1 && !strcmp(packet.header, HEADER_DATPIC)) {
-
-					write(1, CONNECTION_DATA, strlen(CONNECTION_DATA));
-
-				} else {
-
-					write(1, CONNECTION_NDATA, strlen(CONNECTION_NDATA));
-
-				}*/
 			}
 
 		}
 	}
 
-	close(socket);
+	close(socketfd);
 
 	return packet.data;
 }
@@ -95,14 +84,14 @@ void extractEnterpriseData(char *data, char **nom, int *port, char **ip) {
 int connection_enterprise(char *data, char *nameUser, int saldo) {
 
 	char *ip = NULL, *nameEnterprise = NULL, *userData = NULL, money[10];
-	int port, socket = -1;
+	int port; //socketfd = -1;
 
 	extractEnterpriseData(data, &nameEnterprise, &port, &ip);
 
 	if (nameEnterprise != NULL && ip != NULL && port > 0) {
-		socket = createConnectionClient(port, ip);
+		socketfd = createConnectionClient(port, ip);
 
-		if (socket < 0) {
+		if (socketfd < 0) {
 			write(1, ERR_CONN, strlen(ERR_CONN));
 		} else {
 
@@ -116,17 +105,17 @@ int connection_enterprise(char *data, char *nameUser, int saldo) {
 
 				if (packet.type > 0) {
 
-					sendSerialized(socket, packet);
+					sendSerialized(socketfd, packet);
 
-					if (readSimpleResponse(socket) > 0) {
+					if (readSimpleResponse(socketfd) > 0) {
 
-						write(0, CONNECTION_ENT, strlen(CONNECTION_ENT));
+						write(1, CONNECTION_ENT, strlen(CONNECTION_ENT));
 
 					} else {
 
-						write(0, CONNECTION_NENT, strlen(CONNECTION_NENT));
-						close(socket);
-						socket = -1;
+						write(1, CONNECTION_NENT, strlen(CONNECTION_NENT));
+						close(socketfd);
+						socketfd = -1;
 					}
 
 				}
@@ -142,7 +131,7 @@ int connection_enterprise(char *data, char *nameUser, int saldo) {
 	}
 
 	free(userData);
-	return socket;
+	return socketfd;
 }
 
 int analyseDataPacket(Packet packet){
@@ -155,7 +144,6 @@ int analyseDataPacket(Packet packet){
 
             } else {
                 write(1, CONNECTION_DATA, strlen(CONNECTION_DATA));
-
             }
             break;
         default:
@@ -163,4 +151,38 @@ int analyseDataPacket(Packet packet){
     }
 
     return 0;
+}
+
+Enterprise extractInfoEnterprise(Packet packet) {
+	char *port;
+	int i = 0, j = 0;
+	Enterprise enterprise;
+
+	enterprise.name = (char *) malloc(sizeof(char));
+
+	while (packet.data[i] != '&' && i < packet.length) {
+		enterprise.name[i] = packet.data[i];
+		i++;
+		enterprise.name = (char *) realloc(enterprise.name, sizeof(char) * (i + 1));
+	}
+	i++;
+	port = (char *) malloc(sizeof(char));
+
+	while (packet.data[i] != '&' && i < packet.length) {
+		port[j] = packet.data[i];
+		i++;j++;
+		port = (char *) realloc(port, sizeof(char) * (j + 1));
+	}
+
+	enterprise.port = atoi(port);
+	i++;
+	j=0;
+	enterprise.ip = (char *) malloc(sizeof(char));
+	while (packet.data[i] != '&' && i < packet.length) {
+		enterprise.ip[j] = packet.data[i];
+		i++;j++;
+		enterprise.ip = (char *) realloc(enterprise.ip, sizeof(char) * (j + 1));
+	}
+
+	return enterprise;
 }

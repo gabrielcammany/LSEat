@@ -26,8 +26,6 @@ int main (int argc, char *argv[])
     }
 
 
-	addEnterprise();
-
     write(1, EXE, strlen(EXE));
 
 	dNetwork_executeData(data.enterprisePort, data.picardPort, data.ip);

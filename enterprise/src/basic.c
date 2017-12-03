@@ -10,9 +10,9 @@ void basic_freeMemory() {
 
 }
 
-void basic_startValues(Enterprise *enterprise) {
+/*void basic_startValues(Enterprise *enterprise) {
 
-}
+}*/
 
 int basic_readPorts(int fd, int *portNumber) {
     int error = 0;

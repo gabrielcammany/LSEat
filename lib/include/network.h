@@ -47,6 +47,11 @@ typedef struct {
 #define DISCONNECT_KO "1[CONKO]1\0"
 
 /**
+ * Errors Connection
+ */
+#define ERR_CLIENT "Error en la connexió de "
+
+/**
  * Types
  */
 
@@ -123,7 +128,7 @@ int createConnectionServer(int portInput, char *ipInput);
 
 void serialHandler(int socketfd, void *(*handler)(void *));
 
-void parallelHandler(int port, char *ip, void *(*handler)(void *), void *arg);
+void parallelHandler(int port, char *ip, void *(*handler)(void *)/*, void *arg*/);
 
 /**
  * Sned serialized packet to server
@@ -146,5 +151,8 @@ Packet createPacket(int type, char *header, unsigned short length, char *data);
 int readSimpleResponse(int socket);
 
 Packet extractIncomingFrame(int socket);
+
+void sendConnexionKOPacket(int socket);
+void sendConnexionOKPacket(int socket);
 
 #endif

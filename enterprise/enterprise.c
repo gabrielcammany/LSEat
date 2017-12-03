@@ -16,6 +16,7 @@
 int main (int argc, char *argv[])
 {
     signal(SIGINT, dControl_signalHandler);
+    signal(SIGALRM,dControl_signalHandler);
 
     if (argc != 3)
     {
@@ -28,8 +29,9 @@ int main (int argc, char *argv[])
         return(EXIT_FAILURE);
     }
 
-    connection_executeEnterprise();
+    connection_executeEnterpriseClient();
 
+    connection_createConnectionPicards();
 
     return EXIT_SUCCESS;
 }

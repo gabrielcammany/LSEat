@@ -6,11 +6,12 @@
 #include "../include/connection.h"
 
 void dControl_signalHandler(int signum) {
+    char convert[10];
 
     switch (signum) {
         case SIGINT:
             close(socketData);
-            //close(socketPic);
+            close(socketPic);
 
             //basic_freeMemory(&enterprise);
 
@@ -20,8 +21,13 @@ void dControl_signalHandler(int signum) {
             exit(EXIT_SUCCESS);
             break;
         case SIGALRM:
+            printf("SEGONS: %d\n",enterprise.restaurant.seconds);
+            write(1,"Han pasat ",strlen("Han pasat "));
+            sprintf(convert,"%d",enterprise.restaurant.seconds);
+            write(1,convert, sizeof(char));
+            write(1," segons\n", strlen(" segons\n"));
             alarm(enterprise.restaurant.seconds);
-            connection_handlerData();
+            sendInfoData();
             break;
         default:
             write(1, ERR_INT, strlen(ERR_INT));
