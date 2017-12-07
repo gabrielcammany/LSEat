@@ -11,12 +11,18 @@
 #ifndef socketUtils_H
 #define socketUtils_H
 
-//include propios
+//include system
 #include <pthread.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <memory.h>
+#include <errno.h>
+#include <stdlib.h>
+
+//own includes
 #include "utils.h"
+#include "../include/llista.h"
 
 //constantes propias
 #define ERR_PORT "Error: %d es un port invalid\n"
@@ -31,17 +37,6 @@
 #define TYPE_SIZE 1
 
 #define SIMPLE_PACKET_LENGTH (HEADER_SIZE+LENGTH_SIZE+TYPE_SIZE)
-
-/**
- * Structure where we are going to save data
- * to be able to comunicate between servers and clients
- */
-typedef struct {
-    char type;
-    char header[HEADER_SIZE];
-    unsigned short length;
-    char *data;
-} Packet;
 
 #define CONNECTION_KO "1[CONKO]\0\00\0"
 #define DISCONNECT_KO "1[CONKO]1\0"
@@ -68,13 +63,18 @@ typedef struct {
  * HEADERS
  */
 
-#define HEADER_CON "[CONOK]"
-#define HEADER_NCON "[CONKO]"
+
 
 #define HEADER_PICINF "[PIC_INF]"
 #define HEADER_PICDAT "[PIC_NAME]"
 #define HEADER_DATPIC "[ENT_INF]"
+#define MENU_PICENT "[SHW_MENU]"
+#define DEL_ORD "[DEL_ORD]"
+#define NEW_ORD "[NEW_ORD]"
+#define PAY_HEADER "[PAY]"
 
+#define HEADER_CON "[CONOK]"
+#define HEADER_NCON "[CONKO]"
 
 #define HEADER_ORD "[ORDOK]"
 #define HEADER_NORD "[ORDKO]"
@@ -111,6 +111,18 @@ typedef struct {
 
 #define PAY_ENTPIC 6,"[PAYOK]"
 #define NO_PAY_ENTPIC 6,"[PAYKO]",0,"\0"
+
+
+/**
+ * Structure where we are going to save data
+ * to be able to comunicate between servers and clients
+ */
+typedef struct {
+    char type;
+    char header[HEADER_SIZE];
+    unsigned short length;
+    char *data;
+} Packet;
 
 
 /**
@@ -152,7 +164,7 @@ int readSimpleResponse(int socket);
 
 Packet extractIncomingFrame(int socket);
 
-void sendConnexionKOPacket(int socket);
-void sendConnexionOKPacket(int socket);
+void sendConnexionKOPacket(int socket,int type);
+void sendConnexionOKPacket(int socket,int type);
 
 #endif

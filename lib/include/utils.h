@@ -56,6 +56,8 @@ char* toLower(char *input);
 
 char* createBuffer(int num, ...);
 
+void extractFromBuffer( char* buffer, int num, ...);
+
 char* deletePadding(char* input, int max);
 
 void debugSTRING(char *string);

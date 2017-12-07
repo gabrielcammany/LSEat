@@ -1,12 +1,18 @@
-//
-// Created by gabriel on 19/11/17.
-//
+/**
+ * @Author: Manel Manchón Gascó / Gabriel Cammany Ruiz
+ * @Date:   24-10-2017
+ * @Email:  ls31343@salleurl.edu ls30652@salleurl.edu
+ * @Project: Practica LSEat
+ * @Filename: basic.h
+ * @Last modified by:   Manel Manchón Gascó / Gabriel Cammany Ruiz
+ * @Last modified time: 27-10-2017
+ */
 
 #include "../include/basic.h"
 #include "../../lib/include/network.h"
 
 void basic_freeMemory() {
-
+    free(enterprise.data.ip);
 
 }
 

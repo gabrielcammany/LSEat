@@ -8,7 +8,7 @@
 
 LOGIN1 = ls31343
 LOGIN = ls30652
-FASE = 2
+FASE = 3
 
 CC = gcc
 COP =

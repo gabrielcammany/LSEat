@@ -7,17 +7,19 @@
  * @Last modified by:   Manel Manchón Gascó / Gabriel Cammany Ruiz
  * @Last modified time: 27-10-2017
  */
+
+
 #include "../include/interface.h"
 
 /**
  * This function checks the validity of the multi-argument command
- * @param input
- * @param index
+ * @param input data from
  * @return
  */
 Command interface_checkSpecialCommand(char *input) {
 	int total = 0, base = 0,num_plats = 0;
 	char *buffer = NULL;
+	char * token;
 	Command command;
 
 	total = getArrayString(input, ' ', &base);
@@ -77,8 +79,8 @@ Command interface_checkSpecialCommand(char *input) {
 				return command;
 
 			}
-
-			strcpy(command.data[0],buffer);
+			token = strtok(buffer," ");
+			strcpy(command.data[0],token);
 
 
 			if (getArrayString(input + total, '\0', &base) < 0) {
@@ -91,7 +93,17 @@ Command interface_checkSpecialCommand(char *input) {
 
 				base = base + total;
 
-				command.data[1] = (char *)malloc(strlen(input+base) * sizeof(char));
+				//command.data[1] = (char *)malloc(strlen(input+base) * sizeof(char));
+				token = strtok(input," ");
+				token = strtok(NULL, " ");
+				while( token != NULL){
+					command.data[1] = (char*) realloc (command.data[1],(int)strlen(token)+1);
+					strcat(command.data[1],token);
+					token = strtok(NULL, " ");
+					if(token != NULL)strcat(command.data[1]," ");
+				}
+				//command.data[strlen(command.data[1])] = "\0";
+				//printf("DATA: %s-\n",(command.data[1]));
 
 				if(command.data[1] == NULL){
 
@@ -156,7 +168,7 @@ Command interface_specialCommand(char *input) {
 			command = interface_checkSpecialCommand(input + nextObjective);
 			if (command.id != ERROR_CODE) {
 
-				command.id = 6;
+				command.id = CMD_ELIMINA;
 
 			}
 
@@ -165,7 +177,7 @@ Command interface_specialCommand(char *input) {
 			command = interface_checkSpecialCommand(input + nextObjective);
 			if (command.id != ERROR_CODE) {
 
-				command.id = 5;
+				command.id = CMD_DEMANA;
 
 			}
 		} else {

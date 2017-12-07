@@ -1,6 +1,4 @@
-#include <memory.h>
-#include <errno.h>
-#include <stdlib.h>
+
 #include "../include/network.h"
 
 int createConnectionClient(int portInput, char *ipInput) {
@@ -109,9 +107,8 @@ void serialHandler(int socketfd, void *(*handler)(void *)) {
 }
 
 void parallelHandler(int port, char *ip, void *(*handler)(void *)/*, void *arg*/) {
-    char *buff = NULL;
+    //char *buff = NULL;
     int sockfd;
-
     if (ip != NULL) {
         sockfd = createConnectionServer(port, ip);
     } else {
@@ -130,10 +127,9 @@ void parallelHandler(int port, char *ip, void *(*handler)(void *)/*, void *arg*/
             exit(EXIT_FAILURE);
         }
 
-        buff = (char *) malloc(sizeof(char) * strlen(MSG_NEW) + 25);
+        /*buff = (char *) malloc(sizeof(char) * strlen(MSG_NEW) + 25);
         sprintf(buff, MSG_NEW, inet_ntoa(c_addr.sin_addr), ntohs(c_addr.sin_port));
-        write(1, buff, strlen(buff));
-
+        write(1, buff, strlen(buff));*/
 
         if (pthread_create(&thread_id, NULL, handler, &newsock) < 0) {
             perror("could not create thread");
@@ -224,33 +220,35 @@ int readSimpleResponse(int socket) {
     char header[HEADER_SIZE], type;
 
     read(socket, &type, sizeof(char));
-
     switch (type) {
-        case CONNECT || DISCONNECT:
+        case '1':
             read(socket, header, HEADER_SIZE * sizeof(char));
-
-            return (strcmp(header, HEADER_CON) == 0);
-        case MENU:
+            if((strcmp(header, HEADER_CON) == 0)){
+                return 1;
+            }else{
+                return 0;
+            }
+        case '2':
 
             read(socket, header, HEADER_SIZE * sizeof(char));
 
             return (strcmp(header, HEADER_ENDMENU) == 0);
-        case DISH:
+        case '3':
 
             read(socket, header, HEADER_SIZE * sizeof(char));
 
             return (strcmp(header, HEADER_ORD) == 0);
-        case DEL_DISH:
+        case '5':
 
             read(socket, header, HEADER_SIZE * sizeof(char));
 
             return (strcmp(header, HEADER_ORD) == 0);
-        case PAY:
+        case '6':
 
             read(socket, header, HEADER_SIZE * sizeof(char));
 
             return (strcmp(header, HEADER_PAY) == 0);
-        case UPDATE:
+        case '7':
 
             read(socket, header, HEADER_SIZE * sizeof(char));
 
@@ -304,21 +302,19 @@ Packet extractIncomingFrame(int socket) {
 
 }
 
-void sendConnexionKOPacket(int socket) {
+void sendConnexionKOPacket(int socket,int type) {
     Packet aux;
     //if not we send the KO packet to the client
-    aux = createPacket(CONNECT, HEADER_NCON, (unsigned short) 0, "\0");
+    aux = createPacket(type, HEADER_NCON, (unsigned short) 0, "\0");
     sendSerialized(socket, aux);
-    write(1, ERR_CLIENT, strlen(ERR_CLIENT));
-    write(1, '\0', sizeof(char));
     close(socket);
 
 }
 
-void sendConnexionOKPacket(int socket) {
+void sendConnexionOKPacket(int socket, int type) {
     Packet aux;
-    //if not we send the KO packet to the client
-    aux = createPacket(CONNECT, HEADER_CON, (unsigned short) 0, "\0");
+    //if not we send the OK packet to the client
+    aux = createPacket(type, HEADER_CON, (unsigned short) 0, "\0");
     sendSerialized(socket, aux);
     /*write(1, ERR_CLIENT, strlen(ERR_CLIENT));
     write(1, '\0', sizeof(char));

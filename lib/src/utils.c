@@ -140,6 +140,23 @@ char *createBuffer(int num, ...) {
 
 }
 
+void extractFromBuffer(char* buffer, int num,  ...){
+    char **aux = NULL, *token;
+
+    va_list a_list;
+    va_start(a_list, num);
+    token = strtok(buffer,"&");
+
+    while(token != NULL){
+        aux = va_arg(a_list, char **);
+        *aux = (char*)malloc(sizeof(char) * strlen(token));
+        strcpy(*aux,token);
+        token = strtok(NULL,"&");
+    }
+
+    va_end(a_list);
+}
+
 void debugSTRING(char *string) {
     char cadena[100];
 

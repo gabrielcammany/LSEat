@@ -26,16 +26,24 @@
 #define COMMANDA_OK "[Comanda OK]\n"
 #define COMMANDA_KO "Comanda no reconeguda\n"
 
+//Error constants
 #define ERR_NUM "Hi ha un error en el numero d'unitats\n"
 #define ERR_PLAT "Hi ha un error en el nom del plat\n"
 #define ERR_MEMORY "Hi ha un problema amb la memoria del sistema.\n"
 
+//constants that identifies the command
+#define CMD_DISCONNECT  0
 #define CMD_CONNECTA    1
 #define CMD_MENU        2
-#define CMD_DEMANA      4
 #define CMD_PAGAR       3
-#define CMD_DISCONNECT  0
+#define CMD_DEMANA      4
+#define CMD_ELIMINA		5
 
+/**
+ *Srtruct to save command information
+ * ID: identifies the command
+ * data: command information
+ */
 typedef struct {
 	char id;
 	char **data;

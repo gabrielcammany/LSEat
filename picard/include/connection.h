@@ -1,10 +1,17 @@
-//
-// Created by gabriel on 19/11/17.
-//
+/**
+ * @Author: Manel Manchón Gascó / Gabriel Cammany Ruiz
+ * @Date:   24-10-2017
+ * @Email:  ls31343@salleurl.edu ls30652@salleurl.edu
+ * @Project: Practica LSEat
+ * @Filename: connection.h
+ * @Last modified by:   Manel Manchón Gascó / Gabriel Cammany Ruiz
+ * @Last modified time: 27-10-2017
+ */
 
 #ifndef LSEAT_NETWORK_H
 #define LSEAT_NETWORK_H
 
+//system includes
 #include <termio.h>
 #include <unistd.h>
 #include <signal.h>
@@ -12,36 +19,48 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+//own includes
 #include "../../lib/include/network.h"
 
+//constants to make user know if there is any error
 #define ERR_ARG "Error en el nombre d'arguments!\n"
-#define WELCOME "BENVINGUT %s\n"
-#define SALDO "Té %d euros disponibles\n"
 #define ERR_INT "Interrupció desconeguda!\n"
-
-#define ERR_NUM "Hi ha un error en el numero d'unitats\n"
-#define ERR_PLAT "Hi ha un error en el nom del plat\n"
-
-#define BYE "Gràcies per fer servir LsEat. Fins la propera.\n"
 #define ERR_MEMORY "Hi ha un problema amb la memoria del sistema.\n"
 #define ERR_CONN "No s'ha pogut establir connexió!\n"
 #define ERR_DATA "Problema amb l'informació rebuda\n"
+#define ERR_NUM "Hi ha un error en el numero d'unitats\n"
+#define ERR_PLAT "Hi ha un error en el nom del plat\n"
+
+//constants to inform the user
+#define SALDO "Té %d euros disponibles\n"
+#define BYE "Gràcies per fer servir LsEat. Fins la propera.\n"
+#define WELCOME "BENVINGUT %s\n"
+
 
 /**
- * PICARD
+ * PICARD (used?)
  */
-#define DISCONNECT_PICENT 2,"[PIC_NAME]"
-#define MENU_PICENT 3,"[SHW_MENU]",0,"\0"
-#define DISH_PICENT 4,"[NEW_ORD"
-#define DELDISH_PICENT 5,"[DEL_ORD]"
-#define PAY_PICENT 6,"[PAY]",0,"\0"
+//#define DISCONNECT_PICENT 2,"[PIC_NAME]"
+//#define DISH_PICENT 4,"[NEW_ORD"
+//#define DELDISH_PICENT 5,"[DEL_ORD]"
+//#define PAY_PICENT 6,"[PAY]",0,"\0"
 
+//constants from connections of picard
 #define CONNECTING "Connectant amb LsEat...\n"
 #define CONNECTION_DATA "[Connexió amb Data OK]\n"
 #define CONNECTION_NDATA "[Connexió amb Data KO]\n"
 #define CONNECTION_ENT "[Connexió amb Enterprise OK]\n"
 #define CONNECTION_NENT "[Connexió amb Enterprise KO]\n"
+#define DESCONNECTING_OK "[Desconnecta Enterprise OK]"
+#define DESCONNECTING_KO "[Desconnecta Enterprise KO]"
 
+/**
+ * Typo to save all information of the enterprise that is connected
+ * IP: IP from enterprise where picard will be connected
+ * Name: Enterprise Name
+ * Port: interface through which we will comunicate with enterprise
+ * NumberOfClients: just in case we have to know how many clients
+ */
 typedef struct{
     char* ip;
     char* name;
@@ -49,60 +68,87 @@ typedef struct{
     char numberClients;
 }Enterprise;
 
-Enterprise enterprise;
+/*
+ * GLOBAL VARIABLES
+ */
 
-int socketfd;
+Enterprise enterprise;
+int socketfd; //File descriptor through which we will first communicate to data and then enterprise
+
+/*
+ *  OWN FUNCTIONS
+ */
+
 /**
- * Function to make the first connection with Data
- * @param socket
- * @param lsEat
- * @return
+ * Function to send information to Data
+ * @param socket file descriptor through which we will be sending data
+ * @return if everything goes well returns EXIT_SUCCESS, EXIT_FAILURE if not
  */
 int connection_sendInfoData(int socket);
 
-
 /**
- * Function though which we will make connection with data
- * @param lsEat st
- * @param configFile
- * @return
+ * Function through which we will make connection with data
+ * @param port  interface where we are going to connect
+ * @param ip    address where we are going to connect
+ * @param name  name of the Picard
+ * @return      information that Data gave us
  */
-
 char * connection_data(int port, char *ip, char *name);
 
 /**
- *
- * @param data
- * @param nom
- * @param saldo
- * @return
+ * Function to connect to enterprise with
+ * the information data returned
+ * @param data information of Data Server
+ * @param nom Picard's name
+ * @param saldo money left
+ * @return If everything OK the EXIT_SUCCESS, EXIT_FAILURE if not
  */
-
 int connection_enterprise(char* data,char* nom,int saldo);
 
 /**
- *
- * @param packet
- * @return
+ * Function that given a packet, switch the type of the packet
+ * and decides what to do
+ * @param packet frame's information saved in struct
+ * @return if everything is ok returns 0, 1 if not
  */
-
 int analyseDataPacket(Packet packet);
-
- /**
-  *
-  * @param socket
-  */
-
-void sendConnexionKOPacket(int socket);
 
 /**
- *
- * @param packet
+ * Function to extract the information coming from Data
+ * that contains the enterprise
+ * @param packet struct with frames information
  * @return
  */
-int analyseDataPacket(Packet packet);
-
 Enterprise extractInfoEnterprise(Packet packet);
+void extractEnterpriseData(char *data, char **nom, int *port, char **ip);
 
+/**
+ * Function that sends to Enterprise a
+ * request to get the menu
+ */
+void connection_requestMenuEnterprise();
+
+/**
+ * Function that tells the Enterprise to delete a dish.
+ * @param data number of dishes and the dish name
+ */
+void connection_deleteDishMenu(char **data);
+
+/**
+ * Function to tell the Enterprise the Picard wants to pay
+ */
+void connection_payEnterprise();
+
+/**
+ * Function to tell the Enterprise you want a dish
+ * @param data number of dishes and dish name
+ */
+void connection_takeNoteEnterprise(char **data);
+
+/**
+ * You disconnect from the Enterprise
+ * @param nom Picards name who wants to disconnect
+ */
+void connection_disconnectEnterprise(char *nom);
 
 #endif

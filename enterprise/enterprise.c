@@ -1,7 +1,11 @@
-
 /**
- * Gabriel Cammany Ruiz - Manel Manchon Gasco
- * ls30652 - ls31343
+ * @Author: Manel Manchón Gascó / Gabriel Cammany Ruiz
+ * @Date:   24-10-2017
+ * @Email:  ls31343@salleurl.edu ls30652@salleurl.edu
+ * @Project: Practica LSEat
+ * @Filename: client.c
+ * @Last modified by:   Manel Manchón Gascó / Gabriel Cammany Ruiz
+ * @Last modified time: 27-10-2017
  */
 
 //System includes
@@ -30,6 +34,8 @@ int main (int argc, char *argv[])
     }
 
     connection_executeEnterpriseClient();
+
+    picards = LLISTA_crea();
 
     connection_createConnectionPicards();
 

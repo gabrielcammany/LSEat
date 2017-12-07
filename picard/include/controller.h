@@ -1,44 +1,63 @@
-//
-// Created by gabriel on 19/11/17.
-//
+/**
+ * @Author: Manel Manchón Gascó / Gabriel Cammany Ruiz
+ * @Date:   24-10-2017
+ * @Email:  ls31343@salleurl.edu ls30652@salleurl.edu
+ * @Project: Practica LSEat
+ * @Filename: client.c
+ * @Last modified by:   Manel Manchón Gascó / Gabriel Cammany Ruiz
+ * @Last modified time: 27-10-2017
+ */
 
 #ifndef LSEAT_CONTROLLER_H
 #define LSEAT_CONTROLLER_H
 
-
+//own includes
 #include "interface.h"
 #include "connection.h"
 
-
+//Constants to inform of an error happening
 #define ERR_ARG "Error en el nombre d'arguments!\n"
-#define WELCOME "BENVINGUT %s\n"
-#define SALDO "Té %d euros disponibles\n"
+#define ERR_MEMORY "Hi ha un problema amb la memoria del sistema.\n"
+#define ERR_CONN "No s'ha pogut establir connexió!\n"
 #define ERR_INT "Interrupció desconeguda!\n"
-#define INTRODUCTION "Introdueixi comandes...\n"
-
 #define ERR_NUM "Hi ha un error en el numero d'unitats\n"
 #define ERR_PLAT "Hi ha un error en el nom del plat\n"
 
+//constants to inform user
+#define WELCOME "BENVINGUT %s\n"
+#define SALDO "Té %d euros disponibles\n"
+#define INTRODUCTION "Introdueixi comandes...\n"
 #define BYE "Gràcies per fer servir LsEat. Fins la propera.\n"
-#define ERR_MEMORY "Hi ha un problema amb la memoria del sistema.\n"
-#define ERR_CONN "No s'ha pogut establir connexió!\n"
 
+/**
+ * Typo to save the information of the Picard
+ * Saldo: money left
+ * nom: Picard's name
+ */
 typedef struct {
 	int saldo;
 	char *nom;
 } Client;
 
+/**
+ * Typo for the Data configuration
+ * IP: Address where we are going to connect to talk to Data
+ * Port: interface where Data will be listening
+ */
 typedef struct {
 	char *IP;
 	int Port;
 } Config;
 
+/**
+ * General typo that contains the 2 typos above
+ */
 typedef struct {
 	Config config;
 	Client client;
 } ClientLSEat;
 
-
+//variable
 ClientLSEat lseat;
 
 
@@ -48,18 +67,26 @@ ClientLSEat lseat;
  */
 void control_signalHandler(int signum);
 
-
-void control_executeCommand(Command command, ClientLSEat lseat);
+/**
+ * Function that switches between command
+ * and makes what the command is suposed to do
+ * @param command Struct with id and data
+ * @param lseat general struct
+ * @return returns 0
+ */
+int control_executeCommand(Command command, ClientLSEat lseat);
 
 /**
  * Reads the information of the client configuration
  * @param name Client's name
  * @param lseat general structure
- * @return
+ * @return 0
  */
 int basic_readClientConfig(char *name, ClientLSEat *lseat);
 
-
+/**
+ * Shows start up message
+ */
 void basic_startupMissages();
 
 /**
@@ -68,7 +95,9 @@ void basic_startupMissages();
  */
 void basic_startValues(Command *command);
 
-
+/**
+ * Frees all necessary memory
+ */
 void basic_freeMemory();
 
 

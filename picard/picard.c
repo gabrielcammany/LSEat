@@ -1,4 +1,3 @@
-
 /**
  * @Author: Manel Manchón Gascó / Gabriel Cammany Ruiz
  * @Date:   24-10-2017
@@ -37,11 +36,12 @@ int main(int argc, char **argv) {
 
 	interface_loadHistory();
 
-	while (command.id != 0) {
+	while (error == 0) {
 
 		command = interface_readCommand(lseat.client.nom);
-		//
-		control_executeCommand(command, lseat);
+		//after checking the command id and reading its data
+		//from user, then we execute the command it represents
+		error = control_executeCommand(command, lseat);
 	}
 
 	write(1, BYE, strlen(BYE));
