@@ -6,6 +6,4 @@
 #define LSEAT_INTERFACE_H
 
 
-
-
 #endif //LSEAT_INTERFACE_H

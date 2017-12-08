@@ -5,11 +5,11 @@ History history;
 
 struct termios saved_attributes;
 
-void resetInput() {
+void SHELL_resetInput() {
 	tcsetattr(STDIN_FILENO, TCSANOW, &saved_attributes);
 }
 
-int setInputMode(void) {
+int SHELL_setInputMode(void) {
 	struct termios tattr;
 
 	/* Asegurarnos del terminal */
@@ -30,7 +30,7 @@ int setInputMode(void) {
 	return 0;
 }
 
-int loadNextCommand() {
+int SHELL_loadNextCommand() {
 
 	char **auxiliar = NULL, buffer[BUFFER], *aux = NULL;
 	int size = history.length;
@@ -38,7 +38,7 @@ int loadNextCommand() {
 	memset(&buffer, 0, BUFFER);
 
 	if (read(history.historyfd, &buffer, BUFFER) > 0) {
-		printf("Commanda -%s-\n",buffer);
+		printf("Commanda -%s-\n", buffer);
 
 		auxiliar = (char **) realloc(history.cmdHistory, size * sizeof(char **) + 1);
 
@@ -75,7 +75,7 @@ int loadNextCommand() {
 				history.cmdHistory[size] = aux;
 				memset(history.cmdHistory[size], 0, BUFFER);
 				strcpy(history.cmdHistory[size], buffer);
-				printf("Commanda -%s-\n",buffer);
+				printf("Commanda -%s-\n", buffer);
 
 			}
 
@@ -87,14 +87,14 @@ int loadNextCommand() {
 	return 1;
 }
 
-int loadBatch() {
+int SHELL_loadBatch() {
 	int i;
-	for (i = 0; i < BATCH_HISTORY / 2 && loadNextCommand() > 0; i++) {}
+	for (i = 0; i < BATCH_HISTORY / 2 && SHELL_loadNextCommand() > 0; i++) {}
 	history.length += i;
 	return i == 0 ? -1 : i;
 }
 
-void saveCommand(char *input) {
+void SHELL_saveCommand(char *input) {
 
 	char **auxiliar = NULL;
 	int size = history.lengthSession;
@@ -105,7 +105,7 @@ void saveCommand(char *input) {
 
 		history.cmdSession = auxiliar;
 		history.cmdSession[size] = NULL;
-		history.cmdSession[size] = (char *) malloc((strlen(input)+1) * sizeof(char));
+		history.cmdSession[size] = (char *) malloc((strlen(input) + 1) * sizeof(char));
 
 		if (history.cmdSession[size] != NULL) {
 
@@ -116,7 +116,7 @@ void saveCommand(char *input) {
 
 		} else {
 
-			if(size > 1){
+			if (size > 1) {
 				auxiliar = (char **) realloc(history.cmdSession, size * sizeof(char **));
 				if (auxiliar == NULL) {
 
@@ -135,7 +135,7 @@ void saveCommand(char *input) {
 					history.cmdSession = auxiliar;
 
 				}
-			}else{
+			} else {
 				free(history.cmdSession);
 			}
 
@@ -143,7 +143,7 @@ void saveCommand(char *input) {
 	}
 }
 
-void saveToFile() {
+void SHELL_saveToFile() {
 	int i = 0;
 	char buffer[BUFFER];
 
@@ -179,7 +179,7 @@ void saveToFile() {
 	}
 }
 
-void readInput(char *buffer, char *menu) {
+void SHELL_readInput(char *buffer, char *menu) {
 
 	int index = 0, max = 1, hEnabled = 1,
 			command = history.length, commandSession = history.lengthSession;
@@ -194,7 +194,7 @@ void readInput(char *buffer, char *menu) {
 
 		read(0, &c, 1);
 
-		if(c == '\n'){
+		if (c == '\n') {
 			break;
 		}
 		//ASCII number for space
@@ -226,12 +226,12 @@ void readInput(char *buffer, char *menu) {
 
 							hEnabled = 1;
 							max = (int) strlen(buffer);
-							index = max-1;
+							index = max - 1;
 
 							write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
 							write(1, "\r", 1);
 							write(1, menu, strlen(menu));
-							write(1, buffer, strlen(buffer)-1);
+							write(1, buffer, strlen(buffer) - 1);
 
 
 						}
@@ -280,12 +280,12 @@ void readInput(char *buffer, char *menu) {
 						if (hEnabled < 2) {
 
 							max = (int) strlen(buffer);
-							index = max-1;
+							index = max - 1;
 
 							write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
 							write(1, "\r", 1);
 							write(1, menu, strlen(menu));
-							write(1, buffer, strlen(buffer)-1);
+							write(1, buffer, strlen(buffer) - 1);
 
 
 						}
@@ -325,7 +325,7 @@ void readInput(char *buffer, char *menu) {
 			continue;
 		}
 
-		if (index < BUFFER-1) {
+		if (index < BUFFER - 1) {
 
 			write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
 
@@ -337,7 +337,7 @@ void readInput(char *buffer, char *menu) {
 
 			buffer[index] = c;
 
-			if(max < BUFFER)max++;
+			if (max < BUFFER)max++;
 
 			write(1, buffer, max);
 
@@ -352,12 +352,12 @@ void readInput(char *buffer, char *menu) {
 
 	buffer[max] = '\0';
 	write(1, "\n", 1);
-	if(!checkEmptyString(buffer))saveCommand(buffer);
+	if (!UTILS_checkEmptyString(buffer))SHELL_saveCommand(buffer);
 
-	buffer[max-1] = '\0';
+	buffer[max - 1] = '\0';
 }
 
-void initializeHistory(int fd) {
+void SHELL_initializeHistory(int fd) {
 	history.length = 0;
 	history.lengthSession = 0;
 	history.cmdSession = NULL;
@@ -365,7 +365,7 @@ void initializeHistory(int fd) {
 	history.historyfd = fd;
 }
 
-void freeAndClose() {
+void SHELL_freeAndClose() {
 	int i = 0;
 	if (history.cmdHistory != NULL) {
 		for (i = 0; i < history.length; i++) {

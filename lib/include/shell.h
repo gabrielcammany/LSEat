@@ -28,40 +28,40 @@
 #define BATCH_HISTORY 32
 
 
-typedef struct{
+typedef struct {
 	char **cmdHistory;
 	char **cmdSession;
 	int length;
 	int lengthSession;
 	int historyfd;
-}History;
+} History;
 
 
 /**
  * Establece el modo de input
  */
-int setInputMode();
+int SHELL_setInputMode();
 
 /**
  * Resetea el input que hemos modificado
  */
-void resetInput();
+void SHELL_resetInput();
 
 /**
  * Funcion que se encarga de gestionar el input del usuario
  * @param buffer Estructura de datos donde se vuelca los datos introducidos
  * @param menu Cadena de caracters que incluye el prompt
  */
-void readInput(char *buffer, char *menu);
+void SHELL_readInput(char *buffer, char *menu);
 
-int loadNextCommand();
+int SHELL_loadNextCommand();
 
-int loadBatch();
+int SHELL_loadBatch();
 
-void freeAndClose();
+void SHELL_freeAndClose();
 
-void saveToFile();
+void SHELL_saveToFile();
 
-void initializeHistory(int fd);
+void SHELL_initializeHistory(int fd);
 
 #endif

@@ -26,7 +26,7 @@
  * @param fd File descriptor
  * @return Retorna 0 si no ha leido nada, -1 en caso de error de memoria y mayor a 0 cuando la lectura es correcta.
  */
-int readDynamic(char **input, int fd);
+int UTILS_readDynamic(char **input, int fd);
 
 /**
  * Esta funcion se encarga de extraer partes de una cadena de caracteres delimitados por el delimiter.
@@ -35,7 +35,7 @@ int readDynamic(char **input, int fd);
  * @param espais Valor por referencia que contiene los espacios hasta el primer caracter
  * @return Retorna -1 en caso de que el input este vacio sino, el indice hasta el delimitador
  */
-int getArrayString(const char *input, char delimiter, int *espais);
+int UTILS_getArrayString(const char *input, char delimiter, int *espais);
 
 
 /**
@@ -44,22 +44,22 @@ int getArrayString(const char *input, char delimiter, int *espais);
  * @return
  */
 
-int checkEmptyString(const char *input);
+int UTILS_checkEmptyString(const char *input);
 
 /**
  * Function in charge to lower all characters from string
  * @param input users command
  * @return all string in lower case
  */
-char* toLower(char *input);
+char *UTILS_toLower(char *input);
 
 
-char* createBuffer(int num, ...);
+char *UTILS_createBuffer(int num, ...);
 
-void extractFromBuffer( char* buffer, int num, ...);
+void UTILS_extractFromBuffer(char *buffer, int num, ...);
 
-char* deletePadding(char* input, int max);
+char *deletePadding(char *input, int max);
 
-void debugSTRING(char *string);
+void UTILS_debugSTRING(char *string);
 
 #endif

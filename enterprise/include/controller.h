@@ -18,6 +18,7 @@
 #include "basic.h"
 #include "../../lib/include/network.h"
 #include "../../lib/include/utils.h"
+#include "connection.h"
 
 /**
  * Error constants
@@ -30,23 +31,15 @@
 //file descriptors to listen different programs
 int socketData;
 int socketPic;
+
 //list of picards connected to this enterprise
 Llista picards;
-
-/**
- * Function that reads enterprise configuration
- * @param fitxer file name with enterprise config
- * @param menu file with all the menu
- * @param enterprise struct to save enterprise information
- * @return
- */
-int controller_readConfiguration(char *fitxer, char *menu, Enterprise *enterprise);
 
 /**
  * Function that handles different interruptions
  * @param signum Tells us which interruption
  */
-void dControl_signalHandler(int signum);
+void eCONTROLLER_signalHandler(int signum);
 
 /**
  * Funtion to eliminate one picard from the list

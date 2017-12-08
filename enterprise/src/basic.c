@@ -11,104 +11,156 @@
 #include "../include/basic.h"
 #include "../../lib/include/network.h"
 
-void basic_freeMemory() {
-    free(enterprise.data.ip);
+void BASIC_freeMemory() {
+	int i;
+
+	if(enterprise.config.picard_ip != NULL)free(enterprise.config.picard_ip);
+	if(enterprise.config.data_ip != NULL)free(enterprise.config.data_ip);
+	if(enterprise.config.data_port != NULL)free(enterprise.config.data_port);
+	if(enterprise.config.picard_port != NULL)free(enterprise.config.picard_port);
+	if(enterprise.restaurant.name != NULL)free(enterprise.restaurant.name);
+
+	if(enterprise.restaurant.menu != NULL){
+
+		if(enterprise.restaurant.num_menu > 0){
+
+			for(i = 0; i< enterprise.restaurant.num_menu; i++){
+
+				free(enterprise.restaurant.menu[i].name);
+
+			}
+
+			free(enterprise.restaurant.menu);
+
+		}else{
+
+			write(1,ERR_MEMORY,strlen(ERR_MEMORY));
+			free(enterprise.restaurant.menu);
+
+		}
+	}
 
 }
 
-/*void basic_startValues(Enterprise *enterprise) {
-
-}*/
-
-int basic_readPorts(int fd, int *portNumber) {
+int BASIC_readNumber(int fd, int *extractNumber) {
     int error = 0;
-    char *port = NULL;
+    char *number = NULL;
 
-    //Now it's time for the picard port
-    error = readDynamic(&port, fd);
+    error = UTILS_readDynamic(&number, fd);
 
-    //Two kinds of errors
-    if (error <= 0) {
-        return EXIT_FAILURE;
+    if (error < 1) {
+        return ERROR_CODE;
     }
 
-    *portNumber = atoi(port);
-    return EXIT_SUCCESS;
+    *extractNumber = (unsigned int)atoi(number);
+    return 1;
 
 }
 
-int basic_readConfigEnterprise(char *fitxer, char *menu, Enterprise *enterprise) {
-    int fd = 0, i = 0;
-    int error = 0;
+int BASIC_readConfigEnterprise(char *fitxer, Enterprise *enterprise) {
+    int fd = 0;
 
-    fd = openFile(fitxer, 1);
-    if (fd == EXIT_FAILURE) {
-        return EXIT_FAILURE;
+    fd = FILES_openFile(fitxer, 1);
+    if (fd < 0) {
+        return ERROR_CODE;
     }
     //We read the restaurant name
-    if (readDynamic(&enterprise->restaurant.name, fd) < 0) {
+    if (UTILS_readDynamic(&enterprise->restaurant.name, fd) < 0) {
         write(1, ERR_ENTNAME, strlen(ERR_ENTNAME));
         close(fd);
-        return EXIT_FAILURE;
+        return ERROR_CODE;
     }
 
     //we read restaurant seconds to refresh data info
-    if ((error = basic_readPorts(fd, &enterprise->restaurant.seconds)) == EXIT_FAILURE) {
+    if (BASIC_readNumber(fd, &(enterprise->restaurant.seconds)) == ERROR_CODE) {
         write(1, ERR_SEC, strlen(ERR_SEC));
         close(fd);
-        return EXIT_FAILURE;
+        return ERROR_CODE;
     }
 
     //we read IP to connect to data
-    if (readDynamic(&enterprise->data.ip, fd) < 0) {
+    if (UTILS_readDynamic(&enterprise->config.data_ip, fd) < 0) {
         write(1, ERR_IP, strlen(ERR_IP));
         close(fd);
-        return EXIT_FAILURE;
+        return ERROR_CODE;
     }
 
     //We read the datas port
-    if ((error = basic_readPorts(fd, &enterprise->data.port)) == EXIT_FAILURE) {
+    if (UTILS_readDynamic(&enterprise->config.data_port, fd) == ERROR_CODE) {
         write(1, ERR_PORT, strlen(ERR_PORT));
         close(fd);
-        return EXIT_FAILURE;
+        return ERROR_CODE;
     }
 
     //same as above but from where picards will connect
-    if (readDynamic(&enterprise->picard.ip, fd) < 0) {
+    if (UTILS_readDynamic(&enterprise->config.picard_ip, fd) < 0) {
         write(1, ERR_IP, strlen(ERR_IP));
         close(fd);
-        return EXIT_FAILURE;
+        return ERROR_CODE;
     }
 
-    if ((error = basic_readPorts(fd, &enterprise->picard.port)) == EXIT_FAILURE) {
+    if (UTILS_readDynamic(&enterprise->config.picard_port, fd) == ERROR_CODE) {
         write(1, ERR_PORT, strlen(ERR_PORT));
         close(fd);
-        return EXIT_FAILURE;
-    }
-    close(fd);
-
-    //Show welcome message
-    write (1, WELCOME, strlen(WELCOME));
-    write (1, enterprise->restaurant.name, strlen(enterprise->restaurant.name));
-    write (1, "\n\0", sizeof(char)*2);
-
-    //Now its time for the menu structure
-    fd = openFile(menu, 1);
-    enterprise->menu = (Dish*) malloc (sizeof(Dish));
-
-    //because this functions returns the number of bytes we read
-    //we can know when its end of file
-    while( readDynamic(&enterprise->menu[i].name, fd) > 0 ) {
-        basic_readPorts(fd, &enterprise->menu[i].unities);
-        basic_readPorts(fd, &enterprise->menu[i].price);
-        i++;
-        enterprise->menu = (Dish*) realloc (enterprise->menu, sizeof(Dish)*(i+1));
+        return ERROR_CODE;
     }
 
-    write(1, MENU_READY, strlen(MENU_READY));
-    enterprise->num_menu = i;
     close(fd);
 
-    return error;
+    return 1;
 }
 
+int BASIC_readMenu(char *menu, Enterprise *enterprise){
+	int fd = 0, i = 0;
+
+	fd = FILES_openFile(menu, 1);
+
+	if(fd < 0){
+
+		return ERROR_CODE;
+	}
+
+	enterprise->restaurant.menu = (Dish*) malloc (sizeof(Dish));
+
+	//because this functions returns the number of bytes we read
+	//we can know when its end of file
+	while(UTILS_readDynamic(&enterprise->restaurant.menu[i].name, fd) > 0 ) {
+
+		if(BASIC_readNumber(fd, &enterprise->restaurant.menu[i].units) < 0){return ERROR_CODE;}
+
+		if(BASIC_readNumber(fd, &enterprise->restaurant.menu[i].price) < 0){return ERROR_CODE;}
+
+		i++;
+		enterprise->restaurant.menu = (Dish*) realloc (enterprise->restaurant.menu, sizeof(Dish)*(i+1));
+	}
+
+	write(1, MENU_READY, strlen(MENU_READY));
+	enterprise->restaurant.num_menu = i;
+	close(fd);
+
+	return 0;
+}
+
+void BASIC_welcomeMessage(Enterprise enterprise){
+	write (1, WELCOME, strlen(WELCOME));
+	write (1, enterprise.restaurant.name, strlen(enterprise.restaurant.name));
+	write (1, "\n\0", sizeof(char)*2);
+}
+
+void BASIC_startValues(){
+
+	enterprise.restaurant.menu = NULL;
+	enterprise.restaurant.num_menu = 0;
+	enterprise.restaurant.name = NULL;
+	enterprise.restaurant.seconds = 0;
+
+	enterprise.config.data_ip = NULL;
+	enterprise.config.data_port = NULL;
+	enterprise.config.picard_port = NULL;
+	enterprise.config.picard_ip = NULL;
+
+	enterprise.clients = NULL;
+	enterprise.num_clients = 0;
+
+
+}

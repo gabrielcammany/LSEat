@@ -19,6 +19,9 @@
 #include <memory.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <openssl/ssl.h>
+#include <openssl/bio.h>
+#include <openssl/err.h>
 
 //own includes
 #include "utils.h"
@@ -86,31 +89,7 @@
 
 #define HEADER_UPDATE "[UPDATEOK]"
 #define HEADER_NUPDATE "[UPDATEKO]"
-
-
-/**
- * DATA
- */
-#define CONNECTION_DATPIC 1,"[ENT_INF]"
-
-/**
- * ENTERPRISE
- */
-#define CONNECTION_ENTPIC 1,"[CONOK]",0,"\0"
-
-#define DISCONNECT_ENTPIC 2,"[CONOK]",0,"\0"
-
-#define MENU_ENTPIC 3,"[DISH]"
-#define END_MENU_ENTPIC 3,"[END_MENU]",0,"\0"
-
-#define DISH_ENTPIC 4,"[ORDOK]",0,"\0"
-#define NO_DISH_ENTPIC 4,"[ORDKO]",0,"\0"
-
-#define DELDISH_ENTPIC 5,"[ORDOK]",0,"\0"
-#define NO_DELDISH_ENTPIC 5,"[ORDKO]",0,"\0"
-
-#define PAY_ENTPIC 6,"[PAYOK]"
-#define NO_PAY_ENTPIC 6,"[PAYKO]",0,"\0"
+#define HEADER_EUPDATE "[UPDATE]"
 
 
 /**
@@ -118,10 +97,10 @@
  * to be able to comunicate between servers and clients
  */
 typedef struct {
-    char type;
-    char header[HEADER_SIZE];
-    unsigned short length;
-    char *data;
+	char type;
+	char header[HEADER_SIZE];
+	unsigned short length;
+	char *data;
 } Packet;
 
 
@@ -129,18 +108,18 @@ typedef struct {
             - Client functions -
 **/
 
-int createConnectionClient(int portInput, char *ipInput);
+int NETWORK_createConnectionClient(int portInput, char *ipInput);
 
 
 /**
             - Server functions -
 **/
 
-int createConnectionServer(int portInput, char *ipInput);
+int NETWORK_createConnectionServer(int portInput, char *ipInput);
 
-void serialHandler(int socketfd, void *(*handler)(void *));
+void NETWORK_serialHandler(int socketfd, void *(*handler)(void *));
 
-void parallelHandler(int port, char *ip, void *(*handler)(void *)/*, void *arg*/);
+void NETWORK_parallelHandler(int port, char *ip, void *(*handler)(void *)/*, void *arg*/);
 
 /**
  * Sned serialized packet to server
@@ -148,7 +127,7 @@ void parallelHandler(int port, char *ip, void *(*handler)(void *)/*, void *arg*/
  * @param packet information structure
  * @return
  */
-int sendSerialized(int socket, Packet packet);
+int NETWORK_sendSerialized(int socket, Packet packet);
 
 /**
  * Puts all information in packet structure
@@ -158,13 +137,14 @@ int sendSerialized(int socket, Packet packet);
  * @param data information
  * @return packet structure filled
  */
-Packet createPacket(int type, char *header, unsigned short length, char *data);
+Packet NETWORK_createPacket(int type, char *header, int length, char *data);
 
-int readSimpleResponse(int socket);
+int NETWORK_readSimpleResponse(int socket);
 
-Packet extractIncomingFrame(int socket);
+Packet NETWORK_extractIncomingFrame(int socket);
 
-void sendConnexionKOPacket(int socket,int type);
-void sendConnexionOKPacket(int socket,int type);
+void NETWORK_sendKOPacket(int socket, int type, char* header);
+
+void NETWORK_sendOKPacket(int socket, int type, char* header);
 
 #endif

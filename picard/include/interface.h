@@ -37,7 +37,7 @@
 #define CMD_MENU        2
 #define CMD_PAGAR       3
 #define CMD_DEMANA      4
-#define CMD_ELIMINA		5
+#define CMD_ELIMINA        5
 
 /**
  *Srtruct to save command information
@@ -50,15 +50,15 @@ typedef struct {
 } Command;
 
 
-void interface_loadHistory();
+void INTERFACE_loadHistory();
 
-void interface_saveHistory();
+void INTERFACE_saveHistory();
 
 /**
  * Reads commands form user
  * @param cadena user name
  * @return command
  */
-Command interface_readCommand(char *cadena);
+Command INTERFACE_readCommand(char *cadena);
 
 #endif //LSEAT_SHELLMANAGER_H

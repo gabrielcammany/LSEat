@@ -1,4 +1,5 @@
 /**
+	printf("Aui?7\n");
  * @Author: Manel Manchón Gascó / Gabriel Cammany Ruiz
  * @Date:   25-10-2017
  * @Email:  ls31343@salleurl.edu ls30652@salleurl.edu
@@ -14,152 +15,154 @@
 #include "../include/utils.h"
 
 
-int readDynamic(char **input, int fd) {
+int UTILS_readDynamic(char **input, int fd) {
 
-    char *temporal = NULL;
-    char buffer = ' ';
-    int indice = 0;
+	char *temporal = NULL;
+	char buffer = ' ';
+	int indice = 0;
 
-    while (read(fd, &buffer, sizeof(char)) > 0 && buffer != '\n') {
-        temporal = (char *) realloc(*input, sizeof(char) * (indice + 1));
+	while (read(fd, &buffer, sizeof(char)) > 0 && buffer != '\n') {
+		temporal = (char *) realloc(*input, sizeof(char) * (indice + 1));
 
-        if (temporal == NULL) {
+		if (temporal == NULL) {
 
-            if (*input != NULL) {
-                free(*input);
-            }
-            return -1;
+			if (*input != NULL) {
+				free(*input);
+			}
+			return -1;
 
-        }
+		}
 
-        *input = temporal;
-        (*input)[indice] = buffer;
-        indice++;
-    }
+		*input = temporal;
+		(*input)[indice] = buffer;
+		indice++;
+	}
 
-    if (*input != NULL) {
-        temporal = (char *) realloc(*input, sizeof(char) * (indice + 1));
-        if (temporal == NULL) {
+	if (*input != NULL) {
+		temporal = (char *) realloc(*input, sizeof(char) * (indice + 1));
+		if (temporal == NULL) {
 
-            free(*input);
-            return -1;
+			free(*input);
+			return -1;
 
-        }
+		}
 
-        *input = temporal;
-        (*input)[indice] = '\0';
-    }
+		*input = temporal;
+		(*input)[indice] = '\0';
+	}
 
-    return indice;
-
-}
-
-
-int getArrayString(const char *input, char delimiter, int *espais) {
-
-    int index = 0, buida = 0;
-
-    for (*espais = 0; input[*espais] == ' ' || input[*espais] == '\t'; (*espais)++) {}
-
-    for (index = *espais; input[index] != delimiter && input[index] != '\0'; index++) {
-
-        if (input[index] != ' ') {
-            buida = 1;
-        }
-    }
-
-    if (!buida) {
-        return -1;
-    }
-
-    return index;
-}
-
-char *toLower(char *input) {
-    int i = 0;
-    while (input[i]) {
-        input[i] = (char) tolower(input[i]);
-        i++;
-    }
-    return input;
-}
-
-
-int checkEmptyString(const char *input) {
-    int index = 0;
-
-    for (index = 0; index < (int) strlen(input); index++) {
-
-        if (input[index] != ' ') {
-            return 0;
-        }
-    }
-    return 1;
+	return indice;
 
 }
 
-char *createBuffer(int num, ...) {
 
-    char *buffer = NULL, *bufferAux = NULL, *aux = NULL;
-    int size, i;
+int UTILS_getArrayString(const char *input, char delimiter, int *espais) {
 
-    va_list a_list;
-    va_start(a_list, num);
+	int index = 0, buida = 0;
 
-    aux = va_arg(a_list, char * );
+	for (*espais = 0; input[*espais] == ' ' || input[*espais] == '\t'; (*espais)++) {}
 
-    size = (int) strlen(aux);
+	for (index = *espais; input[index] != delimiter && input[index] != '\0'; index++) {
 
-    buffer = malloc(sizeof(char) * size);
+		if (input[index] != ' ') {
+			buida = 1;
+		}
+	}
 
-    if (buffer == NULL) {
-        return NULL;
-    }
+	if (!buida) {
+		return -1;
+	}
+
+	return index;
+}
+
+char *UTILS_toLower(char *input) {
+	int i = 0;
+	while (input[i]) {
+		input[i] = (char) tolower(input[i]);
+		i++;
+	}
+	return input;
+}
 
 
-    strcat(buffer, aux);
+int UTILS_checkEmptyString(const char *input) {
+	int index = 0;
 
-    for (i = 0; i < num-1; i++) {
-        strcat(buffer, "&");
+	for (index = 0; index < (int) strlen(input); index++) {
 
-        aux = va_arg(a_list,char*);
-        size = size + (int) strlen(aux);
-
-        bufferAux = realloc(buffer, sizeof(char) * size);
-
-        if (bufferAux == NULL) {
-            free(buffer);
-            return NULL;
-        }
-
-        strcat(buffer, aux);
-    }
-
-    va_end(a_list);
-    return buffer;
+		if (input[index] != ' ') {
+			return 0;
+		}
+	}
+	return 1;
 
 }
 
-void extractFromBuffer(char* buffer, int num,  ...){
-    char **aux = NULL, *token;
+char *UTILS_createBuffer(int num, ...) {
 
-    va_list a_list;
-    va_start(a_list, num);
-    token = strtok(buffer,"&");
+	char *buffer = NULL, *bufferAux = NULL, *aux = NULL;
+	int size, i;
 
-    while(token != NULL){
-        aux = va_arg(a_list, char **);
-        *aux = (char*)malloc(sizeof(char) * strlen(token));
-        strcpy(*aux,token);
-        token = strtok(NULL,"&");
-    }
+	va_list a_list;
+	va_start(a_list, num);
 
-    va_end(a_list);
+	aux = va_arg(a_list, char *);
+
+	size = (int) strlen(aux);
+
+	buffer = malloc(sizeof(char) * size);
+
+	if (buffer == NULL) {
+		return NULL;
+	}
+
+
+	strcat(buffer, aux);
+
+	for (i = 0; i < num - 1; i++) {
+		strcat(buffer, "&");
+
+		aux = va_arg(a_list, char*);
+		size = size + (int) strlen(aux);
+
+		bufferAux = realloc(buffer, sizeof(char) * size);
+
+		if (bufferAux == NULL) {
+			free(buffer);
+			return NULL;
+		}
+
+		strcat(buffer, aux);
+	}
+
+	va_end(a_list);
+	return buffer;
+
 }
 
-void debugSTRING(char *string) {
-    char cadena[100];
+void UTILS_extractFromBuffer(char *buffer, int num, ...) {
+	char **aux = NULL, *token;
 
-    sprintf(cadena, "String: %s\n", string);
-    write(1, string, 50);
+	va_list a_list;
+	va_start(a_list, num);
+
+	token = strtok(buffer, "&");
+
+	while (token != NULL && num > 0) {
+		aux = va_arg(a_list, char **);
+		*aux = (char *) malloc(sizeof(char) * strlen(token));
+		strcpy(*aux, token);
+		token = strtok(NULL, "&");
+		num--;
+	}
+
+	va_end(a_list);
+}
+
+void UTILS_debugSTRING(char *string) {
+	char cadena[100];
+
+	sprintf(cadena, "String: %s\n", string);
+	write(1, string, 50);
 }

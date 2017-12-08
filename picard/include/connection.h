@@ -61,12 +61,12 @@
  * Port: interface through which we will comunicate with enterprise
  * NumberOfClients: just in case we have to know how many clients
  */
-typedef struct{
-    char* ip;
-    char* name;
-    int port;
-    char numberClients;
-}Enterprise;
+typedef struct {
+	char *ip;
+	char *name;
+	int port;
+	char numberClients;
+} Enterprise;
 
 /*
  * GLOBAL VARIABLES
@@ -93,7 +93,7 @@ int connection_sendInfoData(int socket);
  * @param name  name of the Picard
  * @return      information that Data gave us
  */
-char * connection_data(int port, char *ip, char *name);
+char *connection_data(int port, char *ip, char *name);
 
 /**
  * Function to connect to enterprise with
@@ -103,7 +103,7 @@ char * connection_data(int port, char *ip, char *name);
  * @param saldo money left
  * @return If everything OK the EXIT_SUCCESS, EXIT_FAILURE if not
  */
-int connection_enterprise(char* data,char* nom,int saldo);
+int connection_enterprise(char *data, char *nom, int saldo);
 
 /**
  * Function that given a packet, switch the type of the packet
@@ -111,7 +111,7 @@ int connection_enterprise(char* data,char* nom,int saldo);
  * @param packet frame's information saved in struct
  * @return if everything is ok returns 0, 1 if not
  */
-int analyseDataPacket(Packet packet);
+int CONNECTION_analyseDataPacket(Packet packet);
 
 /**
  * Function to extract the information coming from Data
@@ -119,36 +119,37 @@ int analyseDataPacket(Packet packet);
  * @param packet struct with frames information
  * @return
  */
-Enterprise extractInfoEnterprise(Packet packet);
-void extractEnterpriseData(char *data, char **nom, int *port, char **ip);
+Enterprise CONNECTION_extractPortEnterprise(Packet packet);
+
+void CONNECTION_extractEnterpriseData(char *data, char **nom, int *port, char **ip);
 
 /**
  * Function that sends to Enterprise a
  * request to get the menu
  */
-void connection_requestMenuEnterprise();
+void CONNECTION_requestMenuEnterprise();
 
 /**
  * Function that tells the Enterprise to delete a dish.
  * @param data number of dishes and the dish name
  */
-void connection_deleteDishMenu(char **data);
+void CONNECTION_deleteDishMenu(char **data);
 
 /**
  * Function to tell the Enterprise the Picard wants to pay
  */
-void connection_payEnterprise();
+void CONNECTION_payEnterprise();
 
 /**
  * Function to tell the Enterprise you want a dish
  * @param data number of dishes and dish name
  */
-void connection_takeNoteEnterprise(char **data);
+void CONNECTION_takeNoteEnterprise(char **data);
 
 /**
  * You disconnect from the Enterprise
  * @param nom Picards name who wants to disconnect
  */
-void connection_disconnectEnterprise(char *nom);
+void CONNECTION_disconnectEnterprise(char *nom);
 
 #endif

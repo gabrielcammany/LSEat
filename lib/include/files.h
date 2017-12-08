@@ -27,10 +27,10 @@
  * @param status In case of beign 1, O_RDONLY, 2 O_RDWR and 3 O_RDWR and creation of file with 0777
  * @return File descriptor
  */
-int openFile(char *name, int status);
+int FILES_openFile(char *name, int status);
 
-int moveToStart(int fd);
+int FILES_moveToStart(int fd);
 
-int checkEmpty(int fd);
+int FILES_checkEmpty(int fd);
 
 #endif

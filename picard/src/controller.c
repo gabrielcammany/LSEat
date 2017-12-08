@@ -11,7 +11,7 @@
 #include "../include/controller.h"
 
 
-void control_signalHandler(int signum) {
+void CONTROLLER_signalHandler(int signum) {
 	switch (signum) {
 		case SIGINT:
 			free(lseat.client.nom);
@@ -20,12 +20,18 @@ void control_signalHandler(int signum) {
 			write(1, "\n", strlen("\n"));
 			write(1, BYE, strlen(BYE));
 
-			resetInput();
-			interface_saveHistory();
+			SHELL_resetInput();
+			INTERFACE_saveHistory();
 
 			close(socketfd);
 
 			exit(EXIT_SUCCESS);
+		case SIGPIPE:
+			write(1, ERR_OP, strlen(ERR_OP));
+			write(1, ERR_ENTDISC, strlen(ERR_ENTDISC));
+			close(socketfd);
+			socketfd = -1;
+			break;
 		default:
 			write(1, ERR_INT, strlen(ERR_INT));
 			break;
@@ -34,35 +40,36 @@ void control_signalHandler(int signum) {
 }
 
 
+int CONTROLLER_executeCommand(Command command, ClientLSEat lseat) {
+	char *enterpriseData = NULL;
 
-
-int control_executeCommand(Command command, ClientLSEat lseat) {
-	char * enterpriseData = NULL;
-	switch (command.id) {
-		case CMD_CONNECTA:
-			enterpriseData = connection_data(lseat.config.Port, lseat.config.IP, lseat.client.nom);
-			if (enterpriseData != NULL) {
-				socketfd = connection_enterprise(enterpriseData,lseat.client.nom,lseat.client.saldo);
-			}
-			break;
-		case CMD_MENU:
-			connection_requestMenuEnterprise();
-			break;
-		case CMD_DEMANA:
- 			connection_takeNoteEnterprise(command.data);
-			break;
-		case CMD_PAGAR:
-			connection_payEnterprise();
-			break;
-		case CMD_DISCONNECT:
-			connection_disconnectEnterprise(lseat.client.nom);
-			return 1;
-			break;
-		case DEL_DISH:
-			connection_deleteDishMenu(command.data);
-			break;
-		default:
-			break;
+	if(command.id == CMD_CONNECTA) {
+		enterpriseData = connection_data(lseat.config.Port, lseat.config.IP, lseat.client.nom);
+		if (enterpriseData != NULL) {
+			socketfd = connection_enterprise(enterpriseData, lseat.client.nom, lseat.client.saldo);
+		}
+	}else if(socketfd > 0){
+		switch (command.id) {
+			case CMD_MENU:
+				CONNECTION_requestMenuEnterprise();
+				break;
+			case CMD_DEMANA:
+				CONNECTION_takeNoteEnterprise(command.data);
+				break;
+			case CMD_PAGAR:
+				CONNECTION_payEnterprise();
+				break;
+			case CMD_DISCONNECT:
+				CONNECTION_disconnectEnterprise(lseat.client.nom);
+				return 1;
+			case DEL_DISH:
+				CONNECTION_deleteDishMenu(command.data);
+				break;
+			default:
+				break;
+		}
+	}else{
+		write(1,ERR_NOCONNECTION,strlen(ERR_NOCONNECTION));
 	}
 	return 0;
 }

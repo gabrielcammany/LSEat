@@ -21,24 +21,22 @@
 
 //constant to tell there is an error in the connection
 #define ERR_CONNECTION "Hi ha hagut un problema de connexio amb Data!\n"
+#define UPDATE_ERR "Problema amb l'actualització automàtica. Reinicia el servidor perquè torni a funcionar!\n"
 
-/**
- * Send info of the Enterprise to Data every X time
- */
-void sendInfoData();
 
 /**
  * Funtions to create the thread that sends info to Data every X time
  */
-void connection_executeEnterpriseClient();
-void *connection_dataListener(void *arg);
+int CONNECTION_executeEnterpriseClient();
+
+void *CONNECTION_dataListener(void *arg);
 
 /**
  * Funtions to create the thread for every Picard
  * @return
  */
-void *connection_Picard();
-void connection_createConnectionPicards();
+void *CONNECTION_Picard(void *arg);
+void CONNECTION_createConnectionPicards();
 
 /**
  * Function to analyse the information Picard sends
@@ -46,6 +44,6 @@ void connection_createConnectionPicards();
  * @param packet Info recieved
  * @return
  */
-int analysePacketPicard(int socket, Packet packet);
+int CONNECTION_analysePacketPicard(int socket, Packet packet);
 
 #endif //LSEAT_CONNECTION_H

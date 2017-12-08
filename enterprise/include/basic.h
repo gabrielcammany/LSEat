@@ -19,32 +19,47 @@
 #include <stdlib.h>
 
 typedef struct {
-    int seconds;
-    char *name;
-} Restaurant;
 
-typedef struct {
-    int unities;
-    int price;
-    char *name;
+	int units;
+	int price;
+	char *name;
+
 } Dish;
 
 typedef struct {
-    char *ip;
-    int port;
-} Data;
+
+	int seconds;
+	char *name;
+	Dish *menu;
+	int num_menu;
+
+} Restaurant;
 
 typedef struct {
-    char *ip;
-    int port;
-} Picard;
+
+	char *name;
+	int money;
+
+} Client;
 
 typedef struct {
-    Restaurant restaurant;
-    Dish *menu;
-    Data data;
-    Picard picard;
-    int num_menu;
+
+	char *data_ip;
+	char *data_port;
+	char *picard_ip;
+	char *picard_port;
+
+} Config;
+
+typedef struct {
+
+	Restaurant restaurant;
+
+	Config config;
+
+	Client *clients;
+	int num_clients;
+
 } Enterprise;
 
 Enterprise enterprise;
@@ -56,6 +71,7 @@ Enterprise enterprise;
 #define ERR_IP "ERROR en llegir la configuració IP\n"
 #define ERR_ENTNAME "ERROR en llegir el nom de l'enterprise\n"
 #define ERR_SEC "ERROR en llegir la configuració IP\n"
+#define ERR_MEMORY "No s'ha pogut alliberar la memoria correctament.\n"
 
 
 /**
@@ -70,20 +86,26 @@ Enterprise enterprise;
  * Funcion encargada de borrar la memoria dinamica
  * @param lseat Variable a borrar
  */
-void basic_freeMemory();
+void BASIC_freeMemory();
 
 /**
- * Reads configuration file for enterprise
- * @param fitxer string file name
- * @return returns if everything is ok
+ * Function that reads enterprise configuration
+ * @param fitxer file name with enterprise config
+ * @param menu file with all the menu
+ * @param enterprise struct to save enterprise information
+ * @return
  */
-
-int basic_readConfigEnterprise(char *fitxer, char *menu, Enterprise *enterprise);
+int BASIC_readConfigEnterprise(char *fitxer, Enterprise *enterprise);
 
 /**
  * Function that initializes all variables
  * @param enterprise structure with all information
  */
-//void basic_startValues(Enterprise *enterprise);
+void BASIC_startValues();
 
-    #endif //LSEAT_BASIC_H
+int BASIC_readMenu(char *menu, Enterprise *enterprise);
+
+void BASIC_welcomeMessage(Enterprise enterprise);
+
+
+#endif //LSEAT_BASIC_H

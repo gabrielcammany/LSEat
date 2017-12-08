@@ -50,24 +50,23 @@ typedef struct{
 
 Data data;
 
-
-void dControl_signalHandler(int signum);
+void dCONTROLLER_signalHandler(int signum);
 
 /**
  * Function which reads the configuration of data
  * @param data Global structure of Data
  * @return if there is an error or not
  */
-int basic_readDataConfig(char* name,Data *data);
+int BASIC_readDataConfig(char* name,Data *data);
 
 /**
  * Funcion encargada de borrar la memoria dinamica
  * @param lseat Variable a borrar
  */
-void basic_freeMemory(Data *data);
+void BASIC_freeMemory(Data *data);
 
 
-void basic_startValues(Data *data);
+void BASIC_startValues(Data *data);
 
 
 

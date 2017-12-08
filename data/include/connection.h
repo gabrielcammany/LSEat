@@ -17,25 +17,17 @@
 
 //own includes
 #include "../../lib/include/network.h"
+#include "../../lib/include/hash.h"
 #include "controller.h"
 
 
 #define CONNECTING "Connectant "
 #define DISCONNECTING "Desconnectant "
 
-/**
- * Structure to save information of Enterprise
- * IP: IP from enterprise
- * port: Port to connect to enterprise
- */
-typedef struct{
-	char* ip;
-	char* name;
-	int port;
-	char numberClients;
-}Enterprise;
+#define MAX_ENTERPRISES 20
 
-Enterprise enterprise;
+Table enterprise;
+
 
 int socketPic, socketEnt;
 
@@ -44,8 +36,8 @@ int socketPic, socketEnt;
  * @param packet struct wir frame's information
  * @return
  */
-Enterprise extractInfoEnterprise(Packet packet);
+int CONNECTION_extractNumber(Packet packet, int option);
 
-void dNetwork_executeData(int portE, int portP, char* ip);
+void CONNECTION_executeData(int portE, int portP, char *ip);
 
 #endif //LSEAT_CONNECTION_H

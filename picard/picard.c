@@ -14,8 +14,10 @@
 int main(int argc, char **argv) {
 	Command command;
 
-    int error = 0;
-	signal(SIGINT, control_signalHandler);
+	int error = 0;
+
+	signal(SIGINT, CONTROLLER_signalHandler);
+	signal(SIGPIPE, CONTROLLER_signalHandler);
 
 	if (argc != 2) {
 		write(1, ERR_ARG, strlen(ERR_ARG));
@@ -23,32 +25,32 @@ int main(int argc, char **argv) {
 	}
 
 	//we initialize all variables
-	basic_startValues(&command);
+	BASIC_startValues(&command);
 
 	//Read configuration for the picard
-    error = basic_readClientConfig(argv[1], &lseat);
+	if (BASIC_readClientConfig(argv[1], &lseat) < 0) {
+		exit(EXIT_FAILURE);
+	}
 
-    if(error < 0){
-        exit(EXIT_FAILURE);
-    }
 	//start message when executing picard client
-	basic_startupMissages();
+	BASIC_startupMessages();
 
-	interface_loadHistory();
+	INTERFACE_loadHistory();
 
 	while (error == 0) {
 
-		command = interface_readCommand(lseat.client.nom);
+		command = INTERFACE_readCommand(lseat.client.nom);
+
 		//after checking the command id and reading its data
 		//from user, then we execute the command it represents
-		error = control_executeCommand(command, lseat);
+		error = CONTROLLER_executeCommand(command, lseat);
 	}
 
 	write(1, BYE, strlen(BYE));
 
-	interface_saveHistory();
+	INTERFACE_saveHistory();
 
-	basic_freeMemory();
+	BASIC_freeMemory();
 
 	close(socketfd);
 

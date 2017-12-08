@@ -10,7 +10,7 @@
 
 #include "../include/files.h"
 
-int openFile(char *name, int status) {
+int FILES_openFile(char *name, int status) {
 	int fd = 0;
 
 	switch (status) {
@@ -36,11 +36,11 @@ int openFile(char *name, int status) {
 	return fd;
 }
 
-int moveToStart(int fd) {
+int FILES_moveToStart(int fd) {
 	return (int) lseek(fd, 0, SEEK_SET);
 }
 
-int checkEmpty(int fd) {
+int FILES_checkEmpty(int fd) {
 	return (int) lseek(fd, 1, SEEK_CUR);
 }
 

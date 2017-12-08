@@ -4,12 +4,12 @@
 
 #include "../include/controller.h"
 
-void dControl_signalHandler(int signum) {
+void dCONTROLLER_signalHandler(int signum) {
 
 	switch (signum) {
 		case SIGINT:
 
-			basic_freeMemory(&data);
+			BASIC_freeMemory(&data);
 
 			write(1, "\n", strlen("\n"));
 			write(1, BYE, strlen(BYE));
@@ -21,10 +21,10 @@ void dControl_signalHandler(int signum) {
 
 		case SIGUSR1:
 
-			basic_freeMemory(&data);
+			BASIC_freeMemory(&data);
 
 			write(1, "\n", strlen("\n"));
-			write(1, NBYE, strlen(BYE));
+			write(1, NBYE, strlen(NBYE));
 
 			close(socketEnt);
 			close(socketPic);

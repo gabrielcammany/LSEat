@@ -22,6 +22,9 @@
 #define ERR_INT "Interrupció desconeguda!\n"
 #define ERR_NUM "Hi ha un error en el numero d'unitats\n"
 #define ERR_PLAT "Hi ha un error en el nom del plat\n"
+#define ERR_NOCONNECTION "Comanda no disponible. No estas connectat a cap Enterprise!\n"
+#define ERR_ENTDISC "S'ha perdut la connexió amb el servidor Enterprise. T'has de tornar a connectar...\n"
+#define ERR_OP "La operació no s'ha podut dur a terme.\n"
 
 //constants to inform user
 #define WELCOME "BENVINGUT %s\n"
@@ -65,7 +68,7 @@ ClientLSEat lseat;
  * Function that handles different interruptions
  * @param signum Tells us which interruption
  */
-void control_signalHandler(int signum);
+void CONTROLLER_signalHandler(int signum);
 
 /**
  * Function that switches between command
@@ -74,7 +77,7 @@ void control_signalHandler(int signum);
  * @param lseat general struct
  * @return returns 0
  */
-int control_executeCommand(Command command, ClientLSEat lseat);
+int CONTROLLER_executeCommand(Command command, ClientLSEat lseat);
 
 /**
  * Reads the information of the client configuration
@@ -82,23 +85,23 @@ int control_executeCommand(Command command, ClientLSEat lseat);
  * @param lseat general structure
  * @return 0
  */
-int basic_readClientConfig(char *name, ClientLSEat *lseat);
+int BASIC_readClientConfig(char *name, ClientLSEat *lseat);
 
 /**
  * Shows start up message
  */
-void basic_startupMissages();
+void BASIC_startupMessages();
 
 /**
  * Function to initialize all variables from command
  * @param command structure that contains command data
  */
-void basic_startValues(Command *command);
+void BASIC_startValues(Command *command);
 
 /**
  * Frees all necessary memory
  */
-void basic_freeMemory();
+void BASIC_freeMemory();
 
 
 #endif //LSEAT_CONTROLLER_H

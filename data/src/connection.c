@@ -8,144 +8,169 @@
  * @Last modified time: 27-10-2017
  */
 
-#include <signal.h>
 #include "../include/connection.h"
 
-void *connection_handlerEnterprise(void *arg) {
-    Packet packet, response;
-    int socket = *((int *) arg);
-    packet = extractIncomingFrame(socket);
 
-    if (packet.type == '1' && (strcmp(packet.header, HEADER_DATPIC) == 0) && packet.length > 0) {
-        enterprise = extractInfoEnterprise(packet);
-        sendConnexionOKPacket(socket,CONNECT);
-        close(socket);
-        //response = createPacket(CONNECT, HEADER_CON, (unsigned short) 0, "\0");
-    } else {
-        sendConnexionKOPacket(socket,CONNECT);
-       // response = createPacket(CONNECT, HEADER_NCON, (unsigned short) 0, "\0");
-    }
+void *CONNECTION_handlerEnterprise(void *arg) {
 
-   // sendSerialized(socket, response);
+	Packet packet;
+	int socket = *((int *) arg);
 
-    return NULL;
+	char *number = NULL, *port = NULL, *aux = NULL;
+
+	packet = NETWORK_extractIncomingFrame(socket);
+
+	if (packet.length > 0) {
+
+		switch (packet.type) {
+			case '1':
+
+				if (strcmp(packet.header, HEADER_DATPIC) == 0) {
+
+					aux = (char *) malloc(sizeof(char) * packet.length);
+
+					if(aux != NULL){
+
+						memcpy(aux,packet.data,sizeof(char)*packet.length);
+
+						UTILS_extractFromBuffer(aux, 2, &number, &port);
+
+						HASH_insert(&enterprise, HASH_createBucket(atoi(port), packet.data, 0));
+
+						NETWORK_sendOKPacket(socket, CONNECT, HEADER_CON);
+						close(socket);
+
+					}else{
+
+						NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
+
+					}
+
+				} else {
+
+					NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
+
+				}
+
+				break;
+			case '7':
+
+				if (strcmp(packet.header, HEADER_EUPDATE) == 0) {
+
+					UTILS_extractFromBuffer(packet.data, 2, &port, &number);
+					printf("Update NUMBER: -%s- port: -%s-\n",number,port);
+
+					HASH_insert(&enterprise, HASH_createBucket(atoi(port), packet.data, atoi(number)));
+
+					NETWORK_sendOKPacket(socket, UPDATE, HEADER_UPDATE);
+
+				} else {
+
+					NETWORK_sendKOPacket(socket, UPDATE, HEADER_NUPDATE);
+
+				}
+
+
+				break;
+			default:
+
+				NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
+
+				break;
+
+		}
+
+	} else {
+
+		NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
+
+	}
+
+	close(socket);
+
+	return arg;
 }
 
-void *connection_handlerClient(void *arg) {
+void *CONNECTION_handlerClient(void *arg) {
 
-    int socket = *((int *) arg);
-    Packet packet, aux;
-    char convert[10], *buffer;
+	int socket = *((int *) arg);
+	Packet packet, aux;
 
-    //We extract the information of the clients packet
-    packet = extractIncomingFrame(socket);
+	//We extract the information of the clients packet
+	packet = NETWORK_extractIncomingFrame(socket);
 
-    //We know there will be only the type 1 of packet from clients
-    if (packet.type != '1' || strcmp(packet.header, HEADER_PICINF) == 0) {
-        sendConnexionKOPacket(socket,CONNECT);
-        return NULL;
-    }
+	//We know there will be only the type 1 of packet from clients
+	if (packet.type != '1' || strcmp(packet.header, HEADER_PICINF) == 0) {
+		NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
+		return NULL;
+	}
 
-    //Because is type 1 we know that data contains the client name
-    write(1, CONNECTING, strlen(CONNECTING));
-    write(1, packet.data, packet.length);
-    write(1, "\n\0", sizeof(char) * 2);
+	//Because is type 1 we know that data contains the client name
+	write(1, CONNECTING, strlen(CONNECTING));
+	write(1, packet.data, packet.length);
+	write(1, "\n\0", sizeof(char) * 2);
 
-    //we check that struct enterprise isnt empty
-    if(enterprise.name == NULL || enterprise.ip == NULL || enterprise.ip == 0){
-        sendConnexionKOPacket(socket,CONNECT);
-        write(1, DISCONNECTING, strlen(DISCONNECTING));
-        write(1, packet.data, packet.length);
-        write(1, "\n\0", sizeof(char) * 2);
-    }else {
-        //We create the buffer that will be the data in response to the client
-        sprintf(convert, "%d", enterprise.port);
-        buffer = createBuffer(3, enterprise.name, convert, enterprise.ip);
+	//we check that struct enterprise isnt empty
 
-        //In case we are not able to create the buffer we close everything
-        if (buffer == NULL) {
-            sendConnexionKOPacket(socket,CONNECT);
-            return NULL;
-        }
+	if (enterprise.elements > 0) {
 
-        //we create packet to response client
-        aux = createPacket(CONNECT, HEADER_DATPIC, (unsigned short) strlen(buffer), buffer);
+		NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
+		write(1, DISCONNECTING, strlen(DISCONNECTING));
+		write(1, packet.data, packet.length);
+		write(1, "\n\0", sizeof(char) * 2);
 
+	} else {
 
-        if (aux.type > 0) {
-            //if everything is ok then we send information of the enterprise back to the client
-            sendSerialized(socket, aux);
-            write(1, DISCONNECTING, strlen(DISCONNECTING));
-            write(1, packet.data, packet.length);
-            write(1, "\n\0", sizeof(char) * 2);
+		//we create packet to response client
+		aux = NETWORK_createPacket(CONNECT, HEADER_DATPIC,
+								   (int) strlen(enterprise.bucket[enterprise.number].data),
+								   enterprise.bucket[enterprise.number].data);
 
-        } else {
-            sendConnexionKOPacket(socket,CONNECT);
-            return NULL;
-        }
-        //Once we know if the connexion has been done then we close the file descriptor
-        close(socket);
-        free(buffer);
-    }
+		if (aux.type > 0) {
+			//if everything is ok then we send information of the enterprise back to the client
+			NETWORK_sendSerialized(socket, aux);
+			write(1, DISCONNECTING, strlen(DISCONNECTING));
+			write(1, packet.data, packet.length);
+			write(1, "\n\0", sizeof(char) * 2);
 
-    return NULL;
+		} else {
+			NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
+			return NULL;
+		}
+		//Once we know if the connexion has been done then we close the file descriptor
+		close(socket);
+
+	}
+	return NULL;
 }
 
-void *connection_clientListener(void *socket) {
-    write(1, WAIT_CLIENT, strlen(WAIT_CLIENT));
-    serialHandler(socketPic, connection_handlerClient);
-    return socket;
+void *CONNECTION_clientListener(void *socket) {
+	write(1, WAIT_CLIENT, strlen(WAIT_CLIENT));
+	NETWORK_serialHandler(socketPic, CONNECTION_handlerClient);
+	return socket;
 }
 
-void dNetwork_executeData(int portE, int portP, char *ip) {
+void CONNECTION_executeData(int portE, int portP, char *ip) {
 
-     if ((socketPic = createConnectionServer(portP, ip)) > 0) {
-         pthread_t thread_id;
-         if (pthread_create(&thread_id, NULL, connection_clientListener, NULL) < 0) {
-             perror("could not create thread");
-             close(socketPic);
-         }
+	enterprise = HASH_createTable(MAX_ENTERPRISES);
 
-     }
+	if ((socketPic = NETWORK_createConnectionServer(portP, ip)) > 0) {
+		pthread_t thread_id;
 
-    //We listen enterprise port
-    if ((socketEnt = createConnectionServer(portE, ip)) > 0) {
-        serialHandler(socketEnt, connection_handlerEnterprise);
-    }
-}
+		if (pthread_create(&thread_id, NULL, CONNECTION_clientListener, NULL) < 0) {
+			perror("could not create thread");
 
+			kill(getpid(), SIGUSR1);
 
+		}
 
-Enterprise extractInfoEnterprise(Packet packet) {
-    char *port;
-    int i = 0, j = 0;
-    Enterprise enterprise;
+	} else {
+		kill(getpid(), SIGUSR1);
+	}
 
-    enterprise.name = (char *) malloc(sizeof(char));
+	if ((socketEnt = NETWORK_createConnectionServer(portE, ip)) > 0) {
+		NETWORK_serialHandler(socketEnt, CONNECTION_handlerEnterprise);
+	}
 
-    while (packet.data[i] != '&' && i < packet.length) {
-        enterprise.name[i] = packet.data[i];
-        i++;
-        enterprise.name = (char *) realloc(enterprise.name, sizeof(char) * (i + 1));
-    }
-    i++;
-    port = (char *) malloc(sizeof(char));
-
-    while (packet.data[i] != '&' && i < packet.length) {
-        port[j] = packet.data[i];
-        i++;j++;
-        port = (char *) realloc(port, sizeof(char) * (j + 1));
-    }
-
-    enterprise.port = atoi(port);
-    i++;
-    j=0;
-    enterprise.ip = (char *) malloc(sizeof(char));
-    while (packet.data[i] != '&' && i < packet.length) {
-        enterprise.ip[j] = packet.data[i];
-        i++;j++;
-        enterprise.ip = (char *) realloc(enterprise.ip, sizeof(char) * (j + 1));
-    }
-
-    return enterprise;
+	kill(getpid(), SIGUSR1);
 }

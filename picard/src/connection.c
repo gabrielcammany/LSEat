@@ -11,250 +11,259 @@
 #include "../include/connection.h"
 
 char *connection_data(int port, char *ip, char *name) {
-    Packet packet;
-    packet.data = NULL;
+	Packet packet;
+	packet.data = NULL;
 
-    //Message to make the user know we are connecting to Data
-    write(1, CONNECTING, strlen(CONNECTING));
+	//Message to make the user know we are connecting to Data
+	write(1, CONNECTING, strlen(CONNECTING));
 
-    //Returns the file descriptor to talk with Data server
-    socketfd = createConnectionClient(port, ip);
+	//Returns the file descriptor to talk with Data server
+	socketfd = NETWORK_createConnectionClient(port, ip);
 
 
-    if (socketfd < 0) {
-        write(1, ERR_CONN, strlen(ERR_CONN));
+	if (socketfd < 0) {
+		write(1, ERR_CONN, strlen(ERR_CONN));
 
-    } else {
-        //We create a packet and fill it with information
-        packet = createPacket(CONNECT, HEADER_PICDAT, (unsigned short) strlen(name), name);
+	} else {
+		//We create a packet and fill it with information
+		packet = NETWORK_createPacket(CONNECT, HEADER_PICDAT, (unsigned short) strlen(name), name);
 
-        if (packet.type > 0) {
-            //then we send the packet serialized
-            if (sendSerialized(socketfd, packet) > 0) {
-                //we receive the response
-                packet = extractIncomingFrame(socketfd);
-                //we analyse the information we have recieved
-                analyseDataPacket(packet);
+		if (packet.type > 0) {
+			//then we send the packet serialized
+			if (NETWORK_sendSerialized(socketfd, packet) > 0) {
+				//we receive the response
+				packet = NETWORK_extractIncomingFrame(socketfd);
+				//we analyse the information we have recieved
+				CONNECTION_analyseDataPacket(packet);
 
-            }
+			}
 
-        }
-    }
+		}
+	}
 
-    close(socketfd);
+	close(socketfd);
 
-    return packet.data;
+	return packet.data;
 }
 
 
-void extractEnterpriseData(char *data, char **nom, int *port, char **ip) {
-    char *token, auxPort[5];
+void CONNECTION_extractEnterpriseData(char *data, char **nom, int *port, char **ip) {
+	char *token, auxPort[5];
 
-    //This function separates the information of the frame by the char &
-    //We make this three times because we know it will have 3 fields
-    token = strtok(data, "&");
+	//This function separates the information of the frame by the char &
+	//We make this three times because we know it will have 3 fields
+	token = strtok(data, "&");
 
-    if (token != NULL) {
+	if (token != NULL) {
 
-        *nom = (char *) malloc(sizeof(char) * strlen(token));
+		*nom = (char *) malloc(sizeof(char) * strlen(token));
 
-        if (*nom != NULL) {
-            strcpy(*nom, token);
-        } else {
-            write(0, ERR_MEMORY, strlen(ERR_MEMORY));
-        }
-    }
+		if (*nom != NULL) {
+			strcpy(*nom, token);
+		} else {
+			write(0, ERR_MEMORY, strlen(ERR_MEMORY));
+		}
+	}
 
-    token = strtok(NULL, "&");
+	token = strtok(NULL, "&");
 
-    if (token != NULL) {
-        strcpy(auxPort, token);
-        *port = atoi(auxPort);
-    } else {
-        *port = 0;
-    }
+	if (token != NULL) {
+		strcpy(auxPort, token);
+		*port = atoi(auxPort);
+	} else {
+		*port = 0;
+	}
 
-    token = strtok(NULL, "&");
+	token = strtok(NULL, "&");
 
-    if (token != NULL) {
-        *ip = (char *) malloc(sizeof(char) * strlen(token));
+	if (token != NULL) {
+		*ip = (char *) malloc(sizeof(char) * strlen(token));
 
-        if (*ip != NULL) {
-            strcpy(*ip, token);
-        } else {
-            write(0, ERR_MEMORY, strlen(ERR_MEMORY));
-        }
-    }
+		if (*ip != NULL) {
+			strcpy(*ip, token);
+		} else {
+			write(0, ERR_MEMORY, strlen(ERR_MEMORY));
+		}
+	}
 }
 
 
 int connection_enterprise(char *data, char *nameUser, int saldo) {
-    char *ip = NULL, *nameEnterprise = NULL, *userData = NULL, money[10];
-    int port;
+	char *ip = NULL, *nameEnterprise = NULL, *userData = NULL, money[10];
+	int port;
 
-    //First we extract the information
-    //from enterprise that Data sent us
-    extractEnterpriseData(data, &nameEnterprise, &port, &ip);
+	//First we extract the information
+	//from enterprise that Data sent us
+	CONNECTION_extractEnterpriseData(data, &nameEnterprise, &port, &ip);
 
-    if (nameEnterprise != NULL && ip != NULL && port > 0) {
-        //we create connection between Picard and Enterprise
-        socketfd = createConnectionClient(port, ip);
+	if (nameEnterprise != NULL && ip != NULL && port > 0) {
+		//we create connection between Picard and Enterprise
+		socketfd = NETWORK_createConnectionClient(port, ip);
 
-        if (socketfd < 0) {
-            write(1, ERR_CONN, strlen(ERR_CONN));
-        } else {
-            //we create a buffer with all the information
-            //of the picard in order to create a packet with it
-            //and after serializating it and send it we wait for a response
-            sprintf(money, "%d", saldo);
-            userData = createBuffer(2, nameUser, money);
+		if (socketfd < 0) {
+			write(1, ERR_CONN, strlen(ERR_CONN));
+		} else {
+			//we create a buffer with all the information
+			//of the picard in order to create a packet with it
+			//and after serializating it and send it we wait for a response
+			sprintf(money, "%d", saldo);
+			userData = UTILS_createBuffer(2, nameUser, money);
 
-            if (userData != NULL) {
+			if (userData != NULL) {
 
-                Packet packet = createPacket(CONNECT, HEADER_PICINF, (int) strlen(userData), userData);
+				Packet packet = NETWORK_createPacket(CONNECT, HEADER_PICINF, (int) strlen(userData), userData);
 
-                if (packet.type > 0) {
+				if (packet.type > 0) {
 
-                    sendSerialized(socketfd, packet);
+					NETWORK_sendSerialized(socketfd, packet);
 
-                    if (readSimpleResponse(socketfd) > 0) {
+					if (NETWORK_readSimpleResponse(socketfd) > 0) {
 
-                        write(1, CONNECTION_ENT, strlen(CONNECTION_ENT));
+						write(1, CONNECTION_ENT, strlen(CONNECTION_ENT));
 
-                    } else {
-                        //If something goes wrong we will disconnect
-                        write(1, CONNECTION_NENT, strlen(CONNECTION_NENT));
-                        close(socketfd);
-                        socketfd = -1;
-                    }
+					} else {
+						//If something goes wrong we will disconnect
+						write(1, CONNECTION_NENT, strlen(CONNECTION_NENT));
+						close(socketfd);
+						socketfd = -1;
+					}
 
-                }
+				}
 
-            } else {
-                write(0, ERR_MEMORY, strlen(ERR_MEMORY));
-            }
+			} else {
+				write(0, ERR_MEMORY, strlen(ERR_MEMORY));
+			}
 
 
-        }
-    } else {
-        write(1, ERR_DATA, strlen(ERR_DATA));
-    }
+		}
+	} else {
+		write(1, ERR_DATA, strlen(ERR_DATA));
+	}
 
-    free(userData);
-    return socketfd;
+	free(userData);
+	return socketfd;
 }
 
-int analyseDataPacket(Packet packet) {
+int CONNECTION_analyseDataPacket(Packet packet) {
 
-    switch (packet.type) {
-        case '1':
-            if (packet.length == 0) {
-                //If there is any error during the connection then we will recive a length of 0
-                write(1, CONNECTION_NDATA, strlen(CONNECTION_NDATA));
+	switch (packet.type) {
+		case '1':
+			if (packet.length == 0) {
+				//If there is any error during the connection then we will recive a length of 0
+				write(1, CONNECTION_NDATA, strlen(CONNECTION_NDATA));
 
-            } else {
-                write(1, CONNECTION_DATA, strlen(CONNECTION_DATA));
-            }
-            break;
-        default:
-            break;
-    }
+			} else {
+				write(1, CONNECTION_DATA, strlen(CONNECTION_DATA));
+			}
+			break;
+		default:
+			break;
+	}
 
-    return 0;
+	return 0;
 }
 
-Enterprise extractInfoEnterprise(Packet packet) {
-    char *port;
-    int i = 0, j = 0;
-    Enterprise enterprise;
+Enterprise CONNECTION_extractPortEnterprise(Packet packet) {
+	char *port;
+	int i = 0, j = 0;
+	Enterprise enterprise;
 
-    enterprise.name = (char *) malloc(sizeof(char));
+	enterprise.name = (char *) malloc(sizeof(char));
 
-    while (packet.data[i] != '&' && i < packet.length) {
-        enterprise.name[i] = packet.data[i];
-        i++;
-        enterprise.name = (char *) realloc(enterprise.name, sizeof(char) * (i + 1));
-    }
-    i++;
-    port = (char *) malloc(sizeof(char));
+	while (packet.data[i] != '&' && i < packet.length) {
+		enterprise.name[i] = packet.data[i];
+		i++;
+		enterprise.name = (char *) realloc(enterprise.name, sizeof(char) * (i + 1));
+	}
+	i++;
+	port = (char *) malloc(sizeof(char));
 
-    while (packet.data[i] != '&' && i < packet.length) {
-        port[j] = packet.data[i];
-        i++;
-        j++;
-        port = (char *) realloc(port, sizeof(char) * (j + 1));
-    }
+	while (packet.data[i] != '&' && i < packet.length) {
+		port[j] = packet.data[i];
+		i++;
+		j++;
+		port = (char *) realloc(port, sizeof(char) * (j + 1));
+	}
 
-    enterprise.port = atoi(port);
-    i++;
-    j = 0;
-    enterprise.ip = (char *) malloc(sizeof(char));
-    while (packet.data[i] != '&' && i < packet.length) {
-        enterprise.ip[j] = packet.data[i];
-        i++;
-        j++;
-        enterprise.ip = (char *) realloc(enterprise.ip, sizeof(char) * (j + 1));
-    }
+	enterprise.port = atoi(port);
+	i++;
+	j = 0;
+	enterprise.ip = (char *) malloc(sizeof(char));
+	while (packet.data[i] != '&' && i < packet.length) {
+		enterprise.ip[j] = packet.data[i];
+		i++;
+		j++;
+		enterprise.ip = (char *) realloc(enterprise.ip, sizeof(char) * (j + 1));
+	}
 
-    return enterprise;
+	return enterprise;
 }
 
-void connection_requestMenuEnterprise() {
-    if (socketfd > 2) {
-        Packet packet = createPacket(MENU, MENU_PICENT, (unsigned short) 0, "\0");
-        sendSerialized(socketfd, packet);
-    } else {
-        write(1, ERR_CONN, strlen(ERR_CONN));
-    }
+void CONNECTION_requestMenuEnterprise() {
+	if (socketfd > 2) {
+		Packet packet = NETWORK_createPacket(MENU, MENU_PICENT, (unsigned short) 0, "\0");
+		NETWORK_sendSerialized(socketfd, packet);
+	} else {
+		write(1, ERR_CONN, strlen(ERR_CONN));
+	}
 
 }
 
-void connection_deleteDishMenu(char **data) {
-    if (socketfd > 2) {
-        char *buffer = createBuffer(2, data[1], data[0]);
-        Packet packet = createPacket(DEL_DISH, DEL_ORD, (unsigned short) strlen(buffer), buffer);
-        sendSerialized(socketfd, packet);
-    } else {
-        write(1, ERR_CONN, strlen(ERR_CONN));
-    }
+void CONNECTION_deleteDishMenu(char **data) {
+	if (socketfd > 2) {
+		char *buffer = UTILS_createBuffer(2, data[1], data[0]);
+		Packet packet = NETWORK_createPacket(DEL_DISH, DEL_ORD, (unsigned short) strlen(buffer), buffer);
+		NETWORK_sendSerialized(socketfd, packet);
+	} else {
+		write(1, ERR_CONN, strlen(ERR_CONN));
+	}
 }
 
-void connection_payEnterprise() {
-    if (socketfd > 2) {
-        Packet packet = createPacket(PAY, PAY_HEADER, (unsigned short) 0, "\0");
-        sendSerialized(socketfd, packet);
-    } else {
-        write(1, ERR_CONN, strlen(ERR_CONN));
-    }
+void CONNECTION_payEnterprise() {
+	if (socketfd > 2) {
+		Packet packet = NETWORK_createPacket(PAY, PAY_HEADER, (unsigned short) 0, "\0");
+		NETWORK_sendSerialized(socketfd, packet);
+	} else {
+		write(1, ERR_CONN, strlen(ERR_CONN));
+	}
 }
 
-void connection_takeNoteEnterprise(char **data) {
+void CONNECTION_takeNoteEnterprise(char **data) {
 
-    if (socketfd > 2) {
-        char *buffer = createBuffer(2, data[1], data[0]);
-        Packet packet = createPacket(DISH, NEW_ORD, (unsigned short) strlen(buffer), buffer);
-        sendSerialized(socketfd, packet);
-    } else {
-        write(1, ERR_CONN, strlen(ERR_CONN));
-    }
+	if (socketfd > 2) {
+
+		char *buffer = UTILS_createBuffer(2, data[1], data[0]);
+		Packet packet = NETWORK_createPacket(DISH, NEW_ORD, (unsigned short) strlen(buffer), buffer);
+		if(NETWORK_sendSerialized(socketfd, packet) < 0){
+
+			close(socketfd);
+			write(1, ERR_CONN, strlen(ERR_CONN));
+			socketfd = -1;
+
+		}
+
+
+	} else {
+		write(1, ERR_CONN, strlen(ERR_CONN));
+	}
 }
 
-void connection_disconnectEnterprise(char *nom) {
-    if (socketfd > 2) {
-        Packet packet = createPacket(DISCONNECT, HEADER_PICDAT, (unsigned short) strlen(nom), nom);
-        sendSerialized(socketfd, packet);
+void CONNECTION_disconnectEnterprise(char *nom) {
+	if (socketfd > 2) {
+		Packet packet = NETWORK_createPacket(DISCONNECT, HEADER_PICDAT, (unsigned short) strlen(nom), nom);
+		NETWORK_sendSerialized(socketfd, packet);
 
-        if (readSimpleResponse(socketfd) > 0) {
-            write(1, DESCONNECTING_OK, strlen(DESCONNECTING_OK));
-            close(socketfd);
-            socketfd = -1;
-        } else {
-            write(1, CONNECTION_NENT, strlen(CONNECTION_NENT));
+		if (NETWORK_readSimpleResponse(socketfd) > 0) {
+			write(1, DESCONNECTING_OK, strlen(DESCONNECTING_OK));
+			close(socketfd);
+			socketfd = -1;
+		} else {
+			write(1, CONNECTION_NENT, strlen(CONNECTION_NENT));
 
-        }
+		}
 
 
-    } else {
-        write(1, ERR_CONN, strlen(ERR_CONN));
-    }
+	} else {
+		write(1, ERR_CONN, strlen(ERR_CONN));
+	}
 }

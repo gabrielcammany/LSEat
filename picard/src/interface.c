@@ -16,18 +16,20 @@
  * @param input data from
  * @return
  */
-Command interface_checkSpecialCommand(char *input) {
-	int total = 0, base = 0,num_plats = 0;
+Command INTERFACE_checkSpecialCommand(char *input) {
+	int total = 0, base = 0, num_plats = 0;
 	char *buffer = NULL;
-	char * token;
+	char *token;
 	Command command;
 
-	total = getArrayString(input, ' ', &base);
+	total = UTILS_getArrayString(input, ' ', &base);
 
 	buffer = (char *) malloc(total * sizeof(char) + 1);
-	memset(buffer,0,total * sizeof(char) + 1);
+
+	memset(buffer, 0, total * sizeof(char) + 1);
 
 	if (buffer == NULL) {
+
 		write(1, ERR_MEMORY, strlen(ERR_MEMORY));
 		command.id = ERROR_CODE;
 		return command;
@@ -58,32 +60,34 @@ Command interface_checkSpecialCommand(char *input) {
 
 		} else {
 
-			command.data = (char **)malloc(sizeof(char *) * 2);
+			command.data = (char **) malloc(sizeof(char *) * 2);
 
-			if(command.data == NULL){
+			if (command.data == NULL) {
 
 				command.id = ERROR_CODE;
+
 				write(1, ERR_MEMORY, strlen(ERR_MEMORY));
 				free(buffer);
 				return command;
 
 			}
 
-			command.data[0] = (char *)malloc(total * sizeof(char));
+			command.data[0] = (char *) malloc(total * sizeof(char));
 
-			if(command.data[0] == NULL){
+			if (command.data[0] == NULL) {
 
 				command.id = ERROR_CODE;
+
 				write(1, ERR_MEMORY, strlen(ERR_MEMORY));
 				free(buffer);
 				return command;
 
 			}
-			token = strtok(buffer," ");
-			strcpy(command.data[0],token);
+			token = strtok(buffer, " ");
+			strcpy(command.data[0], token);
 
 
-			if (getArrayString(input + total, '\0', &base) < 0) {
+			if (UTILS_getArrayString(input + total, '\0', &base) < 0) {
 
 				write(1, ERR_PLAT, strlen(ERR_PLAT));
 
@@ -93,22 +97,21 @@ Command interface_checkSpecialCommand(char *input) {
 
 				base = base + total;
 
-				//command.data[1] = (char *)malloc(strlen(input+base) * sizeof(char));
 				token = strtok(input," ");
 				token = strtok(NULL, " ");
-				while( token != NULL){
-					command.data[1] = (char*) realloc (command.data[1],(int)strlen(token)+1);
-					strcat(command.data[1],token);
+				while (token != NULL) {
+					command.data[1] = (char *) realloc(command.data[1], (int) strlen(token) + 1);
+					strcat(command.data[1], token);
 					token = strtok(NULL, " ");
-					if(token != NULL)strcat(command.data[1]," ");
+					if (token != NULL)strcat(command.data[1], " ");
 				}
-				//command.data[strlen(command.data[1])] = "\0";
-				//printf("DATA: %s-\n",(command.data[1]));
 
-				if(command.data[1] == NULL){
+				if (command.data[1] == NULL) {
 
 					command.id = ERROR_CODE;
+
 					write(1, ERR_MEMORY, strlen(ERR_MEMORY));
+
 					free(buffer);
 					free(command.data[0]);
 					free(command.data);
@@ -132,13 +135,13 @@ Command interface_checkSpecialCommand(char *input) {
  * @param input
  * @return
  */
-Command interface_specialCommand(char *input) {
+Command INTERFACE_specialCommand(char *input) {
 
 	int nextObjective = 0, espais = 0;
 	char *buffer = NULL;
 	Command command;
 
-	nextObjective = getArrayString(input, ' ', &espais);
+	nextObjective = UTILS_getArrayString(input, ' ', &espais);
 
 	buffer = (char *) malloc(nextObjective * sizeof(char) + 1);
 
@@ -165,7 +168,7 @@ Command interface_specialCommand(char *input) {
 
 		if (strcmp(buffer, "elimina") == 0) {
 
-			command = interface_checkSpecialCommand(input + nextObjective);
+			command = INTERFACE_checkSpecialCommand(input + nextObjective);
 			if (command.id != ERROR_CODE) {
 
 				command.id = CMD_ELIMINA;
@@ -174,7 +177,8 @@ Command interface_specialCommand(char *input) {
 
 		} else if (strcmp(buffer, "demana") == 0) {
 
-			command = interface_checkSpecialCommand(input + nextObjective);
+
+			command = INTERFACE_checkSpecialCommand(input + nextObjective);
 			if (command.id != ERROR_CODE) {
 
 				command.id = CMD_DEMANA;
@@ -197,11 +201,11 @@ Command interface_specialCommand(char *input) {
  * @param input commanda que s'ha introduit
  * @return
  */
-Command interface_identifyCommand(char *input) {
+Command INTERFACE_identifyCommand(char *input) {
 
 	Command command;
 
-	input = toLower(input);
+	input = UTILS_toLower(input);
 
 	if (strcmp(input, "connecta") == 0) {
 
@@ -233,13 +237,13 @@ Command interface_identifyCommand(char *input) {
 
 	} else {
 
-		return interface_specialCommand(input);
+		return INTERFACE_specialCommand(input);
 
 	}
 }
 
 
-Command interface_readCommand(char *cadena) {
+Command INTERFACE_readCommand(char *cadena) {
 	char input[BUFFER];
 	char auxiliar[10];
 	Command command;
@@ -248,13 +252,13 @@ Command interface_readCommand(char *cadena) {
 	sprintf(auxiliar, "%s\t > ", cadena);
 	write(1, auxiliar, strlen(auxiliar));
 
-	if (!setInputMode()) {
+	if (!SHELL_setInputMode()) {
 
-		readInput(input, auxiliar);
+		SHELL_readInput(input, auxiliar);
 
-		resetInput();
+		SHELL_resetInput();
 
-		command = interface_identifyCommand(input);
+		command = INTERFACE_identifyCommand(input);
 
 
 	}
@@ -262,14 +266,14 @@ Command interface_readCommand(char *cadena) {
 	return command;
 }
 
-void interface_saveHistory() {
-	//saveToFile();
-	freeAndClose();
+void INTERFACE_saveHistory() {
+	//SHELL_saveToFile();
+	SHELL_freeAndClose();
 }
 
-void interface_loadHistory() {
+void INTERFACE_loadHistory() {
 	//int fileHistory = openFile(".cmd_history", 3);
-	initializeHistory(-1);
+	SHELL_initializeHistory(-1);
 	/*if (fileHistory != ERROR_CODE) {
 		if (checkEmpty(fileHistory) > 0){
 			loadBatch();

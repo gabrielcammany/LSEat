@@ -4,11 +4,11 @@
 
 #include "../include/controller.h"
 
-void basic_freeMemory(Data *data) {
+void BASIC_freeMemory(Data *data) {
 	free(data->ip);
 }
 
-void basic_startValues(Data *data) {
+void BASIC_startValues(Data *data) {
 	data->ip = NULL;
 	data->enterprisePort = 0;
 	data->picardPort = 0;
@@ -23,12 +23,12 @@ void basic_startValues(Data *data) {
  * @param port port readed
  * @return
  */
-int basic_readPorts(int fd, int *portNumber){
+int BASIC_readPorts(int fd, int *portNumber) {
 	int error = 0;
 	char *port = NULL;
 
 	//Now it's time for the picard port
-	error = readDynamic(&port, fd);
+	error = UTILS_readDynamic(&port, fd);
 
 	//Two kinds of errors
 	if (!error) {
@@ -46,24 +46,24 @@ int basic_readPorts(int fd, int *portNumber){
 
 }
 
-int basic_readDataConfig(char* name,Data *data) {
+int BASIC_readDataConfig(char *name, Data *data) {
 
 	int fd = 0;
 	int error;
 
-	fd = openFile(name, 1);
+	fd = FILES_openFile(name, 1);
 	if (fd == EXIT_FAILURE) {
 		return EXIT_FAILURE;
 	}
 	//We read Data ip from config file
-	error = readDynamic(&data->ip, fd);
+	error = UTILS_readDynamic(&data->ip, fd);
 	if (error < 0) {
 		write(1, ERR_IP, strlen(ERR_IP));
 		close(fd);
 		return EXIT_FAILURE;
 	}
-	if ( (error = basic_readPorts(fd,&data->picardPort)) != EXIT_FAILURE ) {
-		error = basic_readPorts(fd,&data->enterprisePort);
+	if ((error = BASIC_readPorts(fd, &data->picardPort)) != EXIT_FAILURE) {
+		error = BASIC_readPorts(fd, &data->enterprisePort);
 	}
 
 	close(fd);
@@ -71,13 +71,13 @@ int basic_readDataConfig(char* name,Data *data) {
 	return error;
 }
 
-int analysePacketPicard(Packet packet){
+int BASIC_analysePacketPicard(Packet packet) {
 
-	switch(packet.type){
+	switch (packet.type) {
 		case '1':
 			write(1, CONNECTING, strlen(CONNECTING));
 			write(1, packet.data, packet.length);
-			write(1, "\0\n", sizeof(char)*2);
+			write(1, "\0\n", sizeof(char) * 2);
 			break;
 		default:
 			break;

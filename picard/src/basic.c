@@ -4,7 +4,7 @@
 
 #include "../include/controller.h"
 
-void basic_startupMissages() {
+void BASIC_startupMessages() {
 	char cadena[100];
 	//Message
 	sprintf(cadena, WELCOME, lseat.client.nom);
@@ -16,13 +16,14 @@ void basic_startupMissages() {
 	write(1, INTRODUCTION, strlen(INTRODUCTION));
 }
 
-void basic_startValues(Command *command) {
+void BASIC_startValues(Command *command) {
 	lseat.client.nom = NULL;
 	lseat.client.saldo = 0;
 	lseat.config.IP = NULL;
 	lseat.config.Port = 0;
 	command->data = NULL;
 	command->id = -1;
+	socketfd = -1;
 }
 
 /**
@@ -31,12 +32,12 @@ void basic_startValues(Command *command) {
  * @param config Structure where configuration is saved
  * @return
  */
-int basic_readNetworkConfig(int fd, Config *config) {
+int BASIC_readNetworkConfig(int fd, Config *config) {
 	char *cadena = NULL;
 	int error = 0;
 
 
-	error = readDynamic(&config->IP, fd);
+	error = UTILS_readDynamic(&config->IP, fd);
 	if (!error) {
 		write(1, ERR_IP_FILE, strlen(ERR_IP_FILE));
 		close(fd);
@@ -46,7 +47,7 @@ int basic_readNetworkConfig(int fd, Config *config) {
 		close(fd);
 	}
 	if (error != ERROR_CODE) {
-		error = readDynamic(&cadena, fd);
+		error = UTILS_readDynamic(&cadena, fd);
 		if (!error) {
 			write(1, ERR_PORT_FILE, strlen(ERR_PORT_FILE));
 			error = ERROR_CODE;
@@ -72,7 +73,7 @@ int basic_readNetworkConfig(int fd, Config *config) {
 	return error;
 }
 
-int basic_readClientConfig(char *name, ClientLSEat *lseat) {
+int BASIC_readClientConfig(char *name, ClientLSEat *lseat) {
 
 	int fd = 0;
 	char *cadena = NULL;
@@ -82,13 +83,13 @@ int basic_readClientConfig(char *name, ClientLSEat *lseat) {
 	lseat->client.nom = NULL;
 
 
-	fd = openFile(name, 1);
+	fd = FILES_openFile(name, 1);
 	if (fd < 0) {
 		return ERROR_CODE;
 	}
 	//We read the clients name through the function read Dynamic
 	//Which reads dynamically controlling memory usage
-	error = readDynamic(&lseat->client.nom, fd);
+	error = UTILS_readDynamic(&lseat->client.nom, fd);
 	if (error < 0) {
 		write(1, ERROR_MEMORY, strlen(ERROR_MEMORY));
 		close(fd);
@@ -96,7 +97,7 @@ int basic_readClientConfig(char *name, ClientLSEat *lseat) {
 
 	if (error > 0) {
 		//Now it's time for the money
-		error = readDynamic(&cadena, fd);
+		error = UTILS_readDynamic(&cadena, fd);
 
 		//Two kinds of errors
 		if (!error) {
@@ -120,7 +121,7 @@ int basic_readClientConfig(char *name, ClientLSEat *lseat) {
 
 	//Now it's time for the network configuration (ip and port)
 	if (error > 0) {
-		error = basic_readNetworkConfig(fd, &lseat->config);
+		error = BASIC_readNetworkConfig(fd, &lseat->config);
 	}
 
 	close(fd);
@@ -135,7 +136,7 @@ int basic_readClientConfig(char *name, ClientLSEat *lseat) {
  * Funcion encargada de borrar la memoria dinamica
  * @param lseat Variable a borrar
  */
-void basic_freeMemory() {
+void BASIC_freeMemory() {
 
 	free(lseat.client.nom);
 	free(lseat.config.IP);
