@@ -17,30 +17,28 @@
  * @return
  */
 Command INTERFACE_checkSpecialCommand(char *input) {
-	int total = 0, base = 0, num_plats = 0;
-	char *buffer = NULL;
-	char *token;
 	Command command;
+	command.data = NULL;
+
+	int num_plats = 0;
+	int total = 0, base = 0;
+	char *buffer = NULL;
 
 	total = UTILS_getArrayString(input, ' ', &base);
 
-	buffer = (char *) malloc(total * sizeof(char) + 1);
+	buffer = (char*)malloc(total*sizeof(char)+1);
 
-	memset(buffer, 0, total * sizeof(char) + 1);
-
-	if (buffer == NULL) {
-
+	if(buffer == NULL){
 		write(1, ERR_MEMORY, strlen(ERR_MEMORY));
+
 		command.id = ERROR_CODE;
 		return command;
 	}
 
-	if (total < 0) {
+	if(total < 0) {
 
 		write(1, ERR_NUM, strlen(ERR_NUM));
 		command.id = ERROR_CODE;
-		free(buffer);
-		return command;
 
 	} else {
 
@@ -49,85 +47,63 @@ Command INTERFACE_checkSpecialCommand(char *input) {
 
 		num_plats = atoi(buffer);
 
-		if (num_plats < 1) {
-
+		if ( num_plats <= 0 ){
 			write(1, ERR_NUM, strlen(ERR_NUM));
 
 			command.id = ERROR_CODE;
-			free(buffer);
-
-			return command;
 
 		} else {
 
-			command.data = (char **) malloc(sizeof(char *) * 2);
-
-			if (command.data == NULL) {
-
-				command.id = ERROR_CODE;
-
-				write(1, ERR_MEMORY, strlen(ERR_MEMORY));
-				free(buffer);
-				return command;
-
-			}
-
-			command.data[0] = (char *) malloc(total * sizeof(char));
-
-			if (command.data[0] == NULL) {
-
-				command.id = ERROR_CODE;
-
-				write(1, ERR_MEMORY, strlen(ERR_MEMORY));
-				free(buffer);
-				return command;
-
-			}
-			token = strtok(buffer, " ");
-			strcpy(command.data[0], token);
-
-
-			if (UTILS_getArrayString(input + total, '\0', &base) < 0) {
+			if(UTILS_getArrayString(input+total, '\0', &base) < 0) {
 
 				write(1, ERR_PLAT, strlen(ERR_PLAT));
-
 				command.id = ERROR_CODE;
 
 			} else {
+				base = base+total;
 
-				base = base + total;
+				command.data = malloc(sizeof(char*)*2);
 
-				token = strtok(input," ");
-				token = strtok(NULL, " ");
-				while (token != NULL) {
-					command.data[1] = (char *) realloc(command.data[1], (int) strlen(token) + 1);
-					strcat(command.data[1], token);
-					token = strtok(NULL, " ");
-					if (token != NULL)strcat(command.data[1], " ");
+				if(command.data != NULL){
+
+					command.data[0] = malloc(sizeof(char)*strlen(buffer));
+
+					if(command.data[0] != NULL){
+
+						command.data[1] = malloc(sizeof(char)*strlen(input+base));
+
+						if(command.data[1] != NULL){
+
+							memcpy(command.data[0],buffer,strlen(buffer));
+							memcpy(command.data[1],input+base,strlen(input+base));
+
+						}else{
+
+							free(command.data[0]);
+							free(command.data);
+							command.id = ERROR_CODE;
+
+						}
+
+					}else{
+						free(command.data);
+						command.id = ERROR_CODE;
+					}
+
 				}
 
-				if (command.data[1] == NULL) {
-
-					command.id = ERROR_CODE;
-
-					write(1, ERR_MEMORY, strlen(ERR_MEMORY));
-
-					free(buffer);
-					free(command.data[0]);
-					free(command.data);
-
-					return command;
-
-				}
 
 				write(1, COMMANDA_OK, strlen(COMMANDA_OK));
 
 			}
 		}
 	}
-	return command;
 
+	free(buffer);
+
+	return command;
 }
+
 
 
 /**
@@ -246,8 +222,10 @@ Command INTERFACE_identifyCommand(char *input) {
 Command INTERFACE_readCommand(char *cadena) {
 	char input[BUFFER];
 	char auxiliar[10];
+
 	Command command;
 	command.id = ERROR_CODE;
+	command.data = NULL;
 
 	sprintf(auxiliar, "%s\t > ", cadena);
 	write(1, auxiliar, strlen(auxiliar));

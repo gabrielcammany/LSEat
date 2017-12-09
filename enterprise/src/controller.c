@@ -13,20 +13,30 @@
 void eCONTROLLER_signalHandler(int signum) {
     switch (signum) {
         case SIGINT:
-            close(socketData);
-            close(socketPic);
+
+			if(socketData > 2)close(socketData);
+			if(socketPic > 2)close(socketPic);
+
             LLISTA_destrueix(&picards);
 			BASIC_freeMemory();
+
+			pthread_kill(thread_data,SIGKILL);
+			pthread_join(thread_data, NULL);
 
             write(1, "\n", strlen("\n"));
             write(1, BYE, strlen(BYE));
 
             exit(EXIT_SUCCESS);
+
 		case SIGUSR1:
-			close(socketData);
-			BASIC_freeMemory();
+
+			if(socketData > 2)close(socketData);
+
+			pthread_kill(thread_data,SIGKILL);
+			pthread_join(thread_data, NULL);
 
 			exit(EXIT_FAILURE);
+
         default:
             write(1, ERR_INT, strlen(ERR_INT));
             break;

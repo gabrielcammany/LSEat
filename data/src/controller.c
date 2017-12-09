@@ -10,24 +10,30 @@ void dCONTROLLER_signalHandler(int signum) {
 		case SIGINT:
 
 			BASIC_freeMemory(&data);
+			HASH_destruct(&enterprise);
 
 			write(1, "\n", strlen("\n"));
 			write(1, BYE, strlen(BYE));
 
-			close(socketEnt);
-			close(socketPic);
+			if(socketEnt != -1)close(socketEnt);
+			if(socketPic != -1)close(socketPic);
+			pthread_kill(thread_id,SIGKILL);
+			pthread_join(thread_id, NULL);
 
 			exit(EXIT_SUCCESS);
 
 		case SIGUSR1:
 
 			BASIC_freeMemory(&data);
+			HASH_destruct(&enterprise);
 
 			write(1, "\n", strlen("\n"));
 			write(1, NBYE, strlen(NBYE));
 
-			close(socketEnt);
-			close(socketPic);
+			if(socketEnt != -1)close(socketEnt);
+			if(socketPic != -1)close(socketPic);
+			pthread_kill(thread_id, SIGKILL);
+			pthread_join(thread_id, NULL);
 
 			exit(EXIT_FAILURE);
 		default:

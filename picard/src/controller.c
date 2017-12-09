@@ -23,13 +23,15 @@ void CONTROLLER_signalHandler(int signum) {
 			SHELL_resetInput();
 			INTERFACE_saveHistory();
 
-			close(socketfd);
+			if(socketfd > 1)close(socketfd);
 
 			exit(EXIT_SUCCESS);
 		case SIGPIPE:
 			write(1, ERR_OP, strlen(ERR_OP));
 			write(1, ERR_ENTDISC, strlen(ERR_ENTDISC));
-			close(socketfd);
+
+			if(socketfd > 1)close(socketfd);
+
 			socketfd = -1;
 			break;
 		default:
@@ -46,9 +48,11 @@ int CONTROLLER_executeCommand(Command command, ClientLSEat lseat) {
 	if(command.id == CMD_CONNECTA) {
 		enterpriseData = connection_data(lseat.config.Port, lseat.config.IP, lseat.client.nom);
 		if (enterpriseData != NULL) {
+
 			socketfd = connection_enterprise(enterpriseData, lseat.client.nom, lseat.client.saldo);
 		}
 	}else if(socketfd > 0){
+
 		switch (command.id) {
 			case CMD_MENU:
 				CONNECTION_requestMenuEnterprise();

@@ -1,6 +1,7 @@
 
 #include "../include/network.h"
 
+
 int NETWORK_createConnectionClient(int portInput, char *ipInput) {
 
 	// comprovem la validesa del port
@@ -97,7 +98,7 @@ void NETWORK_serialHandler(int socketfd, void *(*handler)(void *)) {
 		if (newsock < 0) {
 			perror("accept");
 			close(socketfd);
-			exit(EXIT_FAILURE);
+			break;
 		}
 
 		handler((void *) &newsock);
@@ -134,35 +135,42 @@ void NETWORK_parallelHandler(int port, char *ip, void *(*handler)(void *)) {
 
 int NETWORK_sendSerialized(int socket, Packet packet) {
 	char *buffer = NULL;
+	unsigned short size;
 
-	unsigned short size = (unsigned short) (SIMPLE_PACKET_LENGTH + strlen(packet.data));
+	if( packet.data != NULL){
 
-	buffer = (char *) malloc(sizeof(char) * size);
+		size = (unsigned short) (SIMPLE_PACKET_LENGTH + strlen(packet.data) + 1) ;
+
+	}else{
+
+		size = (unsigned short) (SIMPLE_PACKET_LENGTH + 1) ;
+
+	}
+
+	buffer = (char *) calloc(size,sizeof(char) * size);
+
 	if (buffer == NULL) {
 		return -1;
 	}
 
-	memset(buffer, 0, size);
 
-	if (packet.data != NULL) {
+	buffer[0] = packet.type;
 
+	memcpy(buffer + sizeof(char), packet.header, HEADER_SIZE);
 
-		buffer[0] = packet.type;
+	buffer[HEADER_SIZE + TYPE_SIZE] = (char) packet.length;
 
-		memcpy(buffer + sizeof(char), packet.header, HEADER_SIZE);
+	if(packet.data != NULL)memcpy(buffer + SIMPLE_PACKET_LENGTH, packet.data, packet.length);
 
-		buffer[HEADER_SIZE + TYPE_SIZE] = (char) packet.length;
-		memcpy(buffer + SIMPLE_PACKET_LENGTH, packet.data, packet.length);
+	if (write(socket, buffer, size) == size) {
 
-		if (write(socket, buffer, size) == size) {
+		free(buffer);
 
-			free(buffer);
-			return 1;
-		}
-
+		return 1;
 	}
 
 	free(buffer);
+
 	return -1;
 
 }
@@ -170,35 +178,31 @@ int NETWORK_sendSerialized(int socket, Packet packet) {
 Packet NETWORK_createPacket(int type, char *header, int length, char *data) {
 
 	Packet packet;
+	packet.type = 0;
+	packet.data = NULL;
+	packet.length = 0;
 
-	//We put \0 in the header so if it has less length we always send 10 bytes
-	//We also copy the type, the header and the length this funcions recives
 	memset(packet.header, '\0', sizeof(char) * HEADER_SIZE);
+
 	sprintf(&packet.type, "%d", type);
+
 	memcpy(packet.header, header, HEADER_SIZE);
 	packet.length = (unsigned short) length;
 
-	if (data != NULL) {
-		packet.data = (char *) malloc(sizeof(char) * strlen(data));
-		if (length > 0) {
+	if (length > 0) {
 
-			if (packet.data == NULL) {
+		packet.data = (char *) calloc(packet.length + 1, sizeof(char) * (packet.length + 1));
 
-				packet.type = 0;
-				return packet;
+		if (packet.data == NULL) {
 
-			}
+			packet.type = ERROR_CODE;
+			return packet;
 
-			memset(packet.data, 0, sizeof(char) * packet.length);
-			memcpy(packet.data, data, packet.length);
-		} else {
-			packet.data = "\0";
 		}
 
-	} else {
-		packet.type = 0;
-	}
+		memcpy(packet.data, data, packet.length);
 
+	}
 
 	return packet;
 
@@ -209,43 +213,26 @@ int NETWORK_readSimpleResponse(int socket) {
 	char header[HEADER_SIZE], type;
 
 	read(socket, &type, sizeof(char));
+	read(socket, header, HEADER_SIZE * sizeof(char));
+
 	switch (type) {
 		case '1':
-			read(socket, header, HEADER_SIZE * sizeof(char));
-			if ((strcmp(header, HEADER_CON) == 0)) {
-				return 1;
-			} else {
-				return 0;
-			}
+			return (strcmp(header, HEADER_CON) == 0);
 		case '2':
-
-			read(socket, header, HEADER_SIZE * sizeof(char));
-
 			return (strcmp(header, HEADER_ENDMENU) == 0);
 		case '3':
-
-			read(socket, header, HEADER_SIZE * sizeof(char));
-
 			return (strcmp(header, HEADER_ORD) == 0);
 		case '5':
-
-			read(socket, header, HEADER_SIZE * sizeof(char));
-
 			return (strcmp(header, HEADER_ORD) == 0);
 		case '6':
-
-			read(socket, header, HEADER_SIZE * sizeof(char));
-
 			return (strcmp(header, HEADER_PAY) == 0);
 		case '7':
-
-			read(socket, header, HEADER_SIZE * sizeof(char));
-
 			return (strcmp(header, HEADER_NUPDATE) == 0);
 		default:
 			break;
 	}
-	return 0;
+
+	return 1;
 
 }
 
@@ -284,25 +271,33 @@ Packet NETWORK_extractIncomingFrame(int socket) {
 
 
 		if (length > 0) {
-			data = (char *) malloc(sizeof(char) * length);
+
+			data = (char *) calloc(length,sizeof(char) * length);
 
 			if (data != NULL) {
 
 				if (read(socket, data, sizeof(char) * length) > 0) {
 
-					return NETWORK_createPacket(type - '0', header, length, data);
+					packet = NETWORK_createPacket(type - '0', header, length, data);
+
+					free(data);
+
+					return packet;
 
 				} else {
 
 					free(data);
 					close(socket);
-					packet.type = ERROR_CODE;
-					return packet;
 
 				}
 
+			}else{
+
+				close(socket);
+
 			}
 		} else {
+
 			return NETWORK_createPacket(type - '0', header, length, "\0");
 
 		}
@@ -316,20 +311,27 @@ Packet NETWORK_extractIncomingFrame(int socket) {
 void NETWORK_sendKOPacket(int socket, int type, char* header) {
 	Packet aux;
 	//if not we send the KO packet to the client
-	aux = NETWORK_createPacket(type, header, (unsigned short) 0, "\0");
+	aux = NETWORK_createPacket(type, header, (unsigned short) 0, NULL);
 	NETWORK_sendSerialized(socket, aux);
-	close(socket);
+	NETWORK_freePacket(&aux);
 
 }
 
 void NETWORK_sendOKPacket(int socket, int type, char* header) {
 	Packet aux;
-	//if not we send the OK packet to the client
 
-	aux = NETWORK_createPacket(type, header, (unsigned short) 0, "\0");
+	aux = NETWORK_createPacket(type, header, (unsigned short) 0, NULL);
 	NETWORK_sendSerialized(socket, aux);
-	/*write(1, ERR_CLIENT, strlen(ERR_CLIENT));
-	write(1, '\0', sizeof(char));
-	close(socket);*/
+	NETWORK_freePacket(&aux);
 
+}
+
+void NETWORK_freePacket(Packet *packet){
+
+	if(packet->data != NULL){
+		free(packet->data);
+		packet->data = NULL;
+	}
+	packet->type = 0;
+	packet->length = 0;
 }

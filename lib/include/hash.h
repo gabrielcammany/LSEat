@@ -28,7 +28,7 @@
 typedef struct {
 
 	int key;
-	void *data;
+	char *data;
 	int number;
 
 } Bucket;
@@ -54,6 +54,8 @@ int HASH_findElement(Table table, int key);
 
 int HASH_function(Table table, int key);
 
-Bucket HASH_createBucket(int key, void *data, int number);
+Bucket HASH_createBucket(int key, char *data, int number);
+
+void HASH_destruct(Table *table);
 
 #endif //LSEAT_HASH_H

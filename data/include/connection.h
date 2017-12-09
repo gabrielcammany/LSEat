@@ -1,4 +1,5 @@
 /**
+						SEM_wait(&hashinsert);
  * @Author: Manel Manchón Gascó / Gabriel Cammany Ruiz
  * @Date:   24-10-2017
  * @Email:  ls31343@salleurl.edu ls30652@salleurl.edu
@@ -14,29 +15,26 @@
 //system include
 #include <unistd.h>
 #include <stdio.h>
+#include <signal.h>
 
 //own includes
 #include "../../lib/include/network.h"
 #include "../../lib/include/hash.h"
-#include "controller.h"
 
+
+#define BYE "Apagant el servidor Data...\n"
+#define NBYE "Error en Data. Apagant el servidor...\n"
 
 #define CONNECTING "Connectant "
 #define DISCONNECTING "Desconnectant "
+#define DCONNECT_ERR "Desconnectant per error "
 
 #define MAX_ENTERPRISES 20
 
-Table enterprise;
-
-
+pthread_t thread_id;
 int socketPic, socketEnt;
 
-/**
- * Extracts info received from Enterprise
- * @param packet struct wir frame's information
- * @return
- */
-int CONNECTION_extractNumber(Packet packet, int option);
+Table enterprise;
 
 void CONNECTION_executeData(int portE, int portP, char *ip);
 

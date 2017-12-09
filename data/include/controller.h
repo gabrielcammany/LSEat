@@ -17,10 +17,8 @@
 
 //Constantes propias
 #define ERR_PORTP "Error en llegir el port del Picard!\n"
-#define ERR_PORTE "Error en llegir el port del Enterprise!\n"
 #define ERR_IP "Error en llegir la IP de Data\n"
 #define ERR_MEMORY "Hi ha un problema amb la memoria del sistema.\n"
-#define ERR_FORMAT_PORT "Hi ha un problema amb el format del port!\n"
 
 //Constantes propias
 #define ERR_PORT "Error: %d es un port invalid\n"
@@ -32,8 +30,6 @@
 #define ERR_INT "Interrupció desconeguda!\n"
 #define ERR_ARGS "Error: falta especificar els arxius!\n"
 
-#define BYE "Apagant el servidor Data...\n"
-#define NBYE "Error en Data. Apagant el servidor...\n"
 
 
 /**
@@ -49,6 +45,8 @@ typedef struct{
 }Data;
 
 Data data;
+
+
 
 void dCONTROLLER_signalHandler(int signum);
 

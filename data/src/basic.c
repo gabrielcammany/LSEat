@@ -3,6 +3,7 @@
 //
 
 #include "../include/controller.h"
+#include "../../lib/include/hash.h"
 
 void BASIC_freeMemory(Data *data) {
 	free(data->ip);
@@ -12,8 +13,13 @@ void BASIC_startValues(Data *data) {
 	data->ip = NULL;
 	data->enterprisePort = 0;
 	data->picardPort = 0;
-	socketPic = 5;
-	socketEnt = 6;
+	socketPic = -1;
+	socketEnt = -1;
+	enterprise.bucket = NULL;
+	enterprise.length = -1;
+	enterprise.number = 0;
+	enterprise.elements = 0;
+
 }
 
 
@@ -42,6 +48,9 @@ int BASIC_readPorts(int fd, int *portNumber) {
 	}
 
 	*portNumber = atoi(port);
+
+	free(port);
+
 	return EXIT_SUCCESS;
 
 }

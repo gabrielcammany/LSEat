@@ -9,6 +9,8 @@
  */
 
 #include "../include/connection.h"
+#include "../../lib/include/hash.h"
+#include "../../lib/include/network.h"
 
 
 void *CONNECTION_handlerEnterprise(void *arg) {
@@ -27,24 +29,29 @@ void *CONNECTION_handlerEnterprise(void *arg) {
 
 				if (strcmp(packet.header, HEADER_DATPIC) == 0) {
 
-					aux = (char *) malloc(sizeof(char) * packet.length);
+					aux = (char *) calloc(packet.length,sizeof(char) * packet.length);
 
-					if(aux != NULL){
+					if (aux != NULL) {
 
-						memcpy(aux,packet.data,sizeof(char)*packet.length);
+						memcpy(aux, packet.data, sizeof(char) * packet.length);
 
 						UTILS_extractFromBuffer(aux, 2, &number, &port);
 
 						HASH_insert(&enterprise, HASH_createBucket(atoi(port), packet.data, 0));
 
 						NETWORK_sendOKPacket(socket, CONNECT, HEADER_CON);
-						close(socket);
 
-					}else{
+						free(aux);
+						free(port);
+						free(number);
+
+					} else {
 
 						NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
 
 					}
+
+
 
 				} else {
 
@@ -52,17 +59,20 @@ void *CONNECTION_handlerEnterprise(void *arg) {
 
 				}
 
+
 				break;
 			case '7':
 
 				if (strcmp(packet.header, HEADER_EUPDATE) == 0) {
 
 					UTILS_extractFromBuffer(packet.data, 2, &port, &number);
-					printf("Update NUMBER: -%s- port: -%s-\n",number,port);
 
-					HASH_insert(&enterprise, HASH_createBucket(atoi(port), packet.data, atoi(number)));
+					HASH_insert(&enterprise, HASH_createBucket(atoi(port), NULL, atoi(number)));
 
 					NETWORK_sendOKPacket(socket, UPDATE, HEADER_UPDATE);
+
+					free(port);
+					free(number);
 
 				} else {
 
@@ -80,12 +90,13 @@ void *CONNECTION_handlerEnterprise(void *arg) {
 
 		}
 
+		NETWORK_freePacket(&packet);
+
 	} else {
 
 		NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
 
 	}
-
 	close(socket);
 
 	return arg;
@@ -93,7 +104,7 @@ void *CONNECTION_handlerEnterprise(void *arg) {
 
 void *CONNECTION_handlerClient(void *arg) {
 
-	int socket = *((int *) arg);
+	int socket = *((int *) arg), size;
 	Packet packet, aux;
 
 	//We extract the information of the clients packet
@@ -101,46 +112,61 @@ void *CONNECTION_handlerClient(void *arg) {
 
 	//We know there will be only the type 1 of packet from clients
 	if (packet.type != '1' || strcmp(packet.header, HEADER_PICINF) == 0) {
+
 		NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
+		NETWORK_freePacket(&packet);
+
 		return NULL;
+
 	}
 
 	//Because is type 1 we know that data contains the client name
 	write(1, CONNECTING, strlen(CONNECTING));
-	write(1, packet.data, packet.length);
+	write(1, packet.data, sizeof(char) * packet.length);
 	write(1, "\n\0", sizeof(char) * 2);
 
 	//we check that struct enterprise isnt empty
 
-	if (enterprise.elements > 0) {
+	if (!enterprise.elements) {
 
 		NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
-		write(1, DISCONNECTING, strlen(DISCONNECTING));
-		write(1, packet.data, packet.length);
+		write(1, DCONNECT_ERR, strlen(DCONNECT_ERR));
+		write(1, packet.data, sizeof(char) * packet.length);
 		write(1, "\n\0", sizeof(char) * 2);
 
 	} else {
 
+		size = (int) strlen(enterprise.bucket[enterprise.number].data);
+
 		//we create packet to response client
-		aux = NETWORK_createPacket(CONNECT, HEADER_DATPIC,
-								   (int) strlen(enterprise.bucket[enterprise.number].data),
+		aux = NETWORK_createPacket(CONNECT, HEADER_DATPIC,size,
 								   enterprise.bucket[enterprise.number].data);
 
 		if (aux.type > 0) {
+
 			//if everything is ok then we send information of the enterprise back to the client
 			NETWORK_sendSerialized(socket, aux);
 			write(1, DISCONNECTING, strlen(DISCONNECTING));
-			write(1, packet.data, packet.length);
+			write(1, packet.data, sizeof(char) * packet.length);
 			write(1, "\n\0", sizeof(char) * 2);
 
 		} else {
+
 			NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
-			return NULL;
+
+			write(1, DCONNECT_ERR, strlen(DCONNECT_ERR));
+			write(1, packet.data, sizeof(char) * packet.length);
+			write(1, "\n\0", sizeof(char) * 2);
+
 		}
-		//Once we know if the connexion has been done then we close the file descriptor
-		close(socket);
+
+		NETWORK_freePacket(&aux);
 
 	}
+
+	NETWORK_freePacket(&packet);
+
+	close(socket);
 	return NULL;
 }
 
@@ -155,22 +181,23 @@ void CONNECTION_executeData(int portE, int portP, char *ip) {
 	enterprise = HASH_createTable(MAX_ENTERPRISES);
 
 	if ((socketPic = NETWORK_createConnectionServer(portP, ip)) > 0) {
-		pthread_t thread_id;
 
 		if (pthread_create(&thread_id, NULL, CONNECTION_clientListener, NULL) < 0) {
 			perror("could not create thread");
 
-			kill(getpid(), SIGUSR1);
+			raise(SIGUSR1);
 
 		}
 
 	} else {
-		kill(getpid(), SIGUSR1);
+		raise(SIGUSR1);
 	}
 
 	if ((socketEnt = NETWORK_createConnectionServer(portE, ip)) > 0) {
+
 		NETWORK_serialHandler(socketEnt, CONNECTION_handlerEnterprise);
+
 	}
 
-	kill(getpid(), SIGUSR1);
+	raise(SIGUSR1);
 }

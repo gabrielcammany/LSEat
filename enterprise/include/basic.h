@@ -64,6 +64,8 @@ typedef struct {
 
 Enterprise enterprise;
 
+pthread_t thread_data;
+
 /**
  * Constants for ERRORS
  */

@@ -109,40 +109,46 @@ char *UTILS_createBuffer(int num, ...) {
 
 	aux = va_arg(a_list, char *);
 
-	size = (int) strlen(aux);
+	size = (int) strlen(aux) + 2;
 
-	buffer = malloc(sizeof(char) * size);
+	buffer = (char*) calloc(size, sizeof(char) * (size));
 
 	if (buffer == NULL) {
 		return NULL;
 	}
 
-
 	strcat(buffer, aux);
 
 	for (i = 0; i < num - 1; i++) {
+
 		strcat(buffer, "&");
 
 		aux = va_arg(a_list, char*);
-		size = size + (int) strlen(aux);
+		size = size + (int) strlen(aux) + 1;
 
-		bufferAux = realloc(buffer, sizeof(char) * size);
+		bufferAux = realloc(buffer, sizeof(char) * (size));
 
 		if (bufferAux == NULL) {
+
 			free(buffer);
 			return NULL;
+
 		}
 
+		buffer = bufferAux;
+
 		strcat(buffer, aux);
+
 	}
 
 	va_end(a_list);
+
 	return buffer;
 
 }
 
 void UTILS_extractFromBuffer(char *buffer, int num, ...) {
-	char **aux = NULL, *token;
+	char **aux = NULL, *token = NULL;
 
 	va_list a_list;
 	va_start(a_list, num);
@@ -150,11 +156,20 @@ void UTILS_extractFromBuffer(char *buffer, int num, ...) {
 	token = strtok(buffer, "&");
 
 	while (token != NULL && num > 0) {
+
 		aux = va_arg(a_list, char **);
-		*aux = (char *) malloc(sizeof(char) * strlen(token));
-		strcpy(*aux, token);
+
+		*aux = (char *) calloc(strlen(token) + 1, sizeof(char) * strlen(token) + 1);
+
+		if(*aux == NULL){break;}
+
+		memcpy(*aux, token, strlen(token));
+
 		token = strtok(NULL, "&");
+
 		num--;
+
+
 	}
 
 	va_end(a_list);

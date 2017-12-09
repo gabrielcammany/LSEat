@@ -23,6 +23,8 @@ int CONNECTION_connectData() {
 
 	NETWORK_sendSerialized(socketData, packet);
 
+	NETWORK_freePacket(&packet);
+
 	response = NETWORK_extractIncomingFrame(socketData);
 
 	if (response.type != (CONNECT+'0')) {
@@ -35,19 +37,21 @@ int CONNECTION_connectData() {
 
 	}
 
+	if (buffer != NULL)free(buffer);
+
 	return 1;
 }
 
 
 void *CONNECTION_dataListener(void *arg) {
 	char *buffer = NULL;
-	Packet packet, response;
+	Packet packet;
 	char convert[10];
 
 	if ((socketData = NETWORK_createConnectionClient(atoi(enterprise.config.data_port), enterprise.config.data_ip)) < 0) {
 
 		write(1, ERR_CONNECTION, strlen(ERR_CONNECTION));
-		kill(getpid(), SIGUSR1);
+		raise(SIGUSR1);
 
 	} else {
 
@@ -59,13 +63,13 @@ void *CONNECTION_dataListener(void *arg) {
 
 				if ((socketData = NETWORK_createConnectionClient(atoi(enterprise.config.data_port), enterprise.config.data_ip)) < 0) {
 
-					if (buffer != NULL) {free(buffer);}
-
 					write(1, UPDATE_ERR, strlen(UPDATE_ERR));
 
 					break;
 
 				} else {
+
+					memset(convert,0,10);
 
 					sprintf(convert,"%d",enterprise.num_clients);
 
@@ -73,15 +77,19 @@ void *CONNECTION_dataListener(void *arg) {
 
 					packet = NETWORK_createPacket(UPDATE, HEADER_EUPDATE, (unsigned short) strlen(buffer), buffer);
 
+					if(buffer != NULL){
+						free(buffer);
+						buffer = NULL;
+					}
+
 					NETWORK_sendSerialized(socketData, packet);
 
-					response = NETWORK_extractIncomingFrame(socketData);
+					NETWORK_freePacket(&packet);
 
-					if (response.type != (UPDATE+'0')) {
 
-						if (buffer != NULL) {
-							free(buffer);
-						}
+					packet = NETWORK_extractIncomingFrame(socketData);
+
+					if (packet.type != (UPDATE+'0')) {
 
 						write(1, UPDATE_ERR, strlen(UPDATE_ERR));
 
@@ -89,7 +97,9 @@ void *CONNECTION_dataListener(void *arg) {
 
 					}
 
-					close(socketData);
+					NETWORK_freePacket(&packet);
+
+					if(socketData > 1)close(socketData);
 
 				}
 
@@ -101,16 +111,13 @@ void *CONNECTION_dataListener(void *arg) {
 
 	}
 
-	close(socketData);
-
-	return arg;
+	return NULL;
 }
 
 int CONNECTION_executeEnterpriseClient() {
 	int error = 0;
-	pthread_t thread_id;
 
-	error = pthread_create(&thread_id, NULL, CONNECTION_dataListener, NULL);
+	error = pthread_create(&thread_data, NULL, CONNECTION_dataListener, NULL);
 
 	if (error != 0) {
 
@@ -138,6 +145,9 @@ void *CONNECTION_Picard(void *arg) {
 		}
 
 	}
+
+	close(socket);
+
 	return NULL;
 }
 
@@ -166,7 +176,7 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 				write(1, picard.name, strlen(picard.name));
 				write(1, "\n", sizeof(char));
 
-				NETWORK_sendOKPacket(socket, UPDATE, HEADER_UPDATE);
+				NETWORK_sendOKPacket(socket, CONNECT, HEADER_CON);
 
 			} else {
 				NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
@@ -183,7 +193,6 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 					write(1, "Desconnectant ", strlen("Desconnectant "));
 					write(1, packet.data, strlen(packet.data));
 					write(1, "\n", sizeof(char));
-					close(socket);
 
 					return 1;
 
@@ -233,6 +242,7 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 				write(1, "\n", sizeof(char));
 
 			} else {
+
 				write(1, "Error en la trama de ELIMINA!\n", strlen("Error en la trama de ELIMINA!\n"));
 			}
 			break;
@@ -243,9 +253,12 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 				write(1, "Notificant factura: ", strlen("Notificant factura: "));
 
 			} else {
+
 				write(1, "Error en la trama de Factura!\n", strlen("Error en la trama de Factura!\n"));
+
 			}
 			break;
+
 		default:
 			break;
 

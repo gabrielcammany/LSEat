@@ -113,13 +113,6 @@ int connection_enterprise(char *data, char *nom, int saldo);
  */
 int CONNECTION_analyseDataPacket(Packet packet);
 
-/**
- * Function to extract the information coming from Data
- * that contains the enterprise
- * @param packet struct with frames information
- * @return
- */
-Enterprise CONNECTION_extractPortEnterprise(Packet packet);
 
 void CONNECTION_extractEnterpriseData(char *data, char **nom, int *port, char **ip);
 

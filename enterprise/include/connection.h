@@ -23,7 +23,6 @@
 #define ERR_CONNECTION "Hi ha hagut un problema de connexio amb Data!\n"
 #define UPDATE_ERR "Problema amb l'actualització automàtica. Reinicia el servidor perquè torni a funcionar!\n"
 
-
 /**
  * Funtions to create the thread that sends info to Data every X time
  */

@@ -8,24 +8,29 @@
 Table HASH_createTable(int size) {
 	Table table;
 	int i;
+	table.bucket = NULL;
 
 	table.length = size;
-	table.bucket = (Bucket *) malloc(sizeof(Bucket) * size);
+	table.bucket = (Bucket *) calloc(size,sizeof(Bucket) * size);
+	table.elements = 0;
+	table.number = 0;
+
 	if (table.bucket == NULL) {
 
 		write(1, ERR_MEM, strlen(ERR_MEM));
 		table.length = -1;
 
+	}else{
+
+		for( i = 0; i < size; i++){
+
+			table.bucket[i].data = NULL;
+			table.bucket[i].key = EMPTY_BUCKET;
+			table.bucket[i].number = 0;
+
+		}
+
 	}
-
-	for( i = 0; i < size; i++){
-
-		table.bucket[i].data = NULL;
-		table.bucket[i].key = -1;
-		table.bucket[i].number = 0;
-
-	}
-
 	return table;
 
 }
@@ -59,7 +64,7 @@ void HASH_checkAndRestructure(Table *table) {
 
 void HASH_insert(Table *table, Bucket bucket) {
 
-	int pos;
+	int pos = 0;
 
 	pos = HASH_function(*table, bucket.key);
 
@@ -90,19 +95,19 @@ void HASH_insert(Table *table, Bucket bucket) {
 
 		}else{
 
-			table->bucket[pos].data = bucket.data;
+			if(bucket.data != NULL)table->bucket[pos].data = bucket.data;
 			table->bucket[pos].number = bucket.number;
 
 		}
 
 	} else {
 
-		table->bucket[pos].data = bucket.data;
+		if(bucket.data != NULL)table->bucket[pos].data = bucket.data;
 		table->bucket[pos].number = bucket.number;
 
 	}
 
-	if(table->bucket[pos].number < table->bucket[table->number].number){
+	if(table->bucket[pos].number <= table->bucket[table->number].number){
 
 		table->number = pos;
 
@@ -172,7 +177,7 @@ int HASH_function(Table table, int key) {
 	return key % (table.length - 1);
 }
 
-Bucket HASH_createBucket(int key, void *data, int number) {
+Bucket HASH_createBucket(int key, char *data, int number) {
 	Bucket bucket;
 
 	bucket.key = key;
@@ -180,4 +185,19 @@ Bucket HASH_createBucket(int key, void *data, int number) {
 	bucket.number = number;
 
 	return bucket;
+}
+
+void HASH_destruct(Table *table){
+	int i;
+
+	if(table->bucket!= NULL){
+
+		for (i = 0; i < table->elements; i++) {
+			if(table->bucket[i].data != NULL)free(table->bucket[i].data);
+		}
+
+		free(table->bucket);
+	}
+
+
 }

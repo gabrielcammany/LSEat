@@ -19,9 +19,7 @@
 #include <memory.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <openssl/ssl.h>
-#include <openssl/bio.h>
-#include <openssl/err.h>
+#include <errno.h>
 
 //own includes
 #include "utils.h"
@@ -30,7 +28,6 @@
 //constantes propias
 #define ERR_PORT "Error: %d es un port invalid\n"
 #define ERR_ATON "inet_aton (%s): %s\n"
-#define MSG_NEW "Nova connexio de %s:%hu\n"
 
 
 #define WAIT_CLIENT "Esperant clients...\n"
@@ -40,14 +37,6 @@
 #define TYPE_SIZE 1
 
 #define SIMPLE_PACKET_LENGTH (HEADER_SIZE+LENGTH_SIZE+TYPE_SIZE)
-
-#define CONNECTION_KO "1[CONKO]\0\00\0"
-#define DISCONNECT_KO "1[CONKO]1\0"
-
-/**
- * Errors Connection
- */
-#define ERR_CLIENT "Error en la connexió de "
 
 /**
  * Types
@@ -61,12 +50,9 @@
 #define PAY 6
 #define UPDATE 7
 
-
 /**
  * HEADERS
  */
-
-
 
 #define HEADER_PICINF "[PIC_INF]"
 #define HEADER_PICDAT "[PIC_NAME]"
@@ -146,5 +132,7 @@ Packet NETWORK_extractIncomingFrame(int socket);
 void NETWORK_sendKOPacket(int socket, int type, char* header);
 
 void NETWORK_sendOKPacket(int socket, int type, char* header);
+
+void NETWORK_freePacket(Packet *packet);
 
 #endif

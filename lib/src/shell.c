@@ -379,5 +379,5 @@ void SHELL_freeAndClose() {
 		}
 		free(history.cmdSession);
 	}
-	close(history.historyfd);
+	if(history.historyfd > 1)close(history.historyfd);
 }
