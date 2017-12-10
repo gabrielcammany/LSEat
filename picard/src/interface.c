@@ -22,11 +22,11 @@ Command INTERFACE_checkSpecialCommand(char *input) {
 
 	int num_plats = 0;
 	int total = 0, base = 0;
-	char *buffer = NULL;
+	char *buffer = NULL, convert[10];
 
 	total = UTILS_getArrayString(input, ' ', &base);
 
-	buffer = (char*)malloc(total*sizeof(char)+1);
+	buffer = (char*)calloc((size_t )total+1,total*sizeof(char)+1);
 
 	if(buffer == NULL){
 		write(1, ERR_MEMORY, strlen(ERR_MEMORY));
@@ -43,7 +43,7 @@ Command INTERFACE_checkSpecialCommand(char *input) {
 	} else {
 
 		buffer[total] = '\0';
-		strncpy(buffer, input, total);
+		strncpy(buffer, input, (size_t )total);
 
 		num_plats = atoi(buffer);
 
@@ -54,6 +54,9 @@ Command INTERFACE_checkSpecialCommand(char *input) {
 
 		} else {
 
+			memset(convert,0,10);
+			sprintf(convert,"%d",num_plats);
+
 			if(UTILS_getArrayString(input+total, '\0', &base) < 0) {
 
 				write(1, ERR_PLAT, strlen(ERR_PLAT));
@@ -62,20 +65,22 @@ Command INTERFACE_checkSpecialCommand(char *input) {
 			} else {
 				base = base+total;
 
-				command.data = malloc(sizeof(char*)*2);
+				command.data = (char**) calloc (2,sizeof(char*)*2);
 
 				if(command.data != NULL){
 
-					command.data[0] = malloc(sizeof(char)*strlen(buffer));
+					command.data[0] = calloc(strlen(convert),sizeof(char)*strlen(convert));
 
 					if(command.data[0] != NULL){
 
-						command.data[1] = malloc(sizeof(char)*strlen(input+base));
+						command.data[1] = calloc(strlen(input+base),sizeof(char)*strlen(input+base));
 
 						if(command.data[1] != NULL){
 
-							memcpy(command.data[0],buffer,strlen(buffer));
+							memcpy(command.data[0],convert,strlen(convert));
 							memcpy(command.data[1],input+base,strlen(input+base));
+
+							write(1, COMMANDA_OK, strlen(COMMANDA_OK));
 
 						}else{
 
@@ -90,10 +95,11 @@ Command INTERFACE_checkSpecialCommand(char *input) {
 						command.id = ERROR_CODE;
 					}
 
+				}else{
+
+					command.id = ERROR_CODE;
+
 				}
-
-
-				write(1, COMMANDA_OK, strlen(COMMANDA_OK));
 
 			}
 		}
@@ -169,6 +175,7 @@ Command INTERFACE_specialCommand(char *input) {
 	}
 
 	free(buffer);
+	free(input);
 	return command;
 }
 
@@ -180,47 +187,49 @@ Command INTERFACE_specialCommand(char *input) {
 Command INTERFACE_identifyCommand(char *input) {
 
 	Command command;
+	command.id = ERROR_CODE;
+	command.data = NULL;
 
-	input = UTILS_toLower(input);
+	if(input != NULL){
+		input = UTILS_toLower(input);
 
-	if (strcmp(input, "connecta") == 0) {
+		if (strcmp(input, "connecta") == 0) {
 
-		write(1, COMMANDA_OK, strlen(COMMANDA_OK));
-		command.id = CMD_CONNECTA;
-		command.data = NULL;
+			write(1, COMMANDA_OK, strlen(COMMANDA_OK));
+			command.id = CMD_CONNECTA;
 
-		return command;
+		} else if (strcmp(input, "mostra menu") == 0) {
 
-	} else if (strcmp(input, "mostra menu") == 0) {
+			write(1, COMMANDA_OK, strlen(COMMANDA_OK));
+			command.id = CMD_MENU;
 
-		write(1, COMMANDA_OK, strlen(COMMANDA_OK));
-		command.id = CMD_MENU;
-		command.data = NULL;
-		return command;
+		} else if (strcmp(input, "pagar") == 0) {
 
-	} else if (strcmp(input, "pagar") == 0) {
+			write(1, COMMANDA_OK, strlen(COMMANDA_OK));
+			command.id = CMD_PAGAR;
 
-		write(1, COMMANDA_OK, strlen(COMMANDA_OK));
-		command.id = CMD_PAGAR;
-		command.data = NULL;
-		return command;
+		} else if (strcmp(input, "desconnecta") == 0) {
 
-	} else if (strcmp(input, "desconnecta") == 0) {
+			command.id = CMD_DISCONNECT;
 
-		command.id = CMD_DISCONNECT;
-		command.data = NULL;
-		return command;
+		} else {
 
-	} else {
+			return INTERFACE_specialCommand(input);
 
-		return INTERFACE_specialCommand(input);
+		}
+
+		free(input);
 
 	}
+
+
+	return command;
+
 }
 
 
 Command INTERFACE_readCommand(char *cadena) {
-	char input[BUFFER];
+	char *input = NULL;
 	char auxiliar[10];
 
 	Command command;
@@ -232,7 +241,7 @@ Command INTERFACE_readCommand(char *cadena) {
 
 	if (!SHELL_setInputMode()) {
 
-		SHELL_readInput(input, auxiliar);
+		input = SHELL_readInput(input, auxiliar);
 
 		SHELL_resetInput();
 

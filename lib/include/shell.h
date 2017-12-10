@@ -52,7 +52,7 @@ void SHELL_resetInput();
  * @param buffer Estructura de datos donde se vuelca los datos introducidos
  * @param menu Cadena de caracters que incluye el prompt
  */
-void SHELL_readInput(char *buffer, char *menu);
+char* SHELL_readInput(char *buffer, char *menu);
 
 int SHELL_loadNextCommand();
 

@@ -15,10 +15,13 @@
 #include <signal.h>
 
 //Includes propios
-#include "basic.h"
 #include "../../lib/include/network.h"
 #include "../../lib/include/utils.h"
+#include "../../lib/include/files.h"
 #include "connection.h"
+#include "menuStructure.h"
+#include "../include/picardStructure.h"
+#include "../include/menuStructure.h"
 
 /**
  * Error constants
@@ -28,24 +31,88 @@
 #define ERR_ARGS "Error: falta especificar els arxius!\n"
 #define ERR_FILE "\nS'ha produit un error al obrir el fitxer!\n"
 
+#define ERR_IP "ERROR en llegir la configuració IP\n"
+#define ERR_ENTNAME "ERROR en llegir el nom de l'enterprise\n"
+#define ERR_SEC "ERROR en llegir la configuració IP\n"
+#define ERR_MEMORY "No s'ha pogut alliberar la memoria correctament.\n"
+
+
+/**
+ * General Constants
+ */
+#define BYE "Tancant restaurant...\n"
+#define WELCOME "Benvingut al restaurant "
+#define MENU_READY "Carregat Menu!\n"
+
+#define MAX_PICARDS 10
+#define MENU_SIZE 20
+
+
+typedef struct {
+
+	int seconds;
+	char *name;
+	Menu menu;
+
+} Restaurant;
+
+typedef struct {
+
+	char *data_ip;
+	char *data_port;
+	char *picard_ip;
+	char *picard_port;
+
+} Config;
+
+typedef struct {
+
+	Restaurant restaurant;
+
+	Config config;
+
+	Table clients;
+
+	pthread_t thread_data;
+
+} Enterprise;
+
+Enterprise enterprise;
+
+static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
+
 //file descriptors to listen different programs
 int socketData;
 int socketPic;
+/**
+ * Funcion encargada de borrar la memoria dinamica
+ * @param lseat Variable a borrar
+ */
+void BASIC_freeMemory();
 
-//list of picards connected to this enterprise
-Llista picards;
+/**
+ * Function that reads enterprise configuration
+ * @param fitxer file name with enterprise config
+ * @param menu file with all the menu
+ * @param enterprise struct to save enterprise information
+ * @return
+ */
+int BASIC_readConfigEnterprise(char *fitxer);
+
+/**
+ * Function that initializes all variables
+ * @param enterprise structure with all information
+ */
+void BASIC_startValues();
+
+int BASIC_readMenu(char *menu);
+
+void BASIC_welcomeMessage();
 
 /**
  * Function that handles different interruptions
  * @param signum Tells us which interruption
  */
 void eCONTROLLER_signalHandler(int signum);
-
-/**
- * Funtion to eliminate one picard from the list
- * @param name Picard name
- * @return
- */
-int controller_eliminaPicard(char *name);
 
 #endif //LSEAT_ENTERPRISEMANAGER_H

@@ -2,6 +2,8 @@
 // Created by gabriel on 5/11/17.
 //
 
+#define MIN_FD 2
+
 #include "../include/controller.h"
 
 void dCONTROLLER_signalHandler(int signum) {
@@ -15,8 +17,8 @@ void dCONTROLLER_signalHandler(int signum) {
 			write(1, "\n", strlen("\n"));
 			write(1, BYE, strlen(BYE));
 
-			if(socketEnt != -1)close(socketEnt);
-			if(socketPic != -1)close(socketPic);
+			if(socketEnt > MIN_FD)close(socketEnt);
+			if(socketPic > MIN_FD)close(socketPic);
 			pthread_kill(thread_id,SIGKILL);
 			pthread_join(thread_id, NULL);
 

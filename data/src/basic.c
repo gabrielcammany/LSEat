@@ -3,13 +3,13 @@
 //
 
 #include "../include/controller.h"
-#include "../../lib/include/hash.h"
+#include "../include/dataStructure.h"
 
-void BASIC_freeMemory(Data *data) {
+void BASIC_freeMemory(dConfig *data) {
 	free(data->ip);
 }
 
-void BASIC_startValues(Data *data) {
+void BASIC_startValues(dConfig *data) {
 	data->ip = NULL;
 	data->enterprisePort = 0;
 	data->picardPort = 0;
@@ -55,7 +55,7 @@ int BASIC_readPorts(int fd, int *portNumber) {
 
 }
 
-int BASIC_readDataConfig(char *name, Data *data) {
+int BASIC_readDataConfig(char *name, dConfig *data) {
 
 	int fd = 0;
 	int error;

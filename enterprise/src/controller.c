@@ -17,11 +17,10 @@ void eCONTROLLER_signalHandler(int signum) {
 			if(socketData > 2)close(socketData);
 			if(socketPic > 2)close(socketPic);
 
-            LLISTA_destrueix(&picards);
 			BASIC_freeMemory();
 
-			pthread_kill(thread_data,SIGKILL);
-			pthread_join(thread_data, NULL);
+			pthread_kill(enterprise.thread_data,SIGKILL);
+			pthread_join(enterprise.thread_data, NULL);
 
             write(1, "\n", strlen("\n"));
             write(1, BYE, strlen(BYE));
@@ -32,8 +31,8 @@ void eCONTROLLER_signalHandler(int signum) {
 
 			if(socketData > 2)close(socketData);
 
-			pthread_kill(thread_data,SIGKILL);
-			pthread_join(thread_data, NULL);
+			pthread_kill(enterprise.thread_data,SIGKILL);
+			pthread_join(enterprise.thread_data, NULL);
 
 			exit(EXIT_FAILURE);
 
@@ -42,22 +41,4 @@ void eCONTROLLER_signalHandler(int signum) {
             break;
     }
 
-}
-
-int controller_eliminaPicard(char *name){
-    Element aux;
-    int eliminat = 0;
-
-    LLISTA_vesInici(&picards);
-    while(!LLISTA_fi(picards)){
-        aux = LLISTA_consulta(&picards);
-        if(strcmp(aux.name,name) == 0){
-            LLISTA_esborra(&picards);
-            eliminat = 1;
-        }else{
-            LLISTA_avanca(&picards);
-        }
-    }
-
-    return eliminat;
 }

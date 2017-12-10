@@ -37,7 +37,7 @@
 #define CMD_MENU        2
 #define CMD_PAGAR       3
 #define CMD_DEMANA      4
-#define CMD_ELIMINA        5
+#define CMD_ELIMINA     5
 
 /**
  *Srtruct to save command information

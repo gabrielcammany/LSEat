@@ -19,7 +19,7 @@
 
 //own includes
 #include "../../lib/include/network.h"
-#include "../../lib/include/hash.h"
+#include "dataStructure.h"
 
 
 #define BYE "Apagant el servidor Data...\n"

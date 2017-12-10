@@ -9,8 +9,7 @@
  */
 
 #include "../include/connection.h"
-#include "../../lib/include/hash.h"
-#include "../../lib/include/network.h"
+#include "../include/dataStructure.h"
 
 
 void *CONNECTION_handlerEnterprise(void *arg) {

@@ -9,7 +9,8 @@
  */
 
 #include "../include/connection.h"
-#include "../include/basic.h"
+
+#define MIN_FD 2
 
 
 int CONNECTION_connectData() {
@@ -39,9 +40,10 @@ int CONNECTION_connectData() {
 
 	if (buffer != NULL)free(buffer);
 
+	if(socketData > MIN_FD)close(socketData);
+
 	return 1;
 }
-
 
 void *CONNECTION_dataListener(void *arg) {
 	char *buffer = NULL;
@@ -71,21 +73,19 @@ void *CONNECTION_dataListener(void *arg) {
 
 					memset(convert,0,10);
 
-					sprintf(convert,"%d",enterprise.num_clients);
+					pthread_mutex_lock(&mtx);
+					sprintf(convert,"%d",enterprise.clients.elements);
+					pthread_mutex_unlock(&mtx);
 
 					buffer = UTILS_createBuffer(2, enterprise.config.picard_port,convert);
 
 					packet = NETWORK_createPacket(UPDATE, HEADER_EUPDATE, (unsigned short) strlen(buffer), buffer);
 
-					if(buffer != NULL){
-						free(buffer);
-						buffer = NULL;
-					}
+					if(buffer != NULL)free(buffer);
 
 					NETWORK_sendSerialized(socketData, packet);
 
 					NETWORK_freePacket(&packet);
-
 
 					packet = NETWORK_extractIncomingFrame(socketData);
 
@@ -99,7 +99,7 @@ void *CONNECTION_dataListener(void *arg) {
 
 					NETWORK_freePacket(&packet);
 
-					if(socketData > 1)close(socketData);
+					if(socketData > MIN_FD)close(socketData);
 
 				}
 
@@ -111,13 +111,13 @@ void *CONNECTION_dataListener(void *arg) {
 
 	}
 
-	return NULL;
+	return arg;
 }
 
 int CONNECTION_executeEnterpriseClient() {
 	int error = 0;
 
-	error = pthread_create(&thread_data, NULL, CONNECTION_dataListener, NULL);
+	error = pthread_create(&enterprise.thread_data, NULL, CONNECTION_dataListener, NULL);
 
 	if (error != 0) {
 
@@ -129,7 +129,8 @@ int CONNECTION_executeEnterpriseClient() {
 
 void *CONNECTION_Picard(void *arg) {
 	Packet packet;
-	int socket = *((int *) arg), exit = 0;
+	char error[50];
+	int socket = *((int *) arg), exit = 0, pos = 0;
 
 	while (!exit) {
 
@@ -140,13 +141,31 @@ void *CONNECTION_Picard(void *arg) {
 			exit = CONNECTION_analysePacketPicard(socket, packet);
 
 		} else {
-			write(1, "Error en la conexió!\n", strlen("Error en la conexió!\n"));
+
+			if((pos = PSTRUCTURE_findElement(enterprise.clients,socket)) > 0){
+
+				pthread_mutex_lock(&mtx);
+
+				sprintf(error, ERR_CONN_PIC, enterprise.clients.bucket[pos].data);
+				write(1, error, strlen(error));
+				PSTRUCTURE_deleteBucket(&enterprise.clients.bucket[pos]);
+
+				pthread_mutex_unlock(&mtx);
+
+
+			}else{
+
+				write(1, ERR_CONN_CLIENT, strlen(ERR_CONN_CLIENT));
+
+			}
+
 			break;
+
 		}
 
 	}
 
-	close(socket);
+	if(socket > MIN_FD)close(socket);
 
 	return NULL;
 }
@@ -158,35 +177,37 @@ void CONNECTION_createConnectionPicards() {
 }
 
 int CONNECTION_analysePacketPicard(int socket, Packet packet) {
-	Element picard;
-	char *plat = NULL, *units = NULL, *money = NULL;
+	char *plat = NULL, *units = NULL, *money = NULL , *name = NULL;
+	int num= 0 ;
 
 	switch (packet.type) {
 		case '1':
 			if ((strcmp(packet.header, HEADER_PICINF) == 0) && packet.length > 0) {
 
-				picard.socket = socket;
-				UTILS_extractFromBuffer(packet.data, 2, &picard.name, &money);
-				picard.money = atoi(money);
-				picard.factura = 0;
+				UTILS_extractFromBuffer(packet.data, 2, &name, &money);
+				num = atoi(money);
 
-				LLISTA_insereix(&picards, picard);
+				pthread_mutex_lock(&mtx);
+				PSTRUCTURE_insert(&enterprise.clients,PSTRUCTURE_createBucket(socket,name,num, pthread_self()));
+				pthread_mutex_unlock(&mtx);
 
-				write(1, "Connectat ", strlen("Connectat "));
-				write(1, picard.name, strlen(picard.name));
+				write(1, name, strlen(name));
 				write(1, "\n", sizeof(char));
 
 				NETWORK_sendOKPacket(socket, CONNECT, HEADER_CON);
 
 			} else {
+
 				NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
+
 			}
+
 			break;
 		case '2':
 
 			if ((strcmp(packet.header, HEADER_PICDAT) == 0) && packet.length > 0) {
 
-				if (controller_eliminaPicard(packet.data) > 0) {
+				if (PSTRUCTURE_delete(&enterprise.clients,socket) > 0) {
 
 					NETWORK_sendOKPacket(socket, UPDATE, HEADER_UPDATE);
 
@@ -197,13 +218,17 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 					return 1;
 
 				} else {
+
 					NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
 
 				}
+
 			} else {
+
 				NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
 
 			}
+
 			break;
 		case '3':
 			if ((strcmp(packet.header, MENU_PICENT) == 0)) {
@@ -225,7 +250,10 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 				write(1, units, strlen(units));
 				write(1, "\n", sizeof(char));
 
+
+
 			} else {
+
 				write(1, "Error en la trama de DEMANA!\n", strlen("Error en la trama de DEMANA!\n"));
 
 			}
@@ -244,6 +272,7 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 			} else {
 
 				write(1, "Error en la trama de ELIMINA!\n", strlen("Error en la trama de ELIMINA!\n"));
+
 			}
 			break;
 		case '6':
@@ -267,6 +296,9 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 	if (money != NULL)free(money);
 	if (units != NULL)free(units);
 	if (plat != NULL)free(plat);
+	if (name != NULL)free(name);
+
+	NETWORK_freePacket(&packet);
 
 	return 0;
 

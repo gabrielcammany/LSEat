@@ -26,14 +26,14 @@ int main (int argc, char *argv[])
 
 	BASIC_startValues();
 
-    if (BASIC_readConfigEnterprise(argv[1],&enterprise) == ERROR_CODE ){
+    if (BASIC_readConfigEnterprise(argv[1]) == ERROR_CODE ){
         write(1,ERR_FILE,strlen(ERR_FILE));
 		kill(getpid(),SIGUSR1);
     }
 
-	BASIC_welcomeMessage(enterprise);
+	BASIC_welcomeMessage();
 
-	if (BASIC_readMenu(argv[2], &enterprise) == ERROR_CODE){
+	if (BASIC_readMenu(argv[2]) == ERROR_CODE){
 		write(1,ERR_FILE,strlen(ERR_FILE));
 		kill(getpid(),SIGUSR1);
 	}
@@ -41,8 +41,6 @@ int main (int argc, char *argv[])
     if(CONNECTION_executeEnterpriseClient() < 0){
 		kill(getpid(),SIGUSR1);
     }
-
-    picards = LLISTA_crea();
 
     CONNECTION_createConnectionPicards();
 

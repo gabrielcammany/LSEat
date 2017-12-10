@@ -139,11 +139,11 @@ int NETWORK_sendSerialized(int socket, Packet packet) {
 
 	if( packet.data != NULL){
 
-		size = (unsigned short) (SIMPLE_PACKET_LENGTH + strlen(packet.data) + 1) ;
+		size = (unsigned short) (SIMPLE_PACKET_LENGTH + strlen(packet.data)) ;
 
 	}else{
 
-		size = (unsigned short) (SIMPLE_PACKET_LENGTH + 1) ;
+		size = (unsigned short) (SIMPLE_PACKET_LENGTH) ;
 
 	}
 
@@ -249,6 +249,7 @@ Packet NETWORK_extractIncomingFrame(int socket) {
 		packet.type = ERROR_CODE;
 		return packet;
 	}
+
 	if (read(socket, &header, sizeof(char) * HEADER_SIZE) < 0) {
 		close(socket);
 		packet.type = ERROR_CODE;

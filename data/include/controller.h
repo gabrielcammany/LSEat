@@ -42,9 +42,9 @@ typedef struct{
     char* ip;
     int picardPort;
     int enterprisePort;
-}Data;
+}dConfig;
 
-Data data;
+dConfig data;
 
 
 
@@ -55,16 +55,16 @@ void dCONTROLLER_signalHandler(int signum);
  * @param data Global structure of Data
  * @return if there is an error or not
  */
-int BASIC_readDataConfig(char* name,Data *data);
+int BASIC_readDataConfig(char* name,dConfig *data);
 
 /**
  * Funcion encargada de borrar la memoria dinamica
  * @param lseat Variable a borrar
  */
-void BASIC_freeMemory(Data *data);
+void BASIC_freeMemory(dConfig *data);
 
 
-void BASIC_startValues(Data *data);
+void BASIC_startValues(dConfig *data);
 
 
 

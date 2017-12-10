@@ -43,7 +43,8 @@ int main(int argc, char **argv) {
 
 		//after checking the command id and reading its data
 		//from user, then we execute the command it represents
-		error = CONTROLLER_executeCommand(command, lseat);
+		if(command.id != ERROR_CODE)error = CONTROLLER_executeCommand(command, lseat);
+
 	}
 
 	write(1, BYE, strlen(BYE));

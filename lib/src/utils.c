@@ -78,10 +78,15 @@ int UTILS_getArrayString(const char *input, char delimiter, int *espais) {
 
 char *UTILS_toLower(char *input) {
 	int i = 0;
-	while (input[i]) {
+
+	while (input[i] != '\0') {
+
 		input[i] = (char) tolower(input[i]);
+
 		i++;
+
 	}
+
 	return input;
 }
 
@@ -95,6 +100,7 @@ int UTILS_checkEmptyString(const char *input) {
 			return 0;
 		}
 	}
+
 	return 1;
 
 }

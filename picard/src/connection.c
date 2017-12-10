@@ -262,6 +262,8 @@ void CONNECTION_takeNoteEnterprise(char **data) {
 
 		Packet packet = NETWORK_createPacket(DISH, NEW_ORD, (unsigned short) strlen(buffer), buffer);
 
+		printf("Te: -%s- -%d-\n", buffer, strlen(buffer));
+
 		if(NETWORK_sendSerialized(socketfd, packet) < 0){
 
 			close(socketfd);
@@ -270,12 +272,22 @@ void CONNECTION_takeNoteEnterprise(char **data) {
 
 		}
 
+		printf("He enviat coses!\n");
+
 		NETWORK_freePacket(&packet);
 
 
 	} else {
+
 		write(1, ERR_CONN, strlen(ERR_CONN));
+
 	}
+
+	if(data[0] != NULL)free(data[0]);
+	if(data[1] != NULL)free(data[1]);
+	free(data);
+
+
 }
 
 void CONNECTION_disconnectEnterprise(char *nom) {

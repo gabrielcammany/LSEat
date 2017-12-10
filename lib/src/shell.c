@@ -112,12 +112,15 @@ void SHELL_saveCommand(char *input) {
 			memset(history.cmdSession[size], 0, strlen(input));
 
 			strcpy(history.cmdSession[size], input);
+
 			history.lengthSession++;
 
 		} else {
 
 			if (size > 1) {
+
 				auxiliar = (char **) realloc(history.cmdSession, size * sizeof(char **));
+
 				if (auxiliar == NULL) {
 
 					int i;
@@ -179,20 +182,28 @@ void SHELL_saveToFile() {
 	}
 }
 
-void SHELL_readInput(char *buffer, char *menu) {
+
+char* SHELL_readInput(char *buffer, char *menu) {
 
 	int index = 0, max = 1, hEnabled = 1,
 			command = history.length, commandSession = history.lengthSession;
 	char c = ' ', aux[10];
 
-
-	memset(buffer, 0, BUFFER);
-	buffer[0] = ' ';
-	buffer[1] = ' ';
+	buffer = NULL;
 
 	while (c != '\n') {
 
 		read(0, &c, 1);
+
+		if(buffer == NULL){
+
+			buffer = (char*) malloc(sizeof(char) * BUFFER);
+
+
+			buffer[0] = ' ';
+			buffer[1] = ' ';
+
+		}
 
 		if (c == '\n') {
 			break;
@@ -355,7 +366,10 @@ void SHELL_readInput(char *buffer, char *menu) {
 	if (!UTILS_checkEmptyString(buffer))SHELL_saveCommand(buffer);
 
 	buffer[max - 1] = '\0';
+	return buffer;
 }
+
+
 
 void SHELL_initializeHistory(int fd) {
 	history.length = 0;
@@ -364,6 +378,7 @@ void SHELL_initializeHistory(int fd) {
 	history.cmdHistory = NULL;
 	history.historyfd = fd;
 }
+
 
 void SHELL_freeAndClose() {
 	int i = 0;

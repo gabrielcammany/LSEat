@@ -9,8 +9,8 @@
  */
 
 
-#ifndef LSEAT_HASH_H
-#define LSEAT_HASH_H
+#ifndef LSEAT_PICARDSTRUCTURE_H_
+#define LSEAT_PICARDSTRUCTURE_H_
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -23,13 +23,13 @@
 
 #define ERR_MEM "Error en memoria, no s'ha pogut desar un nou element!\n"
 
-#define EMPTY_BUCKET (-1)
 
 typedef struct {
 
 	int key;
-	char *data;
+	char* data;
 	int number;
+	pthread_t pthread;
 
 } Bucket;
 
@@ -43,19 +43,20 @@ typedef struct {
 
 } Table;
 
+Table PSTRUCTURE_createTable(int size);
 
-Table HASH_createTable(int size);
+void PSTRUCTURE_insert(Table *table, Bucket bucket);
 
-void HASH_insert(Table *table, Bucket bucket);
+int PSTRUCTURE_delete(Table *table, int key);
 
-void HASH_delete(Table *table, int key);
+int PSTRUCTURE_findElement(Table table, int key);
 
-int HASH_findElement(Table table, int key);
+int PSTRUCTURE_function(Table table, int key);
 
-int HASH_function(Table table, int key);
+Bucket PSTRUCTURE_createBucket(int key, char *data, int number, pthread_t pthread );
 
-Bucket HASH_createBucket(int key, char *data, int number);
+void PSTRUCTURE_destruct(Table *table);
 
-void HASH_destruct(Table *table);
+void PSTRUCTURE_deleteBucket(Bucket *bucket);
 
-#endif //LSEAT_HASH_H
+#endif //LSEAT_PICARDSTRUCTURE_H_

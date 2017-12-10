@@ -8,11 +8,9 @@
  * @Last modified time: 27-10-2017
  */
 
-#include "../include/basic.h"
-#include "../../lib/include/network.h"
+#include "../include/controller.h"
 
 void BASIC_freeMemory() {
-	int i;
 
 	if(enterprise.config.picard_ip != NULL)free(enterprise.config.picard_ip);
 	if(enterprise.config.data_ip != NULL)free(enterprise.config.data_ip);
@@ -21,25 +19,11 @@ void BASIC_freeMemory() {
 
 	if(enterprise.restaurant.name != NULL)free(enterprise.restaurant.name);
 
-	if(enterprise.restaurant.menu != NULL){
+	MSTRUCTURE_destruct(&enterprise.restaurant.menu);
 
-		if(enterprise.restaurant.num_menu > 0){
+	PSTRUCTURE_destruct(&enterprise.clients);
 
-			for (i = 0; i < enterprise.restaurant.num_menu; i++) {
-
-				free(enterprise.restaurant.menu[i].name);
-
-			}
-
-			free(enterprise.restaurant.menu);
-
-		}else{
-
-			write(1,ERR_MEMORY,strlen(ERR_MEMORY));
-			free(enterprise.restaurant.menu);
-
-		}
-	}
+	pthread_mutex_destroy(&mtx);
 
 }
 
@@ -60,44 +44,45 @@ int BASIC_readNumber(int fd, int *extractNumber) {
 
 }
 
-int BASIC_readConfigEnterprise(char *fitxer, Enterprise *enterprise) {
+int BASIC_readConfigEnterprise(char *fitxer) {
     int fd = 0, error = 0;
 
     fd = FILES_openFile(fitxer, 1);
     if (fd < 0) {
         return ERROR_CODE;
     }
+
     //We read the restaurant name
-    if (UTILS_readDynamic(&enterprise->restaurant.name, fd) < 0) {
+    if (UTILS_readDynamic(&enterprise.restaurant.name, fd) < 0) {
         write(1, ERR_ENTNAME, strlen(ERR_ENTNAME));
 		error = ERROR_CODE;
     }
 
     //we read restaurant seconds to refresh data info
-    if (BASIC_readNumber(fd, &(enterprise->restaurant.seconds)) == ERROR_CODE) {
+    if (BASIC_readNumber(fd, &(enterprise.restaurant.seconds)) == ERROR_CODE) {
         write(1, ERR_SEC, strlen(ERR_SEC));
 		error = ERROR_CODE;
     }
 
     //we read IP to connect to data
-    if (UTILS_readDynamic(&enterprise->config.data_ip, fd) < 0) {
+    if (UTILS_readDynamic(&enterprise.config.data_ip, fd) < 0) {
         write(1, ERR_IP, strlen(ERR_IP));
 		error = ERROR_CODE;
     }
 
     //We read the datas port
-    if (UTILS_readDynamic(&enterprise->config.data_port, fd) == ERROR_CODE) {
+    if (UTILS_readDynamic(&enterprise.config.data_port, fd) == ERROR_CODE) {
         write(1, ERR_PORT, strlen(ERR_PORT));
 		error = ERROR_CODE;
     }
 
     //same as above but from where picards will connect
-    if (UTILS_readDynamic(&enterprise->config.picard_ip, fd) < 0) {
+    if (UTILS_readDynamic(&enterprise.config.picard_ip, fd) < 0) {
         write(1, ERR_IP, strlen(ERR_IP));
 		error = ERROR_CODE;
     }
 
-    if (UTILS_readDynamic(&enterprise->config.picard_port, fd) == ERROR_CODE) {
+    if (UTILS_readDynamic(&enterprise.config.picard_port, fd) == ERROR_CODE) {
         write(1, ERR_PORT, strlen(ERR_PORT));
 		error = ERROR_CODE;
     }
@@ -107,9 +92,9 @@ int BASIC_readConfigEnterprise(char *fitxer, Enterprise *enterprise) {
     return error;
 }
 
-int BASIC_readMenu(char *menu, Enterprise *enterprise){
-	int fd = 0, i = 0;
-	Dish *aux = NULL;
+int BASIC_readMenu(char *menu){
+	int fd = 0, units = 0, price = 0;
+	char* aux_key;
 
 	fd = FILES_openFile(menu, 1);
 
@@ -118,46 +103,30 @@ int BASIC_readMenu(char *menu, Enterprise *enterprise){
 		return ERROR_CODE;
 	}
 
-	enterprise->restaurant.menu = (Dish*) malloc (sizeof(Dish));
+	aux_key = NULL;
 
-	//because this functions returns the number of bytes we read
-	//we can know when its end of file
+	while(UTILS_readDynamic(&aux_key, fd) > 0 ) {
 
-	enterprise->restaurant.menu[0].name = NULL;
+		if(BASIC_readNumber(fd, &units) < 0){return ERROR_CODE;}
 
-	while(UTILS_readDynamic(&enterprise->restaurant.menu[i].name, fd) > 0 ) {
+		if(BASIC_readNumber(fd, &price) < 0){return ERROR_CODE;}
 
-		if(BASIC_readNumber(fd, &enterprise->restaurant.menu[i].units) < 0){return ERROR_CODE;}
 
-		if(BASIC_readNumber(fd, &enterprise->restaurant.menu[i].price) < 0){return ERROR_CODE;}
+		MSTRUCTURE_insert(&enterprise.restaurant.menu,MSTRUCTURE_createBucket(aux_key,price,units));
 
-		i++;
-
-		aux = (Dish*) realloc (enterprise->restaurant.menu, sizeof(Dish)*(i+1));
-
-		if(aux != NULL){
-
-			enterprise->restaurant.menu = aux;
-			enterprise->restaurant.menu[i].name = NULL;
-
-		}else{
-
-			return ERROR_CODE;
-
-		}
+		free(aux_key);
+		aux_key = NULL;
 
 	}
 
 	write(1, MENU_READY, strlen(MENU_READY));
-
-	enterprise->restaurant.num_menu = i;
 
 	close(fd);
 
 	return 0;
 }
 
-void BASIC_welcomeMessage(Enterprise enterprise){
+void BASIC_welcomeMessage(){
 	write (1, WELCOME, strlen(WELCOME));
 	write (1, enterprise.restaurant.name, strlen(enterprise.restaurant.name));
 	write (1, "\n\0", sizeof(char)*2);
@@ -165,8 +134,7 @@ void BASIC_welcomeMessage(Enterprise enterprise){
 
 void BASIC_startValues(){
 
-	enterprise.restaurant.menu = NULL;
-	enterprise.restaurant.num_menu = 0;
+	enterprise.restaurant.menu = MSTRUCTURE_createStructure(MENU_SIZE);
 	enterprise.restaurant.name = NULL;
 	enterprise.restaurant.seconds = 0;
 
@@ -175,9 +143,9 @@ void BASIC_startValues(){
 	enterprise.config.picard_port = NULL;
 	enterprise.config.picard_ip = NULL;
 
-	enterprise.clients = NULL;
-	enterprise.num_clients = 0;
-	thread_data = 0;
+	enterprise.clients = PSTRUCTURE_createTable(MAX_PICARDS);
+	enterprise.thread_data = 0;
 
+	pthread_mutex_init(&mtx, NULL);
 
 }
