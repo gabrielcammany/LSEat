@@ -34,7 +34,9 @@ void *CONNECTION_handlerEnterprise(void *arg) {
 						memcpy(aux, packet.data, sizeof(char) * packet.length);
 
 						UTILS_extractFromBuffer(aux, 2, &number, &port);
-
+						write(1, "Connectant ", strlen("Connectant ") * sizeof(char));
+						write(1, number, strlen(number) * sizeof(char));
+						write(1, "\n", sizeof(char));
 						HASH_insert(&enterprise, HASH_createBucket(atoi(port), packet.data, 0));
 
 						NETWORK_sendOKPacket(socket, CONNECT, HEADER_CON);

@@ -202,6 +202,7 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 				PSTRUCTURE_insert(&enterprise.clients, PSTRUCTURE_createBucket(socket, name, num, pthread_self()));
 				pthread_mutex_unlock(&mtx);
 
+				write(1, "Connectant ", strlen("Connectant ") * sizeof(char));
 				write(1, name, strlen(name));
 				write(1, "\n", sizeof(char));
 
@@ -216,11 +217,10 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 			break;
 		case 2:
 
-			if (!strcmp(packet.header, HEADER_PICDAT) && packet.length > 0) {
-
+			packet.header[10] = '\0';
+			if ((strcmp(packet.header, HEADER_PICDAT)==0) && packet.length > 0) {
 				pthread_mutex_lock(&mtx);
 				if (PSTRUCTURE_delete(&enterprise.clients, socket) > 0) {
-
 					NETWORK_sendOKPacket(socket, UPDATE, HEADER_UPDATE);
 
 					write(1, "Desconnectant ", strlen("Desconnectant "));

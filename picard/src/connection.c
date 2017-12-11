@@ -212,7 +212,7 @@ void CONNECTION_requestMenuEnterprise() {
 
 void CONNECTION_deleteDishMenu(char **data) {
 
-	if (socketfd > 1) {
+	if (socketfd > 2) {
 
 		char *buffer = UTILS_createBuffer(2, data[1], data[0]);
 
@@ -309,7 +309,7 @@ void CONNECTION_disconnectEnterprise(char *nom) {
 
 		NETWORK_sendSerialized(socketfd, packet);
 
-		if (NETWORK_readSimpleResponse(socketfd) > 0) {
+		if (!NETWORK_readSimpleResponse(socketfd)) {
 
 			write(1, DESCONNECTING_OK, strlen(DESCONNECTING_OK));
 			close(socketfd);

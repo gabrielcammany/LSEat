@@ -57,16 +57,16 @@ int CONTROLLER_executeCommand(Command command, ClientLSEat lseat) {
 				CONNECTION_requestMenuEnterprise();
 				break;
 			case CMD_DEMANA:
-				CONNECTION_takeNoteEnterprise(command.data);
+				//CONNECTION_takeNoteEnterprise(command.data);
 				break;
 			case CMD_PAGAR:
-				CONNECTION_payEnterprise();
+				//CONNECTION_payEnterprise();
 				break;
 			case CMD_DISCONNECT:
 				CONNECTION_disconnectEnterprise(lseat.client.nom);
 				return 1;
 			case DEL_DISH:
-				CONNECTION_deleteDishMenu(command.data);
+				//CONNECTION_deleteDishMenu(command.data);
 				break;
 			default:
 				break;

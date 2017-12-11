@@ -257,13 +257,13 @@ Packet NETWORK_extractIncomingFrame(int socket) {
 	unsigned short length = 0;
 	Packet packet;
 
-	memset(header, '\0', sizeof(char) * HEADER_SIZE);
 
 	if (read(socket, &type, sizeof(char)) < 0) {
 		close(socket);
 		packet.type = ERROR_CODE;
 		return packet;
 	}
+	memset(header, '\0', sizeof(char) * HEADER_SIZE);
 
 	if (read(socket, &header, sizeof(char) * HEADER_SIZE) < 0) {
 		close(socket);
