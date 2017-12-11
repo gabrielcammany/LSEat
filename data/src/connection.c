@@ -133,9 +133,9 @@ void *CONNECTION_handlerEnterprise(void *arg) {
 
 	}
 
-	close(socket);
+	if(socket > -1)close(socket);
 
-	return arg;
+	pthread_exit(0);
 }
 
 void *CONNECTION_handlerClient(void *arg) {
@@ -203,37 +203,35 @@ void *CONNECTION_handlerClient(void *arg) {
 	NETWORK_freePacket(&packet);
 
 	close(socket);
-	return NULL;
+
+	pthread_exit(0);
 }
 
 void *CONNECTION_clientListener(void *socket) {
 	write(1, WAIT_CLIENT, strlen(WAIT_CLIENT));
+
 	NETWORK_serialHandler(socketPic, CONNECTION_handlerClient);
+
 	return socket;
 }
 
 void CONNECTION_executeData(int portE, int portP, char *ip) {
 
-	enterprise = HASH_createTable(MAX_ENTERPRISES);
-
-	if ((socketPic = NETWORK_createConnectionServer(portP, ip)) > 0) {
-
-		if (pthread_create(&thread_id, NULL, CONNECTION_clientListener, NULL) < 0) {
-			perror("could not create thread");
-
-			raise(SIGUSR1);
-
-		}
-
-	} else {
-
-		raise(SIGUSR1);
-
-	}
 
 	if ((socketEnt = NETWORK_createConnectionServer(portE, ip)) > 0) {
 
-		NETWORK_serialHandler(socketEnt, CONNECTION_handlerEnterprise);
+		if ((socketPic = NETWORK_createConnectionServer(portP, ip)) > 0) {
+
+			if (pthread_create(&thread_id, NULL, CONNECTION_clientListener, &socketPic) < 0) {
+				perror("could not create thread");
+
+			}
+
+			NETWORK_serialHandler(socketEnt, CONNECTION_handlerEnterprise);
+
+		}
+
+
 
 	}
 

@@ -16,6 +16,8 @@ void eCONTROLLER_signalHandler(int signum) {
     switch (signum) {
         case SIGINT:
 
+			if(socketData > 2)close(socketData);
+
 			if(socketData > 2){
 
 				if ((socketData = NETWORK_createConnectionClient(atoi(enterprise.config.data_port), enterprise.config.data_ip)) > 0) {
@@ -52,6 +54,8 @@ void eCONTROLLER_signalHandler(int signum) {
 			BASIC_freeMemory();
 
 			if(socketData > 2)close(socketData);
+			if(socketPic > 2)close(socketPic);
+
 
 			exit(EXIT_FAILURE);
 

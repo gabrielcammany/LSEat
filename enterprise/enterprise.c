@@ -36,11 +36,11 @@ int main (int argc, char *argv[])
 
 	if (BASIC_readMenu(argv[2]) == ERROR_CODE){
 		write(1,ERR_FILE,strlen(ERR_FILE));
-		kill(getpid(),SIGUSR1);
+		raise(SIGUSR1);
 	}
 
     if(CONNECTION_executeEnterpriseClient() < 0){
-		kill(getpid(),SIGUSR1);
+		raise(SIGUSR1);
     }
 
     CONNECTION_createConnectionPicards();

@@ -19,6 +19,10 @@ void BASIC_startValues(dConfig *data) {
 	enterprise.length = -1;
 	enterprise.number = 0;
 	enterprise.elements = 0;
+	thread_id = 0;
+
+	enterprise = HASH_createTable(MAX_ENTERPRISES);
+
 
 }
 

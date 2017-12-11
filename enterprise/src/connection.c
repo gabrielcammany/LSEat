@@ -46,7 +46,7 @@ int CONNECTION_connectData() {
 
 	if (buffer != NULL)free(buffer);
 
-	if (socketData > MIN_FD)close(socketData);
+	if(socketData > 0)close(socketData);
 
 	return 1;
 }
@@ -69,6 +69,8 @@ void *CONNECTION_dataListener(void *arg) {
 		if (CONNECTION_connectData() > 0) {
 
 			while (1) {
+
+				if(socketData > 0)close(socketData);
 
 				sleep((unsigned int) enterprise.restaurant.seconds);
 
@@ -110,8 +112,6 @@ void *CONNECTION_dataListener(void *arg) {
 
 					NETWORK_freePacket(&packet);
 
-					close(socketData);
-
 				}
 
 
@@ -127,9 +127,7 @@ void *CONNECTION_dataListener(void *arg) {
 int CONNECTION_executeEnterpriseClient() {
 	int error = 0;
 
-	error = pthread_create(&enterprise.thread_data, NULL, CONNECTION_dataListener, NULL);
-
-	if (error != 0) {
+	if ((error = pthread_create(&enterprise.thread_data, NULL, CONNECTION_dataListener, NULL)) != 0) {
 
 		perror("could not create thread");
 
@@ -145,8 +143,6 @@ void *CONNECTION_Picard(void *arg) {
 	while (!exit) {
 
 		packet = NETWORK_extractIncomingFrame(socket);
-
-		//NETWORK_printPacket(packet);
 
 		if (packet.type != ERROR_CODE) {
 

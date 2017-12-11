@@ -17,8 +17,8 @@ void dCONTROLLER_signalHandler(int signum) {
 			write(1, "\n", strlen("\n"));
 			write(1, BYE, strlen(BYE));
 
-			if(socketEnt > -1)close(socketEnt);
-			if(socketPic > -1)close(socketPic);
+			if(socketEnt > 2)close(socketEnt);
+			if(socketPic > 2)close(socketPic);
 
 			pthread_kill(thread_id, SIGUSR2);
 			pthread_join(thread_id, NULL);
@@ -33,14 +33,10 @@ void dCONTROLLER_signalHandler(int signum) {
 			write(1, "\n", strlen("\n"));
 			write(1, NBYE, strlen(NBYE));
 
-			if(socketEnt > -1)close(socketEnt);
-			if(socketPic > -1)close(socketPic);
-
-			pthread_kill(thread_id, SIGUSR2);
-			pthread_join(thread_id, NULL);
+			if(socketEnt > 2)close(socketEnt);
+			if(socketPic > 2)close(socketPic);
 
 			exit(EXIT_FAILURE);
-
 		case SIGUSR2:
 			pthread_exit(0);
 
