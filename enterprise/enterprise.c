@@ -18,6 +18,7 @@ int main (int argc, char *argv[])
 {
     signal(SIGINT, eCONTROLLER_signalHandler);
 	signal(SIGUSR1,eCONTROLLER_signalHandler);
+	signal(SIGUSR2,eCONTROLLER_signalHandler);
 
     if (argc != 3){
         write(1,ERR_ARGS,strlen(ERR_ARGS));

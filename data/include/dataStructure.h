@@ -56,5 +56,6 @@ Bucket HASH_createBucket(int key, char *data, int number);
 
 void HASH_destruct(Table *table);
 
+void HASH_deleteBucket(Bucket *bucket);
 
 #endif //LSEAT_DATASTRUCTURE_H

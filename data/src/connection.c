@@ -9,22 +9,21 @@
  */
 
 #include "../include/connection.h"
-#include "../include/dataStructure.h"
 
 
 void *CONNECTION_handlerEnterprise(void *arg) {
 
 	Packet packet;
-	int socket = *((int *) arg);
+	int socket = *((int *) arg), pos = 0;
 
-	char *number = NULL, *port = NULL, *aux = NULL;
+	char *number = NULL, *port = NULL, *aux = NULL, text[20];
 
 	packet = NETWORK_extractIncomingFrame(socket);
 
 	if (packet.length > 0) {
 
 		switch (packet.type) {
-			case '1':
+			case 1:
 
 				if (strcmp(packet.header, HEADER_DATPIC) == 0) {
 
@@ -60,7 +59,7 @@ void *CONNECTION_handlerEnterprise(void *arg) {
 
 
 				break;
-			case '7':
+			case 7:
 
 				if (strcmp(packet.header, HEADER_EUPDATE) == 0) {
 
@@ -81,6 +80,41 @@ void *CONNECTION_handlerEnterprise(void *arg) {
 
 
 				break;
+			case 2:
+
+				if (strcmp(packet.header, HEADER_DATPIC) == 0) {
+
+					if((pos = HASH_findElement(enterprise, atoi(packet.data))) > 0){
+
+						memset(text,0,20);
+
+						UTILS_extractFromBuffer(enterprise.bucket[pos].data, 1, &port);
+
+						sprintf(text,DISC_ENT,port);
+
+						write(1,text, strlen(text));
+
+						HASH_deleteBucket(&enterprise.bucket[pos]);
+
+						NETWORK_sendKOPacket(socket, DISCONNECT, HEADER_DATPIC);
+
+						free(port);
+						free(number);
+
+					}else{
+
+						NETWORK_sendOKPacket(socket, DISCONNECT, HEADER_DATPIC);
+
+					}
+
+				} else {
+
+					NETWORK_sendKOPacket(socket, DISCONNECT, HEADER_DATPIC);
+
+				}
+
+				break;
+
 			default:
 
 				NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
@@ -96,6 +130,7 @@ void *CONNECTION_handlerEnterprise(void *arg) {
 		NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
 
 	}
+
 	close(socket);
 
 	return arg;
@@ -110,7 +145,7 @@ void *CONNECTION_handlerClient(void *arg) {
 	packet = NETWORK_extractIncomingFrame(socket);
 
 	//We know there will be only the type 1 of packet from clients
-	if (packet.type != '1' || strcmp(packet.header, HEADER_PICINF) == 0) {
+	if (packet.type != 1 || strcmp(packet.header, HEADER_PICINF) == 0) {
 
 		NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
 		NETWORK_freePacket(&packet);
@@ -189,7 +224,9 @@ void CONNECTION_executeData(int portE, int portP, char *ip) {
 		}
 
 	} else {
+
 		raise(SIGUSR1);
+
 	}
 
 	if ((socketEnt = NETWORK_createConnectionServer(portE, ip)) > 0) {

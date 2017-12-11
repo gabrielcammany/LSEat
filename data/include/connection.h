@@ -28,6 +28,7 @@
 #define CONNECTING "Connectant "
 #define DISCONNECTING "Desconnectant "
 #define DCONNECT_ERR "Desconnectant per error "
+#define DISC_ENT "Desconnectant %s\n"
 
 #define MAX_ENTERPRISES 20
 

@@ -123,7 +123,7 @@ int NETWORK_sendSerialized(int socket, Packet packet);
  * @param data information
  * @return packet structure filled
  */
-Packet NETWORK_createPacket(int type, char *header, int length, char *data);
+Packet NETWORK_createPacket(char type, char *header, int length, char *data);
 
 int NETWORK_readSimpleResponse(int socket);
 
@@ -135,4 +135,5 @@ void NETWORK_sendOKPacket(int socket, int type, char* header);
 
 void NETWORK_freePacket(Packet *packet);
 
+void NETWORK_printPacket(Packet packet);
 #endif

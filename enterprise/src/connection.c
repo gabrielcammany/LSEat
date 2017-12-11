@@ -9,16 +9,17 @@
  */
 
 #include "../include/connection.h"
+#include "../../lib/include/menuStructure.h"
 
 #define MIN_FD 2
-
 
 int CONNECTION_connectData() {
 
 	Packet packet, response;
 	char *buffer = NULL;
 
-	buffer = UTILS_createBuffer(3, enterprise.restaurant.name, enterprise.config.picard_port, enterprise.config.picard_ip);
+	buffer = UTILS_createBuffer(3, enterprise.restaurant.name, enterprise.config.picard_port,
+								enterprise.config.picard_ip);
 
 	packet = NETWORK_createPacket(CONNECT, HEADER_DATPIC, (unsigned short) strlen(buffer), buffer);
 
@@ -28,19 +29,24 @@ int CONNECTION_connectData() {
 
 	response = NETWORK_extractIncomingFrame(socketData);
 
-	if (response.type != (CONNECT+'0')) {
+	if (response.type != (CONNECT)) {
 
 		if (buffer != NULL) {
 			free(buffer);
 		}
 
-		kill(getpid(), SIGUSR1);
+		write(1, ERR_CONNECTION, strlen(ERR_CONNECTION));
+
+		raise(SIGUSR1);
+
+		return -1;
 
 	}
 
+
 	if (buffer != NULL)free(buffer);
 
-	if(socketData > MIN_FD)close(socketData);
+	if (socketData > MIN_FD)close(socketData);
 
 	return 1;
 }
@@ -50,7 +56,10 @@ void *CONNECTION_dataListener(void *arg) {
 	Packet packet;
 	char convert[10];
 
-	if ((socketData = NETWORK_createConnectionClient(atoi(enterprise.config.data_port), enterprise.config.data_ip)) < 0) {
+	arg = arg;
+
+	if ((socketData = NETWORK_createConnectionClient(atoi(enterprise.config.data_port), enterprise.config.data_ip)) <
+		0) {
 
 		write(1, ERR_CONNECTION, strlen(ERR_CONNECTION));
 		raise(SIGUSR1);
@@ -63,7 +72,8 @@ void *CONNECTION_dataListener(void *arg) {
 
 				sleep((unsigned int) enterprise.restaurant.seconds);
 
-				if ((socketData = NETWORK_createConnectionClient(atoi(enterprise.config.data_port), enterprise.config.data_ip)) < 0) {
+				if ((socketData = NETWORK_createConnectionClient(atoi(enterprise.config.data_port),
+																 enterprise.config.data_ip)) < 0) {
 
 					write(1, UPDATE_ERR, strlen(UPDATE_ERR));
 
@@ -71,17 +81,17 @@ void *CONNECTION_dataListener(void *arg) {
 
 				} else {
 
-					memset(convert,0,10);
+					memset(convert, 0, 10);
 
 					pthread_mutex_lock(&mtx);
-					sprintf(convert,"%d",enterprise.clients.elements);
+					sprintf(convert, "%d", enterprise.clients.elements);
 					pthread_mutex_unlock(&mtx);
 
-					buffer = UTILS_createBuffer(2, enterprise.config.picard_port,convert);
+					buffer = UTILS_createBuffer(2, enterprise.config.picard_port, convert);
 
 					packet = NETWORK_createPacket(UPDATE, HEADER_EUPDATE, (unsigned short) strlen(buffer), buffer);
 
-					if(buffer != NULL)free(buffer);
+					if (buffer != NULL)free(buffer);
 
 					NETWORK_sendSerialized(socketData, packet);
 
@@ -89,9 +99,10 @@ void *CONNECTION_dataListener(void *arg) {
 
 					packet = NETWORK_extractIncomingFrame(socketData);
 
-					if (packet.type != (UPDATE+'0')) {
+					if (packet.type != (UPDATE)) {
 
 						write(1, UPDATE_ERR, strlen(UPDATE_ERR));
+						close(socketData);
 
 						break;
 
@@ -99,10 +110,9 @@ void *CONNECTION_dataListener(void *arg) {
 
 					NETWORK_freePacket(&packet);
 
-					if(socketData > MIN_FD)close(socketData);
+					close(socketData);
 
 				}
-
 
 
 			}
@@ -111,7 +121,7 @@ void *CONNECTION_dataListener(void *arg) {
 
 	}
 
-	return arg;
+	pthread_exit(EXIT_SUCCESS);
 }
 
 int CONNECTION_executeEnterpriseClient() {
@@ -136,36 +146,37 @@ void *CONNECTION_Picard(void *arg) {
 
 		packet = NETWORK_extractIncomingFrame(socket);
 
-		if (packet.type > 0) {
+		//NETWORK_printPacket(packet);
+
+		if (packet.type != ERROR_CODE) {
 
 			exit = CONNECTION_analysePacketPicard(socket, packet);
 
 		} else {
 
-			if((pos = PSTRUCTURE_findElement(enterprise.clients,socket)) > 0){
+			pthread_mutex_lock(&mtx);
 
-				pthread_mutex_lock(&mtx);
+			if ((pos = PSTRUCTURE_findElement(enterprise.clients, socket)) > 0) {
 
 				sprintf(error, ERR_CONN_PIC, enterprise.clients.bucket[pos].data);
 				write(1, error, strlen(error));
+
 				PSTRUCTURE_deleteBucket(&enterprise.clients.bucket[pos]);
 
-				pthread_mutex_unlock(&mtx);
-
-
-			}else{
+			} else {
 
 				write(1, ERR_CONN_CLIENT, strlen(ERR_CONN_CLIENT));
 
 			}
 
+			pthread_mutex_unlock(&mtx);
 			break;
 
 		}
 
 	}
 
-	if(socket > MIN_FD)close(socket);
+	if (socket > MIN_FD)close(socket);
 
 	return NULL;
 }
@@ -177,18 +188,18 @@ void CONNECTION_createConnectionPicards() {
 }
 
 int CONNECTION_analysePacketPicard(int socket, Packet packet) {
-	char *plat = NULL, *units = NULL, *money = NULL , *name = NULL;
-	int num= 0 ;
+	char *plat = NULL, *units = NULL, *money = NULL, *name = NULL;
+	int num = 0, vReturn = 0, trobat = 0;
 
 	switch (packet.type) {
-		case '1':
+		case 1:
 			if ((strcmp(packet.header, HEADER_PICINF) == 0) && packet.length > 0) {
 
 				UTILS_extractFromBuffer(packet.data, 2, &name, &money);
 				num = atoi(money);
 
 				pthread_mutex_lock(&mtx);
-				PSTRUCTURE_insert(&enterprise.clients,PSTRUCTURE_createBucket(socket,name,num, pthread_self()));
+				PSTRUCTURE_insert(&enterprise.clients, PSTRUCTURE_createBucket(socket, name, num, pthread_self()));
 				pthread_mutex_unlock(&mtx);
 
 				write(1, name, strlen(name));
@@ -203,11 +214,12 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 			}
 
 			break;
-		case '2':
+		case 2:
 
-			if ((strcmp(packet.header, HEADER_PICDAT) == 0) && packet.length > 0) {
+			if (!strcmp(packet.header, HEADER_PICDAT) && packet.length > 0) {
 
-				if (PSTRUCTURE_delete(&enterprise.clients,socket) > 0) {
+				pthread_mutex_lock(&mtx);
+				if (PSTRUCTURE_delete(&enterprise.clients, socket) > 0) {
 
 					NETWORK_sendOKPacket(socket, UPDATE, HEADER_UPDATE);
 
@@ -215,13 +227,15 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 					write(1, packet.data, strlen(packet.data));
 					write(1, "\n", sizeof(char));
 
-					return 1;
+					vReturn = 1;
 
 				} else {
 
 					NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
 
 				}
+
+				pthread_mutex_unlock(&mtx);
 
 			} else {
 
@@ -230,7 +244,7 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 			}
 
 			break;
-		case '3':
+		case 3:
 			if ((strcmp(packet.header, MENU_PICENT) == 0)) {
 				write(1, "Enviant Menu...\n", strlen("Enviant Menu...\n"));
 
@@ -239,10 +253,11 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 
 			}
 			break;
-		case '4':
+		case 4:
+
 			if ((strcmp(packet.header, NEW_ORD) == 0) && packet.length > 0) {
 
-				UTILS_extractFromBuffer(packet.data, 2, &units, &plat);
+				UTILS_extractFromBuffer(packet.data, 2, &plat, &units);
 
 				write(1, "Anotant ", strlen("Anotant "));
 				write(1, plat, strlen(plat));
@@ -250,18 +265,75 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 				write(1, units, strlen(units));
 				write(1, "\n", sizeof(char));
 
+				plat = UTILS_toLower(plat);
 
+				pthread_mutex_lock(&mtx);
+				num = PSTRUCTURE_findElement(enterprise.clients,socket);
+				pthread_mutex_unlock(&mtx);
 
-			} else {
+				vReturn = 4;
 
-				write(1, "Error en la trama de DEMANA!\n", strlen("Error en la trama de DEMANA!\n"));
+				if(num >= 0){
+
+					pthread_mutex_lock(&mtx);
+					trobat = MSTRUCTURE_findElement(enterprise.clients.bucket[num].commanda,plat);
+					pthread_mutex_unlock(&mtx);
+
+					if(trobat >= 0){
+
+						pthread_mutex_lock(&mtx);
+
+						if(		MSTRUCTURE_decrementNum(
+								&enterprise.restaurant.menu,
+								enterprise.clients.bucket[num].commanda.bucket[trobat].data,
+								atoi(units)	) > 0){
+
+							MSTRUCTURE_incrementNum(&enterprise.clients.bucket[num].commanda,trobat,atoi(units));
+							vReturn = 0;
+						}
+						pthread_mutex_unlock(&mtx);
+
+					}else{
+
+						pthread_mutex_lock(&mtx);
+						trobat = MSTRUCTURE_findElement(enterprise.restaurant.menu,plat);
+						pthread_mutex_unlock(&mtx);
+
+						if(trobat >= 0){
+
+							pthread_mutex_lock(&mtx);
+
+							if(		MSTRUCTURE_decrementNum(
+									&enterprise.restaurant.menu,
+									trobat,
+									atoi(units)	) > 0){
+
+								MSTRUCTURE_insert(&enterprise.clients.bucket[num].commanda,
+								MSTRUCTURE_createBucket(plat,trobat,atoi(units)));
+
+								vReturn = 0;
+							}
+							pthread_mutex_unlock(&mtx);
+
+						}
+
+					}
+
+				}
 
 			}
+
+			if(vReturn == 4){
+
+				NETWORK_sendKOPacket(socket, DISH, HEADER_NORD);
+				vReturn = 0;
+			}
 			break;
-		case '5':
+		case 5:
+
 			if ((strcmp(packet.header, DEL_ORD) == 0) && packet.length > 0) {
 
-				UTILS_extractFromBuffer(packet.data, 2, &units, &plat);
+				UTILS_extractFromBuffer(packet.data, 2, &plat, &units);
 
 				write(1, "Eliminant ", strlen("Eliminant "));
 				write(1, plat, strlen(plat));
@@ -269,13 +341,46 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 				write(1, units, strlen(units));
 				write(1, "\n", sizeof(char));
 
-			} else {
+				pthread_mutex_lock(&mtx);
+				num = PSTRUCTURE_findElement(enterprise.clients,socket);
+				pthread_mutex_unlock(&mtx);
 
-				write(1, "Error en la trama de ELIMINA!\n", strlen("Error en la trama de ELIMINA!\n"));
+				vReturn = 5;
+
+				if(num > 0){
+
+					pthread_mutex_lock(&mtx);
+					trobat = MSTRUCTURE_findElement(enterprise.clients.bucket[num].commanda,plat);
+					pthread_mutex_unlock(&mtx);
+
+					if(trobat > 0){
+
+						pthread_mutex_lock(&mtx);
+
+						MSTRUCTURE_incrementNum(
+								&enterprise.restaurant.menu,
+								enterprise.clients.bucket[num].commanda.bucket[trobat].number,
+								atoi(units));
+
+						MSTRUCTURE_decrementNum(&enterprise.clients.bucket[num].commanda,trobat,atoi(units));
+						pthread_mutex_unlock(&mtx);
+						vReturn = 0;
+
+
+					}
+
+				}
+
+			}
+
+			if(vReturn == 5){
+
+				NETWORK_sendKOPacket(socket, DISH, HEADER_NORD);
+				vReturn = 0;
 
 			}
 			break;
-		case '6':
+		case 6:
 
 			if ((strcmp(packet.header, PAY_HEADER) == 0)) {
 
@@ -300,6 +405,6 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 
 	NETWORK_freePacket(&packet);
 
-	return 0;
+	return vReturn;
 
 }

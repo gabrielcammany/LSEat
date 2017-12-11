@@ -54,4 +54,8 @@ mBucket MSTRUCTURE_createBucket(char* key, int data, int number);
 
 void MSTRUCTURE_destruct(Menu *table);
 
+void MSTRUCTURE_incrementNum(Menu *table,int pos, int quantity);
+
+int MSTRUCTURE_decrementNum(Menu *table,int pos, int quantity);
+
 #endif //LSEAT_MENUSTRUCTURE_H

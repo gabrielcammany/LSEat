@@ -18,13 +18,12 @@
 //Constants to inform of an error happening
 #define ERR_ARG "Error en el nombre d'arguments!\n"
 #define ERR_MEMORY "Hi ha un problema amb la memoria del sistema.\n"
-#define ERR_CONN "No s'ha pogut establir connexió!\n"
 #define ERR_INT "Interrupció desconeguda!\n"
 #define ERR_NUM "Hi ha un error en el numero d'unitats\n"
 #define ERR_PLAT "Hi ha un error en el nom del plat\n"
 #define ERR_NOCONNECTION "No estas connectat a cap Enterprise!\n"
-#define ERR_ENTDISC "S'ha perdut la connexió amb el servidor Enterprise. T'has de tornar a connectar...\n"
 #define ERR_OP "La operació no s'ha podut dur a terme.\n"
+
 
 //constants to inform user
 #define WELCOME "BENVINGUT %s\n"

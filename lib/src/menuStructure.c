@@ -112,7 +112,7 @@ void MSTRUCTURE_insert(Menu *table, mBucket bucket) {
 
 		table->bucket[pos].key = bucket.key;
 		table->bucket[pos].data = bucket.data;
-		table->bucket[pos].number = 0;
+		table->bucket[pos].number = bucket.number;
 
 		table->elements++;
 
@@ -168,7 +168,7 @@ int MSTRUCTURE_findElement(Menu table, char *key) {
 
 	pos = MSTRUCTURE_function(table, key);
 
-	while (strcmp(table.bucket[pos].key, key) != 0 && table.bucket[pos].key != EMPTY_BUCKET) {
+	while (table.bucket[pos].key != EMPTY_BUCKET && strcmp(table.bucket[pos].key, key) != 0) {
 
 		pos++;
 
@@ -220,12 +220,28 @@ void MSTRUCTURE_destruct(Menu *table) {
 
 	if (table->bucket != NULL) {
 
-		for (i = 0; i < table->elements; i++) {
+		for (i = 0; i < table->length; i++) {
+
 			if (table->bucket[i].key != NULL)free(table->bucket[i].key);
+
 		}
 
 		free(table->bucket);
 	}
 
 
+}
+
+
+void MSTRUCTURE_incrementNum(Menu *table,int pos, int quantity){
+	table->bucket[pos].number += quantity;
+}
+
+int MSTRUCTURE_decrementNum(Menu *table,int pos, int quantity){
+	if((table->bucket[pos].number - quantity) >= 0){
+		table->bucket[pos].number -= quantity;
+		return 1;
+	}else{
+		return -1;
+	}
 }

@@ -28,7 +28,6 @@ void CONTROLLER_signalHandler(int signum) {
 			exit(EXIT_SUCCESS);
 		case SIGPIPE:
 			write(1, ERR_OP, strlen(ERR_OP));
-			write(1, ERR_ENTDISC, strlen(ERR_ENTDISC));
 
 			if(socketfd > 1)close(socketfd);
 

@@ -19,7 +19,7 @@ int HASH_isPosEmpty(void* key){
 void HASH_deleteBucket(Bucket *bucket){
 
 	bucket->key = EMPTY_BUCKET;
-	free(bucket->data);
+	if(bucket->data!= NULL)free(bucket->data);
 	bucket->number = 0;
 
 }

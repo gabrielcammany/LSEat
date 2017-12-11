@@ -26,7 +26,7 @@
 #define ERR_ARG "Error en el nombre d'arguments!\n"
 #define ERR_INT "Interrupció desconeguda!\n"
 #define ERR_MEMORY "Hi ha un problema amb la memoria del sistema.\n"
-#define ERR_CONN "No s'ha pogut establir connexió!\n"
+#define ERR_CONN "S'ha perdut la connexió!\n"
 #define ERR_DATA "Problema amb l'informació rebuda\n"
 #define ERR_NUM "Hi ha un error en el numero d'unitats\n"
 #define ERR_PLAT "Hi ha un error en el nom del plat\n"
@@ -37,22 +37,17 @@
 #define WELCOME "BENVINGUT %s\n"
 
 
-/**
- * PICARD (used?)
- */
-//#define DISCONNECT_PICENT 2,"[PIC_NAME]"
-//#define DISH_PICENT 4,"[NEW_ORD"
-//#define DELDISH_PICENT 5,"[DEL_ORD]"
-//#define PAY_PICENT 6,"[PAY]",0,"\0"
-
 //constants from connections of picard
 #define CONNECTING "Connectant amb LsEat...\n"
 #define CONNECTION_DATA "[Connexió amb Data OK]\n"
 #define CONNECTION_NDATA "[Connexió amb Data KO]\n"
 #define CONNECTION_ENT "[Connexió amb Enterprise OK]\n"
 #define CONNECTION_NENT "[Connexió amb Enterprise KO]\n"
-#define DESCONNECTING_OK "[Desconnecta Enterprise OK]"
-#define DESCONNECTING_KO "[Desconnecta Enterprise KO]"
+#define DESCONNECTING_OK "[Desconnecta Enterprise OK]\n"
+#define DESCONNECTING_KO "[Desconnecta Enterprise KO]\n"
+
+#define NO_PLAT "No s'ha pogut demanar aquest plat!\n"
+#define NO_DPLAT "No s'ha pogut eliminar aquest el plat!\n"
 
 /**
  * Typo to save all information of the enterprise that is connected

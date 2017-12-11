@@ -196,7 +196,7 @@ void CONNECTION_requestMenuEnterprise() {
 
 	if (socketfd > 1) {
 
-		Packet packet = NETWORK_createPacket(MENU, MENU_PICENT, (unsigned short) 0, NULL);
+		Packet packet = NETWORK_createPacket(MENU, MENU_PICENT, 0, NULL);
 
 		NETWORK_sendSerialized(socketfd, packet);
 
@@ -221,6 +221,18 @@ void CONNECTION_deleteDishMenu(char **data) {
 			Packet packet = NETWORK_createPacket(DEL_DISH, DEL_ORD, (unsigned short) strlen(buffer), buffer);
 			NETWORK_sendSerialized(socketfd, packet);
 			NETWORK_freePacket(&packet);
+
+			if(NETWORK_sendSerialized(socketfd, packet) < 0){
+
+				close(socketfd);
+				write(1, ERR_CONN, strlen(ERR_CONN));
+				socketfd = -1;
+
+			}
+
+			if (NETWORK_readSimpleResponse(socketfd) > 0) {
+				write(1, NO_DPLAT, strlen(NO_DPLAT));
+			}
 
 			free(buffer);
 
@@ -262,8 +274,6 @@ void CONNECTION_takeNoteEnterprise(char **data) {
 
 		Packet packet = NETWORK_createPacket(DISH, NEW_ORD, (unsigned short) strlen(buffer), buffer);
 
-		printf("Te: -%s- -%d-\n", buffer, strlen(buffer));
-
 		if(NETWORK_sendSerialized(socketfd, packet) < 0){
 
 			close(socketfd);
@@ -272,7 +282,10 @@ void CONNECTION_takeNoteEnterprise(char **data) {
 
 		}
 
-		printf("He enviat coses!\n");
+		if (NETWORK_readSimpleResponse(socketfd) > 0) {
+			write(1, NO_PLAT, strlen(NO_PLAT));
+		}
+
 
 		NETWORK_freePacket(&packet);
 
@@ -293,12 +306,16 @@ void CONNECTION_takeNoteEnterprise(char **data) {
 void CONNECTION_disconnectEnterprise(char *nom) {
 	if (socketfd > 2) {
 		Packet packet = NETWORK_createPacket(DISCONNECT, HEADER_PICDAT, (unsigned short) strlen(nom), nom);
+
 		NETWORK_sendSerialized(socketfd, packet);
 
 		if (NETWORK_readSimpleResponse(socketfd) > 0) {
+
 			write(1, DESCONNECTING_OK, strlen(DESCONNECTING_OK));
 			close(socketfd);
+
 			socketfd = -1;
+
 		} else {
 			write(1, CONNECTION_NENT, strlen(CONNECTION_NENT));
 

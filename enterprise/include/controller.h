@@ -19,9 +19,9 @@
 #include "../../lib/include/utils.h"
 #include "../../lib/include/files.h"
 #include "connection.h"
-#include "menuStructure.h"
+#include "../../lib/include/menuStructure.h"
 #include "../include/picardStructure.h"
-#include "../include/menuStructure.h"
+#include "../../lib/include/menuStructure.h"
 
 /**
  * Error constants

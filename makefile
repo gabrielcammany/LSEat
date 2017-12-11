@@ -4,7 +4,7 @@ FASE = 3
 
 CC = gcc
 COP =
-CFLAGS = -lpthread -Wall -Wextra
+CFLAGS = -lpthread -Wall -Wextra -g
 
 LIBS_PATH = lib/src/
 LIBS_SRC = $(shell find $(LIBS_PATH) -name '*.c')
@@ -13,7 +13,7 @@ EXE = enterprise data picard
 all: clean $(patsubst %,%.build,$(EXE))
 
 %.build:
-	$(CC) $(COP) -o bin/$*.exe $(LIBS_SRC) $(shell find $*/src/ -name '*.c') $(patsubst %,%.c,$*/$*) $(CFLAGS) -g
+	$(CC) $(COP) -o bin/$*.exe $(LIBS_SRC) $(shell find $*/src/ -name '*.c') $(patsubst %,%.c,$*/$*) $(CFLAGS)
 
 stop:
 	ps -u $(LOGIN) | grep $(EXE_CLIENT) | awk '{print $$1}' | xargs kill

@@ -19,10 +19,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include "../../lib/include/menuStructure.h"
 
 
 #define ERR_MEM "Error en memoria, no s'ha pogut desar un nou element!\n"
-
+#define MIN_COMMAND 5
 
 typedef struct {
 
@@ -30,9 +31,9 @@ typedef struct {
 	char* data;
 	int number;
 	pthread_t pthread;
+	Menu commanda;
 
 } Bucket;
-
 
 typedef struct {
 

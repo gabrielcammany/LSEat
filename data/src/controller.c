@@ -17,9 +17,10 @@ void dCONTROLLER_signalHandler(int signum) {
 			write(1, "\n", strlen("\n"));
 			write(1, BYE, strlen(BYE));
 
-			if(socketEnt > MIN_FD)close(socketEnt);
-			if(socketPic > MIN_FD)close(socketPic);
-			pthread_kill(thread_id,SIGKILL);
+			if(socketEnt > -1)close(socketEnt);
+			if(socketPic > -1)close(socketPic);
+
+			pthread_kill(thread_id, SIGUSR2);
 			pthread_join(thread_id, NULL);
 
 			exit(EXIT_SUCCESS);
@@ -32,12 +33,17 @@ void dCONTROLLER_signalHandler(int signum) {
 			write(1, "\n", strlen("\n"));
 			write(1, NBYE, strlen(NBYE));
 
-			if(socketEnt != -1)close(socketEnt);
-			if(socketPic != -1)close(socketPic);
-			pthread_kill(thread_id, SIGKILL);
+			if(socketEnt > -1)close(socketEnt);
+			if(socketPic > -1)close(socketPic);
+
+			pthread_kill(thread_id, SIGUSR2);
 			pthread_join(thread_id, NULL);
 
 			exit(EXIT_FAILURE);
+
+		case SIGUSR2:
+			pthread_exit(0);
+
 		default:
 			write(1, ERR_INT, strlen(ERR_INT));
 			break;
