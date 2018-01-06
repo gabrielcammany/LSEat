@@ -462,7 +462,7 @@ void CONNECTION_resendCommands(int socket,Menu *table){
 
             if ( NETWORK_openedSocket(socket) < 0 || NETWORK_sendSerialized(socket, packet) < 0 ) {
 
-                write(1,"No s'ha pogut reenviar el menu\n",strlen("No s'ha pogut reenviar el menu\n")* sizeof(char));
+                CONNECTION_enterpriseReconnect();
 
             } else {
 

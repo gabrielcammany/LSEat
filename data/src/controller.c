@@ -17,14 +17,14 @@ void dCONTROLLER_signalHandler(int signum) {
 			write(1, "\n", strlen("\n"));
 			write(1, BYE, strlen(BYE));
 
-			if(socketEnt > 2)close(socketEnt);
-			if(socketPic > 2)close(socketPic);
+			close(socketEnt);
+			close(socketPic);
 
 			pthread_kill(thread_id, SIGUSR2);
 			pthread_join(thread_id, NULL);
 
 			exit(EXIT_SUCCESS);
-
+			break;
 		case SIGUSR1:
 
 			BASIC_freeMemory(&data);
@@ -33,13 +33,14 @@ void dCONTROLLER_signalHandler(int signum) {
 			write(1, "\n", strlen("\n"));
 			write(1, NBYE, strlen(NBYE));
 
-			if(socketEnt > 2)close(socketEnt);
-			if(socketPic > 2)close(socketPic);
+			close(socketEnt);
+			close(socketPic);
 
 			exit(EXIT_FAILURE);
+			break;
 		case SIGUSR2:
 			pthread_exit(0);
-
+		break;
 		default:
 			write(1, ERR_INT, strlen(ERR_INT));
 			break;

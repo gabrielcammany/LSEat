@@ -34,6 +34,7 @@ int NETWORK_createConnectionClient(int portInput, char *ipInput) {
 
 	if (connect(sockfd, (void *) &s_addr, sizeof(s_addr)) < 0) {
 		perror("connect");
+		close(sockfd);
 		return -1;
 	}
 	return sockfd;
@@ -71,9 +72,12 @@ int NETWORK_createConnectionServer(int portInput, char *ipInput) {
 	s_addr.sin_port = htons(port);
 	s_addr.sin_addr.s_addr = inet_addr(ipInput);//INADDR_ANY;
 
+	int opt = 1;
+	setsockopt (sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof (opt));
 
 	retVal = bind(sockfd, (void *) &s_addr, sizeof(s_addr));
 	if (retVal < 0) {
+		close(sockfd);
 		perror("bind");
 		return -1;
 	}

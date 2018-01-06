@@ -230,7 +230,6 @@ void CONNECTION_executeData(int portE, int portP, char *ip) {
 
 
 	if ((socketEnt = NETWORK_createConnectionServer(portE, ip)) > 0) {
-
 		if ((socketPic = NETWORK_createConnectionServer(portP, ip)) > 0) {
 
 			if (pthread_create(&thread_id, NULL, CONNECTION_clientListener, &socketPic) < 0) {
