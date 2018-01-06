@@ -21,6 +21,7 @@
 
 //own includes
 #include "../../lib/include/network.h"
+#include "../../lib/include/menuStructure.h"
 
 //constants to make user know if there is any error
 #define ERR_ARG "Error en el nombre d'arguments!\n"
@@ -49,6 +50,7 @@
 #define NO_PLAT "No s'ha pogut demanar aquest plat!\n"
 #define NO_DPLAT "No s'ha pogut eliminar aquest el plat!\n"
 
+#define MENU_SIZE 20
 /**
  * Typo to save all information of the enterprise that is connected
  * IP: IP from enterprise where picard will be connected
@@ -56,18 +58,18 @@
  * Port: interface through which we will comunicate with enterprise
  * NumberOfClients: just in case we have to know how many clients
  */
-typedef struct {
+/*typedef struct {
 	char *ip;
 	char *name;
 	int port;
 	char numberClients;
 } Enterprise;
-
+*/
 /*
  * GLOBAL VARIABLES
  */
 
-Enterprise enterprise;
+//Enterprise enterprise;
 int socketfd; //File descriptor through which we will first communicate to data and then enterprise
 
 /*
@@ -88,7 +90,7 @@ int connection_sendInfoData(int socket);
  * @param name  name of the Picard
  * @return      information that Data gave us
  */
-char *connection_data(int port, char *ip, char *name);
+char *connection_data(int option, int port, char *ip, char *name);
 
 /**
  * Function to connect to enterprise with
@@ -140,4 +142,7 @@ void CONNECTION_takeNoteEnterprise(char **data);
  */
 void CONNECTION_disconnectEnterprise(char *nom);
 
+void CONNECTION_enterpriseReconnect();
+
+void CONNECTION_resendCommands(int socket,Menu *table);
 #endif

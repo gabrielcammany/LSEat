@@ -51,12 +51,18 @@ typedef struct {
 	int Port;
 } Config;
 
+typedef struct {
+	char *name;
+	int port;
+}Enterprise;
 /**
  * General typo that contains the 2 typos above
  */
 typedef struct {
 	Config config;
 	Client client;
+	Menu commands;
+	Enterprise enterprise;
 } ClientLSEat;
 
 //variable

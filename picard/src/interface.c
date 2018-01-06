@@ -80,7 +80,7 @@ Command INTERFACE_checkSpecialCommand(char *input) {
 							memcpy(command.data[0],convert,strlen(convert));
 							memcpy(command.data[1],input+base,strlen(input+base));
 
-							write(1, COMMANDA_OK, strlen(COMMANDA_OK));
+							//write(1, COMMANDA_OK, strlen(COMMANDA_OK));
 
 						}else{
 
@@ -195,17 +195,17 @@ Command INTERFACE_identifyCommand(char *input) {
 
 		if (strcmp(input, "connecta") == 0) {
 
-			write(1, COMMANDA_OK, strlen(COMMANDA_OK));
+			//write(1, COMMANDA_OK, strlen(COMMANDA_OK));
 			command.id = CMD_CONNECTA;
 
 		} else if (strcmp(input, "mostra menu") == 0) {
 
-			write(1, COMMANDA_OK, strlen(COMMANDA_OK));
+			//write(1, COMMANDA_OK, strlen(COMMANDA_OK));
 			command.id = CMD_MENU;
 
 		} else if (strcmp(input, "pagar") == 0) {
 
-			write(1, COMMANDA_OK, strlen(COMMANDA_OK));
+			//write(1, COMMANDA_OK, strlen(COMMANDA_OK));
 			command.id = CMD_PAGAR;
 
 		} else if (strcmp(input, "desconnecta") == 0) {

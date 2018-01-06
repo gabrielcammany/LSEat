@@ -155,7 +155,6 @@ int NETWORK_sendSerialized(int socket, Packet packet) {
 		return -1;
 	}
 
-
 	buffer[0] = packet.type;
 
 	memcpy(buffer + sizeof(char), packet.header, sizeof(char) * HEADER_SIZE);
@@ -166,15 +165,15 @@ int NETWORK_sendSerialized(int socket, Packet packet) {
 
 	memcpy(buffer + HEADER_SIZE + TYPE_SIZE, slength, sizeof(unsigned short));
 
-
 	if(packet.data != NULL){
 
 		memcpy(buffer + SIMPLE_PACKET_LENGTH, packet.data, sizeof(char) * packet.length);
 
 	}
 
-	if (write(socket, buffer, size) == size) {
 
+
+	if (write(socket, buffer, size * sizeof(char)) == size) {
 		free(buffer);
 		return 1;
 	}
@@ -225,47 +224,45 @@ Packet NETWORK_createPacket(char type, char *header, int length, char *data) {
 
 int NETWORK_readSimpleResponse(int socket) {
 
-	char header[HEADER_SIZE], type;
-
-	read(socket, &type, sizeof(char));
-	read(socket, header, HEADER_SIZE * sizeof(char));
-
-	switch (type) {
-		case '1':
-			return (strcmp(header, HEADER_CON) == 0);
-		case '2':
-			return (strcmp(header, HEADER_ENDMENU) == 0);
-		case '3':
-			return (strcmp(header, HEADER_ORD) == 0);
-		case '5':
-			return (strcmp(header, HEADER_ORD) == 0);
-		case '6':
-			return (strcmp(header, HEADER_PAY) == 0);
-		case '7':
-			return (strcmp(header, HEADER_NUPDATE) == 0);
+	Packet packet = NETWORK_extractIncomingFrame(socket);
+	switch (packet.type) {
+		case 1:
+			return (strcmp(packet.header, HEADER_CON) == 0);
+		case 2:
+			return (strcmp(packet.header, HEADER_ENDMENU) == 0);
+		case 4:
+			return (strcmp(packet.header, HEADER_ORD) == 0);
+		case 5:
+			return (strcmp(packet.header, HEADER_ORD) == 0);
+		case 6:
+			return (strcmp(packet.header, HEADER_PAY) == 0);
+		case 7:
+			return (strcmp(packet.header, HEADER_NUPDATE) == 0);
 		default:
-			break;
+			return -1;
 	}
 
-	return 1;
+	return -1;
 
 }
 
 Packet NETWORK_extractIncomingFrame(int socket) {
 
-	char type, header[HEADER_SIZE], *data = NULL, *slength = NULL;
+	char type = 0, header[HEADER_SIZE], *data = NULL, *slength = NULL;
 	unsigned short length = 0;
+	int leeength = 0;
 	Packet packet;
-
 
 	if (read(socket, &type, sizeof(char)) < 0) {
 		close(socket);
 		packet.type = ERROR_CODE;
 		return packet;
 	}
-	memset(header, '\0', sizeof(char) * HEADER_SIZE);
+	//en caso de que el HEADER ocupe HEADER_SIZE necesitamos una posicion
+	//mas para que el final se el \0
 
-	if (read(socket, &header, sizeof(char) * HEADER_SIZE) < 0) {
+	memset(header, '\0', sizeof(char) * (HEADER_SIZE));
+	if ((leeength = read(socket, &header, sizeof(char) * HEADER_SIZE)) < 0) {
 		close(socket);
 		packet.type = ERROR_CODE;
 		return packet;
@@ -277,7 +274,7 @@ Packet NETWORK_extractIncomingFrame(int socket) {
 
 	} else {
 
-		slength = (char*) malloc( sizeof(unsigned short) );
+		slength = (char*) calloc(sizeof(unsigned short), sizeof(unsigned short) );
 
 		if(slength == NULL){
 
@@ -295,7 +292,7 @@ Packet NETWORK_extractIncomingFrame(int socket) {
 
 		}
 
-		length = (unsigned short)atoi(slength);
+		length = (unsigned short) atoi(slength);
 
 		if (length > 0) {
 
@@ -338,7 +335,7 @@ Packet NETWORK_extractIncomingFrame(int socket) {
 void NETWORK_sendKOPacket(int socket, int type, char* header) {
 	Packet aux;
 	//if not we send the KO packet to the client
-	aux = NETWORK_createPacket(type, header, (unsigned short) 0, NULL);
+	aux = NETWORK_createPacket(type, header, 0, NULL);
 	NETWORK_sendSerialized(socket, aux);
 	NETWORK_freePacket(&aux);
 
@@ -347,7 +344,7 @@ void NETWORK_sendKOPacket(int socket, int type, char* header) {
 void NETWORK_sendOKPacket(int socket, int type, char* header) {
 	Packet aux;
 
-	aux = NETWORK_createPacket(type, header, (unsigned short) 0, NULL);
+	aux = NETWORK_createPacket(type, header, 0, NULL);
 	NETWORK_sendSerialized(socket, aux);
 	NETWORK_freePacket(&aux);
 
@@ -364,11 +361,36 @@ void NETWORK_freePacket(Packet *packet){
 }
 
 void NETWORK_printPacket(Packet packet){
+	char cadena[20];
 
-	printf("Paquet conte les seguents dades:\n");
-	printf("Type: %c\n", packet.type + '0');
-	printf("Header: %s\n", packet.header);
-	printf("Length: %hu\n", packet.length);
-	printf("Data: %s\n", packet.data);
+	write(1,"Paquet conte les seguents dades:\n",strlen("Paquet conte les seguents dades:\n")* sizeof(char));
 
+	write(1,"Type: ",strlen("Type: ")* sizeof(char));
+	sprintf(cadena,"%d",packet.type);
+	write(1,cadena, sizeof(char)*strlen(cadena));
+	write(1,"\n", sizeof(char));
+
+	write(1,"Header: ",strlen("Header: ")* sizeof(char));
+	write(1,packet.header, sizeof(char)*10);
+	write(1,"\n", sizeof(char));
+
+	sprintf(cadena,"Length: %d",packet.length);
+	write(1,cadena, sizeof(char)*strlen(cadena));
+	write(1,"\n", sizeof(char));
+
+	write(1,"Data: ",strlen("Data: ")* sizeof(char));
+	write(1,packet.data, sizeof(char)*packet.length);
+	write(1,"\n", sizeof(char));
+
+}
+
+int NETWORK_openedSocket(int socket){
+	char c;
+	int num =0;
+
+	if((num=recv(socket,&c, sizeof(char),MSG_DONTWAIT)) == 0){
+		return -1;
+	}else{
+		return 1;
+	}
 }

@@ -87,7 +87,6 @@ void HASH_insert(Table *table, Bucket bucket) {
 	pos = HASH_function(*table, bucket.key);
 
 	if (!HASH_compareKeys(&table->bucket[pos].key,&bucket.key)) {
-
 		while (!HASH_isPosEmpty(&table->bucket[pos])) {
 
 			if (HASH_compareKeys(&table->bucket[pos].key,&bucket.key)){break;}
@@ -210,7 +209,6 @@ Bucket HASH_createBucket(int key, char *data, int number){
 		bucket.data = (char*) calloc(strlen(data),strlen(data) *  sizeof(char));
 
 		if(bucket.data != NULL){
-
 			memcpy(bucket.data,data,strlen(data)*sizeof(char));
 
 		}

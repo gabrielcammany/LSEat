@@ -60,4 +60,8 @@ void PSTRUCTURE_destruct(Table *table);
 
 void PSTRUCTURE_deleteBucket(Bucket *bucket);
 
+void PSTRUCTURE_calculateMoneyLeft(int option, Bucket *bucket, int price, int units);
+
+
+
 #endif //LSEAT_PICARDSTRUCTURE_H_

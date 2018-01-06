@@ -15,10 +15,6 @@ void BASIC_startValues(dConfig *data) {
 	data->picardPort = 0;
 	socketPic = -1;
 	socketEnt = -1;
-	enterprise.bucket = NULL;
-	enterprise.length = -1;
-	enterprise.number = 0;
-	enterprise.elements = 0;
 	thread_id = 0;
 
 	enterprise = HASH_createTable(MAX_ENTERPRISES);

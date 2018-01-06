@@ -177,10 +177,13 @@ int PSTRUCTURE_delete(Table *table, int key) {
 int PSTRUCTURE_findElement(Table table, int key) {
 	int pos = 0;
 
+	//We get the position in the table of this picard through the key
 	pos = PSTRUCTURE_function(table, key);
 
+	//A simple function that returns if the keys are equal and if the position
+	//we are looking at is empty
 	while (!PSTRUCTURE_compareKeys(&table.bucket[pos].key,&key) && !PSTRUCTURE_isPosEmpty(&table.bucket[pos].key)) {
-
+		//In case is true we are going to move linely
 		pos++;
 
 		if (pos == table.length) {
@@ -189,6 +192,7 @@ int PSTRUCTURE_findElement(Table table, int key) {
 
 	}
 
+	//If the client is inside of our table then we return it's position, if not -1 (EMPTY_BUCKET)
 	return (!PSTRUCTURE_isPosEmpty(&table.bucket[pos].key) ? pos : EMPTY_BUCKET);
 
 }
@@ -236,4 +240,18 @@ Bucket PSTRUCTURE_createBucket(int key, char *data, int number, pthread_t pthrea
 	}
 
 	return bucket;
+}
+
+void PSTRUCTURE_calculateMoneyLeft(int option, Bucket *bucket, int price, int units) {
+
+	switch(option){
+		case 1:
+			bucket->number += (price*units);
+			break;
+		case 2:
+			bucket->number -= (price*units);
+			break;
+		default:
+			break;
+	}
 }

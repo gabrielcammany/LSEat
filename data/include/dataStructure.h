@@ -30,7 +30,7 @@ typedef struct {
 	char* data;
 	int number;
 
-} Bucket;
+}Bucket;
 
 
 typedef struct {
@@ -40,7 +40,7 @@ typedef struct {
 	Bucket *bucket;
 	int number;
 
-} Table;
+}Table;
 
 Table HASH_createTable(int size);
 

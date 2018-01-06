@@ -58,4 +58,13 @@ void MSTRUCTURE_incrementNum(Menu *table,int pos, int quantity);
 
 int MSTRUCTURE_decrementNum(Menu *table,int pos, int quantity);
 
+int MSTRUCTURE_getPrice(Menu table, int pos);
+
+int MSTRUCTURE_isEmpty(Menu table);
+
+void MSTRUCTURE_empty(Menu *table);
+
+void MSTRUCTURE_returnCommands(Menu picard, Menu *enterprise);
+
+
 #endif //LSEAT_MENUSTRUCTURE_H

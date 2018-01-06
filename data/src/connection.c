@@ -37,8 +37,8 @@ void *CONNECTION_handlerEnterprise(void *arg) {
 						write(1, "Connectant ", strlen("Connectant ") * sizeof(char));
 						write(1, number, strlen(number) * sizeof(char));
 						write(1, "\n", sizeof(char));
-						HASH_insert(&enterprise, HASH_createBucket(atoi(port), packet.data, 0));
 
+						HASH_insert(&enterprise, HASH_createBucket(atoi(port), packet.data, 0));
 						NETWORK_sendOKPacket(socket, CONNECT, HEADER_CON);
 
 						free(aux);
@@ -133,21 +133,21 @@ void *CONNECTION_handlerEnterprise(void *arg) {
 
 	}
 
-	if(socket > -1)close(socket);
+	if(socket > 2)close(socket);
 
-	pthread_exit(0);
+	//pthread_exit(0);
+	return NULL;
 }
 
 void *CONNECTION_handlerClient(void *arg) {
 
-	int socket = *((int *) arg), size;
+	int socket = *((int *) arg), size = 0;
 	Packet packet, aux;
-
+	char *name = NULL, *port = NULL;
 	//We extract the information of the clients packet
 	packet = NETWORK_extractIncomingFrame(socket);
-
 	//We know there will be only the type 1 of packet from clients
-	if (packet.type != 1 || strcmp(packet.header, HEADER_PICINF) == 0) {
+	if ((packet.type != 1 && packet.type != 8) || strcmp(packet.header, HEADER_PICINF) == 0) {
 
 		NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
 		NETWORK_freePacket(&packet);
@@ -156,9 +156,19 @@ void *CONNECTION_handlerClient(void *arg) {
 
 	}
 
+
+	if(packet.type == 8){
+
+		UTILS_extractFromBuffer(packet.data,2,&name,&port);
+		HASH_delete(&enterprise,atoi(port));
+
+	}else{
+		name = packet.data;
+	}
+
 	//Because is type 1 we know that data contains the client name
 	write(1, CONNECTING, strlen(CONNECTING));
-	write(1, packet.data, sizeof(char) * packet.length);
+	write(1, packet.data, sizeof(char) * strlen(packet.data));
 	write(1, "\n\0", sizeof(char) * 2);
 
 	//we check that struct enterprise isnt empty
@@ -167,7 +177,7 @@ void *CONNECTION_handlerClient(void *arg) {
 
 		NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
 		write(1, DCONNECT_ERR, strlen(DCONNECT_ERR));
-		write(1, packet.data, sizeof(char) * packet.length);
+		write(1, name, sizeof(char) * strlen(name));
 		write(1, "\n\0", sizeof(char) * 2);
 
 	} else {
@@ -183,7 +193,7 @@ void *CONNECTION_handlerClient(void *arg) {
 			//if everything is ok then we send information of the enterprise back to the client
 			NETWORK_sendSerialized(socket, aux);
 			write(1, DISCONNECTING, strlen(DISCONNECTING));
-			write(1, packet.data, sizeof(char) * packet.length);
+			write(1, name, sizeof(char) * strlen(name));
 			write(1, "\n\0", sizeof(char) * 2);
 
 		} else {
@@ -191,7 +201,7 @@ void *CONNECTION_handlerClient(void *arg) {
 			NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
 
 			write(1, DCONNECT_ERR, strlen(DCONNECT_ERR));
-			write(1, packet.data, sizeof(char) * packet.length);
+			write(1, name, sizeof(char) * strlen(name));
 			write(1, "\n\0", sizeof(char) * 2);
 
 		}
@@ -204,7 +214,8 @@ void *CONNECTION_handlerClient(void *arg) {
 
 	close(socket);
 
-	pthread_exit(0);
+	//pthread_exit(0);
+	return NULL;
 }
 
 void *CONNECTION_clientListener(void *socket) {

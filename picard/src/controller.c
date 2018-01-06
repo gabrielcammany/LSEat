@@ -12,67 +12,73 @@
 
 
 void CONTROLLER_signalHandler(int signum) {
-	switch (signum) {
-		case SIGINT:
-			free(lseat.client.nom);
-			free(lseat.config.IP);
+    switch (signum) {
+        case SIGINT:
 
-			write(1, "\n", strlen("\n"));
-			write(1, BYE, strlen(BYE));
+            if (socketfd > 2) CONNECTION_disconnectEnterprise(lseat.client.nom);
 
-			SHELL_resetInput();
-			INTERFACE_saveHistory();
+            free(lseat.client.nom);
+            free(lseat.config.IP);
 
-			if(socketfd > 1)close(socketfd);
+            write(1, "\n", strlen("\n"));
+            write(1, BYE, strlen(BYE));
 
-			exit(EXIT_SUCCESS);
-		case SIGPIPE:
-			write(1, ERR_OP, strlen(ERR_OP));
 
-			if(socketfd > 1)close(socketfd);
+            SHELL_resetInput();
+            INTERFACE_saveHistory();
 
-			socketfd = -1;
-			break;
-		default:
-			write(1, ERR_INT, strlen(ERR_INT));
-			break;
-	}
+            if (socketfd > 2)close(socketfd);
+
+            exit(EXIT_SUCCESS);
+        case SIGPIPE:
+            write(1, ERR_OP, strlen(ERR_OP));
+
+            if (socketfd > 1)close(socketfd);
+
+            socketfd = -1;
+            break;
+        default:
+            write(1, ERR_INT, strlen(ERR_INT));
+            break;
+    }
 
 }
 
 
 int CONTROLLER_executeCommand(Command command, ClientLSEat lseat) {
-	char *enterpriseData = NULL;
+    char *enterpriseData = NULL;
 
-	if(command.id == CMD_CONNECTA) {
-		enterpriseData = connection_data(lseat.config.Port, lseat.config.IP, lseat.client.nom);
-		if (enterpriseData != NULL) {
+    if (command.id == CMD_CONNECTA) {
+        enterpriseData = connection_data(1,lseat.config.Port, lseat.config.IP, lseat.client.nom);
+        if (enterpriseData != NULL) {
 
-			socketfd = connection_enterprise(enterpriseData, lseat.client.nom, lseat.client.saldo);
-		}
-	}else if(socketfd > 0){
+            socketfd = connection_enterprise(enterpriseData, lseat.client.nom, lseat.client.saldo);
+        }else{
+            write(1,"Error en conectarnos a Data!\n", strlen("Error en conectarnos a Data!\n") * sizeof(char));
+        }
+    } else if (socketfd > 2) {
 
-		switch (command.id) {
-			case CMD_MENU:
-				CONNECTION_requestMenuEnterprise();
-				break;
-			case CMD_DEMANA:
-				//CONNECTION_takeNoteEnterprise(command.data);
-				break;
-			case CMD_PAGAR:
-				//CONNECTION_payEnterprise();
-				break;
-			case CMD_DISCONNECT:
-				CONNECTION_disconnectEnterprise(lseat.client.nom);
-				return 1;
-			case DEL_DISH:
-				//CONNECTION_deleteDishMenu(command.data);
-				break;
-			default:
-				break;
-		}
-	}else{
-		write(1,ERR_NOCONNECTION,strlen(ERR_NOCONNECTION));
-	}
-	return 0;
+        switch (command.id) {
+            case CMD_MENU:
+                CONNECTION_requestMenuEnterprise();
+                break;
+            case CMD_DEMANA:
+                CONNECTION_takeNoteEnterprise(command.data);
+                break;
+            case CMD_PAGAR:
+                CONNECTION_payEnterprise();
+                break;
+            case CMD_DISCONNECT:
+                CONNECTION_disconnectEnterprise(lseat.client.nom);
+                return 1;
+            case DEL_DISH:
+                CONNECTION_deleteDishMenu(command.data);
+                break;
+            default:
+                break;
+        }
+    } else {
+        write(1, ERR_NOCONNECTION, strlen(ERR_NOCONNECTION));
+    }
+    return 0;
 }

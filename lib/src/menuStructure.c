@@ -75,7 +75,7 @@ void MSTRUCTURE_insert(Menu *table, mBucket bucket) {
 
 			while (table->bucket[pos].key != EMPTY_BUCKET) {
 
-				if (!strcmp(table->bucket[pos].key,bucket.key)) { break; }
+				if (strcmp(table->bucket[pos].key,bucket.key) == 0) { break; }
 
 				pos++;
 
@@ -147,6 +147,8 @@ void MSTRUCTURE_delete(Menu *table, char *key) {
 			if (table->bucket[pos].key != NULL){
 				free(table->bucket[pos].key);
 				table->bucket[pos].key = EMPTY_BUCKET;
+				table->bucket[pos].number = 0;
+				table->elements--;
 			}
 
 		}
@@ -156,6 +158,8 @@ void MSTRUCTURE_delete(Menu *table, char *key) {
 		if (table->bucket[pos].key != NULL){
 			free(table->bucket[pos].key);
 			table->bucket[pos].key = EMPTY_BUCKET;
+			table->bucket[pos].number = 0;
+			table->elements--;
 		}
 
 	}
@@ -235,13 +239,51 @@ void MSTRUCTURE_destruct(Menu *table) {
 
 void MSTRUCTURE_incrementNum(Menu *table,int pos, int quantity){
 	table->bucket[pos].number += quantity;
+
 }
 
 int MSTRUCTURE_decrementNum(Menu *table,int pos, int quantity){
+
+
 	if((table->bucket[pos].number - quantity) >= 0){
 		table->bucket[pos].number -= quantity;
 		return 1;
 	}else{
 		return -1;
+	}
+}
+
+int MSTRUCTURE_getPrice(Menu table, int pos){
+	return table.bucket[pos].data;
+}
+
+int MSTRUCTURE_isEmpty(Menu table) {
+	return table.elements;
+}
+
+void MSTRUCTURE_empty(Menu *table){
+	int i = 0;
+
+	while(table->elements != 0) {
+		if (table->bucket[i].key != EMPTY_BUCKET) {
+			MSTRUCTURE_delete(table,table->bucket[i].key);
+		}
+		i++;
+	}
+}
+
+
+void MSTRUCTURE_returnCommands(Menu picard, Menu *enterprise){
+	int i = 0;
+	int num = 0, numP = 0;
+
+	while( numP < picard.elements ){
+
+		if(picard.bucket[i].key != EMPTY_BUCKET) {
+			num = MSTRUCTURE_findElement(*enterprise,picard.bucket[i].key);
+			enterprise->bucket[num].number += picard.bucket[i].number;
+			numP++;
+		}
+		i++;
 	}
 }

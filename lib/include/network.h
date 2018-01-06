@@ -49,7 +49,7 @@
 #define DEL_DISH 5
 #define PAY 6
 #define UPDATE 7
-
+#define RECONNECT 8
 /**
  * HEADERS
  */
@@ -57,7 +57,12 @@
 #define HEADER_PICINF "[PIC_INF]"
 #define HEADER_PICDAT "[PIC_NAME]"
 #define HEADER_DATPIC "[ENT_INF]"
+
 #define MENU_PICENT "[SHW_MENU]"
+#define END_MENU "[END_MENU]"
+#define MENU_DISH "[DISH]"
+#define MENU_END "[END_MENU]"
+
 #define DEL_ORD "[DEL_ORD]"
 #define NEW_ORD "[NEW_ORD]"
 #define PAY_HEADER "[PAY]"
@@ -68,7 +73,7 @@
 #define HEADER_ORD "[ORDOK]"
 #define HEADER_NORD "[ORDKO]"
 
-#define HEADER_PAY "[PÀYOK]"
+#define HEADER_PAY "[PAYOK]"
 #define HEADER_NPAY "[PAYKO]"
 
 #define HEADER_ENDMENU "[END_MENU]"
@@ -136,4 +141,6 @@ void NETWORK_sendOKPacket(int socket, int type, char* header);
 void NETWORK_freePacket(Packet *packet);
 
 void NETWORK_printPacket(Packet packet);
+
+int NETWORK_openedSocket(int socket);
 #endif

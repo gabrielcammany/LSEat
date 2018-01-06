@@ -12,6 +12,7 @@
 #include "../../lib/include/menuStructure.h"
 
 #define MIN_FD 2
+#define EMPTY_BUCKET (NULL)
 
 int CONNECTION_connectData() {
 
@@ -184,8 +185,9 @@ void CONNECTION_createConnectionPicards() {
 }
 
 int CONNECTION_analysePacketPicard(int socket, Packet packet) {
-	char *plat = NULL, *units = NULL, *money = NULL, *name = NULL;
-	int num = 0, vReturn = 0, trobat = 0;
+	char *plat = NULL, *units = NULL, *money = NULL, *name = NULL, *buff = NULL;
+	int num = 0, vReturn = 0, trobat = 0, i = 0;
+	Packet packet1;
 
 	switch (packet.type) {
 		case 1:
@@ -195,7 +197,7 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 				num = atoi(money);
 
 				pthread_mutex_lock(&mtx);
-				PSTRUCTURE_insert(&enterprise.clients, PSTRUCTURE_createBucket(socket, name, num, pthread_self()));
+				PSTRUCTURE_insert(&enterprise.clients, PSTRUCTURE_createBucket(socket, name, 0, pthread_self()));
 				pthread_mutex_unlock(&mtx);
 
 				write(1, "Connectant ", strlen("Connectant ") * sizeof(char));
@@ -213,11 +215,18 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 			break;
 		case 2:
 
-			packet.header[10] = '\0';
-			if ((strcmp(packet.header, HEADER_PICDAT)==0) && packet.length > 0) {
+			if ((memcmp(packet.header, HEADER_PICDAT, HEADER_SIZE)==0) && packet.length > 0) {
+
 				pthread_mutex_lock(&mtx);
+
+                num = PSTRUCTURE_findElement(enterprise.clients,socket);
+
+                if(MSTRUCTURE_isEmpty(enterprise.clients.bucket[num].commanda) > 0){
+                    MSTRUCTURE_returnCommands(enterprise.clients.bucket[num].commanda,&enterprise.restaurant.menu);
+                }
+
 				if (PSTRUCTURE_delete(&enterprise.clients, socket) > 0) {
-					NETWORK_sendOKPacket(socket, UPDATE, HEADER_UPDATE);
+					NETWORK_sendOKPacket(socket, CONNECT, HEADER_CON);
 
 					write(1, "Desconnectant ", strlen("Desconnectant "));
 					write(1, packet.data, strlen(packet.data));
@@ -244,7 +253,48 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 			if ((strcmp(packet.header, MENU_PICENT) == 0)) {
 				write(1, "Enviant Menu...\n", strlen("Enviant Menu...\n"));
 
+				while(num != enterprise.restaurant.menu.elements ){
+					if(enterprise.restaurant.menu.bucket[i].key != EMPTY_BUCKET) {
+
+						if(enterprise.restaurant.menu.bucket[i].number > 0){
+
+							units = (char*)malloc(sizeof(char) * 2);
+							sprintf(units,"%d",enterprise.restaurant.menu.bucket[i].number);
+
+							money = (char*) malloc (sizeof(char) * 2);
+							sprintf(money,"%d",enterprise.restaurant.menu.bucket[i].data);
+
+							buff = UTILS_createBuffer(
+									3,
+									enterprise.restaurant.menu.bucket[i].key,
+									money,
+									units
+
+							);
+
+							packet1 = NETWORK_createPacket(MENU, MENU_DISH, (int) strlen(buff), buff);
+							NETWORK_sendSerialized(socket, packet1);
+
+							if(buff!=NULL){free(buff);buff=NULL;}
+							if(money!=NULL){free(money);money=NULL;}
+							if(units!=NULL){free(units);units=NULL;}
+
+							NETWORK_freePacket(&packet1);
+						}
+
+						num++;
+					}
+					i++;
+
+				}
+
+				packet1 = NETWORK_createPacket(MENU,END_MENU,0,NULL);
+
+				NETWORK_sendSerialized(socket, packet1);
+				NETWORK_freePacket(&packet1);
+
 			} else {
+
 				write(1, "Error en la trama de MENU!\n", strlen("Error en la trama de MENU!\n"));
 
 			}
@@ -252,45 +302,62 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 		case 4:
 
 			if ((strcmp(packet.header, NEW_ORD) == 0) && packet.length > 0) {
-
+				//We extract information for each buffer
 				UTILS_extractFromBuffer(packet.data, 2, &plat, &units);
-
-				write(1, "Anotant ", strlen("Anotant "));
-				write(1, plat, strlen(plat));
-				write(1, " ", sizeof(char));
-				write(1, units, strlen(units));
-				write(1, "\n", sizeof(char));
 
 				plat = UTILS_toLower(plat);
 
+				//We use mutex to control that only one client has access to the table of picards
 				pthread_mutex_lock(&mtx);
+				//The key for the table of picards is the socket
+				//so we look for the socket of the client that demans one plate
 				num = PSTRUCTURE_findElement(enterprise.clients,socket);
 				pthread_mutex_unlock(&mtx);
 
 				vReturn = 4;
 
+				//In case we find the picard i our table num will be 0 or more
 				if(num >= 0){
 
 					pthread_mutex_lock(&mtx);
+					//Trobat again is the position in the table where the element we are looking for is
 					trobat = MSTRUCTURE_findElement(enterprise.clients.bucket[num].commanda,plat);
 					pthread_mutex_unlock(&mtx);
 
 					if(trobat >= 0){
-
 						pthread_mutex_lock(&mtx);
 
+						i = MSTRUCTURE_findElement(enterprise.restaurant.menu,plat);
 						if(		MSTRUCTURE_decrementNum(
 								&enterprise.restaurant.menu,
-								enterprise.clients.bucket[num].commanda.bucket[trobat].data,
+								i/*enterprise.clients.bucket[num].commanda.bucket[trobat].data*/,
 								atoi(units)	) > 0){
 
 							MSTRUCTURE_incrementNum(&enterprise.clients.bucket[num].commanda,trobat,atoi(units));
+
+							PSTRUCTURE_calculateMoneyLeft(
+									1,
+									&enterprise.clients.bucket[num],
+									MSTRUCTURE_getPrice(enterprise.restaurant.menu,i),
+									atoi(units)
+							);
+
+							write(1, "Anotant ", strlen("Anotant "));
+							write(1, plat, strlen(plat));
+							write(1, " ", sizeof(char));
+							write(1, units, strlen(units));
+							write(1, "\n", sizeof(char));
+
+							NETWORK_sendOKPacket(socket, DISH, HEADER_ORD);
+
 							vReturn = 0;
 						}
 						pthread_mutex_unlock(&mtx);
 
 					}else{
-
+						//In case the plate doesnt exist in the picards table of commands
+						//tobat will get the value of -1 and then we will proceed to introduce it
+						//in this table
 						pthread_mutex_lock(&mtx);
 						trobat = MSTRUCTURE_findElement(enterprise.restaurant.menu,plat);
 						pthread_mutex_unlock(&mtx);
@@ -307,7 +374,23 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 								MSTRUCTURE_insert(&enterprise.clients.bucket[num].commanda,
 								MSTRUCTURE_createBucket(plat,trobat,atoi(units)));
 
+								PSTRUCTURE_calculateMoneyLeft(
+										1,
+										&enterprise.clients.bucket[num],
+										MSTRUCTURE_getPrice(enterprise.restaurant.menu,trobat),
+										atoi(units)
+								);
+
+								write(1, "Anotant ", strlen("Anotant "));
+								write(1, plat, strlen(plat));
+								write(1, " ", sizeof(char));
+								write(1, units, strlen(units));
+								write(1, "\n", sizeof(char));
+
 								vReturn = 0;
+
+								NETWORK_sendOKPacket(socket, DISH, HEADER_ORD);
+
 							}
 							pthread_mutex_unlock(&mtx);
 
@@ -320,7 +403,6 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 			}
 
 			if(vReturn == 4){
-
 				NETWORK_sendKOPacket(socket, DISH, HEADER_NORD);
 				vReturn = 0;
 			}
@@ -331,35 +413,58 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 
 				UTILS_extractFromBuffer(packet.data, 2, &plat, &units);
 
-				write(1, "Eliminant ", strlen("Eliminant "));
-				write(1, plat, strlen(plat));
-				write(1, " ", sizeof(char));
-				write(1, units, strlen(units));
-				write(1, "\n", sizeof(char));
-
 				pthread_mutex_lock(&mtx);
+				//We look for the client who wants to eliminate the plate
+				//num is the clients position in out table
 				num = PSTRUCTURE_findElement(enterprise.clients,socket);
 				pthread_mutex_unlock(&mtx);
 
 				vReturn = 5;
 
-				if(num > 0){
+				if(num >= 0){
+					//In case the icard exists, we now look for the plate he
+					//wants to remove from his demands
+					plat = UTILS_toLower(plat);
 
 					pthread_mutex_lock(&mtx);
+					//trobat again is the position of the plate in the table
 					trobat = MSTRUCTURE_findElement(enterprise.clients.bucket[num].commanda,plat);
 					pthread_mutex_unlock(&mtx);
 
-					if(trobat > 0){
+					if(trobat >= 0){
 
 						pthread_mutex_lock(&mtx);
 
+						i = MSTRUCTURE_findElement(enterprise.restaurant.menu,plat);
+
 						MSTRUCTURE_incrementNum(
 								&enterprise.restaurant.menu,
-								enterprise.clients.bucket[num].commanda.bucket[trobat].number,
+								i,
 								atoi(units));
 
 						MSTRUCTURE_decrementNum(&enterprise.clients.bucket[num].commanda,trobat,atoi(units));
+
+
+						PSTRUCTURE_calculateMoneyLeft(
+								2,
+								&enterprise.clients.bucket[num],
+								MSTRUCTURE_getPrice(enterprise.restaurant.menu,i),
+								atoi(units)
+						);
+
+
 						pthread_mutex_unlock(&mtx);
+
+
+						write(1, "Eliminant ", strlen("Eliminant "));
+						write(1, plat, strlen(plat));
+						write(1, " ", sizeof(char));
+						write(1, units, strlen(units));
+						write(1, "\n", sizeof(char));
+
+
+						NETWORK_sendOKPacket(socket, DEL_DISH, HEADER_ORD);
+
 						vReturn = 0;
 
 
@@ -371,22 +476,46 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 
 			if(vReturn == 5){
 
-				NETWORK_sendKOPacket(socket, DISH, HEADER_NORD);
+				NETWORK_sendKOPacket(socket, DEL_DISH, HEADER_NORD);
 				vReturn = 0;
 
 			}
+
 			break;
 		case 6:
 
 			if ((strcmp(packet.header, PAY_HEADER) == 0)) {
 
-				write(1, "Notificant factura: ", strlen("Notificant factura: "));
+				num = PSTRUCTURE_findElement(enterprise.clients,socket);
+
+				if ( num >= 0 ){
+
+
+					write(1, "Notificant factura: ", strlen("Notificant factura: "));
+					buff = (char*) malloc (sizeof(char) * 4);
+					sprintf(buff,"%d", enterprise.clients.bucket[num].number);
+					write(1,buff,strlen(buff)* sizeof(char));
+					write(1," euros\n", strlen(" euros\n") * sizeof(char));
+
+					packet1 = NETWORK_createPacket(PAY,HEADER_PAY,(int)strlen(buff),buff);
+					NETWORK_sendSerialized(socket,packet1);
+
+                    if(MSTRUCTURE_isEmpty(enterprise.clients.bucket[num].commanda) > 0){
+                        MSTRUCTURE_empty(&enterprise.clients.bucket[num].commanda);
+                    }
+
+					enterprise.clients.bucket[num].number = 0;
+				}else{
+					NETWORK_sendKOPacket(socket,PAY,HEADER_NPAY);
+				}
 
 			} else {
 
 				write(1, "Error en la trama de Factura!\n", strlen("Error en la trama de Factura!\n"));
 
 			}
+
+			if(buff!=NULL){free(buff);buff=NULL;}
 			break;
 
 		default:
