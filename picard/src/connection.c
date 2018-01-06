@@ -128,6 +128,9 @@ int connection_enterprise(char *data, char *nameUser, int saldo) {
 
     //First we extract the information
     //from enterprise that Data sent us
+    if(lseat.enterprise.name!= NULL){free(lseat.enterprise.name);lseat.enterprise.name=NULL;}
+    if(lseat.enterprise.port!= 0)lseat.enterprise.port=0;
+
     CONNECTION_extractEnterpriseData(data, &lseat.enterprise.name, &lseat.enterprise.port, &ip);
 
 
