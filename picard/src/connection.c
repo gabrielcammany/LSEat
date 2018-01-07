@@ -15,7 +15,7 @@
 char *connection_data(int option, int port, char *ip, char *name) {
     Packet packet;
     packet.data = NULL;
-    char *buff = NULL, cport[5];
+    char *buff = NULL, cport[6];
     //Message to make the user know we are connecting to Data
     write(1, CONNECTING, strlen(CONNECTING));
 
@@ -124,15 +124,16 @@ void CONNECTION_extractEnterpriseData(char *data, char **nom, int *port, char **
 
 
 int connection_enterprise(char *data, char *nameUser, int saldo) {
-    char *ip = NULL, *userData = NULL, money[10];
+    char *ip = NULL, *userData = NULL, money[10], *port = NULL;
 
     //First we extract the information
     //from enterprise that Data sent us
     if(lseat.enterprise.name!= NULL){free(lseat.enterprise.name);lseat.enterprise.name=NULL;}
     if(lseat.enterprise.port!= 0)lseat.enterprise.port=0;
 
-    CONNECTION_extractEnterpriseData(data, &lseat.enterprise.name, &lseat.enterprise.port, &ip);
+    UTILS_extractFromBuffer(data, 3,&lseat.enterprise.name, &port, &ip);
 
+    lseat.enterprise.port = atoi(port);
 
     if (lseat.enterprise.name != NULL && ip != NULL && lseat.enterprise.port > 0) {
         //we create connection between Picard and Enterprise
@@ -182,7 +183,7 @@ int connection_enterprise(char *data, char *nameUser, int saldo) {
     }
 
     if (ip != NULL)free(ip);
-
+    if (port != NULL)free(port);
 
     return socketfd;
 }
@@ -418,9 +419,7 @@ void CONNECTION_disconnectEnterprise(char *nom) {
 
             }
         } else {
-            write(1, "Enterprise ha caido\n", strlen("Enterprise ha caido\n") * sizeof(char));
-            close(socketfd);
-            socketfd = -1;
+            CONNECTION_enterpriseReconnect();
         }
 
     } else {
@@ -462,8 +461,8 @@ void CONNECTION_resendCommands(int socket,Menu *table){
 
             if ( NETWORK_openedSocket(socket) < 0 || NETWORK_sendSerialized(socket, packet) < 0 ) {
 
-                CONNECTION_enterpriseReconnect();
-
+                //CONNECTION_enterpriseReconnect();
+                write(1,"Error en conectarnos a un nuevo Enterprise\n", strlen("Error en conectarnos a un nuevo Enterprise\n")* sizeof(char));
             } else {
 
                 if (NETWORK_readSimpleResponse(socketfd) > 0) {

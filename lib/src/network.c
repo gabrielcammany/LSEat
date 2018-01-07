@@ -229,6 +229,7 @@ Packet NETWORK_createPacket(char type, char *header, int length, char *data) {
 int NETWORK_readSimpleResponse(int socket) {
 
 	Packet packet = NETWORK_extractIncomingFrame(socket);
+
 	switch (packet.type) {
 		case 1:
 			return (strcmp(packet.header, HEADER_CON) == 0);
@@ -369,22 +370,19 @@ void NETWORK_printPacket(Packet packet){
 
 	write(1,"Paquet conte les seguents dades:\n",strlen("Paquet conte les seguents dades:\n")* sizeof(char));
 
-	write(1,"Type: ",strlen("Type: ")* sizeof(char));
-	sprintf(cadena,"%d",packet.type);
+	sprintf(cadena,"Type: %d\n",packet.type);
 	write(1,cadena, sizeof(char)*strlen(cadena));
-	write(1,"\n", sizeof(char));
 
 	write(1,"Header: ",strlen("Header: ")* sizeof(char));
-	write(1,packet.header, sizeof(char)*10);
-	write(1,"\n", sizeof(char));
+	write(1,packet.header, HEADER_SIZE * sizeof(char));
+	write(1,"\n\0", sizeof(char));
 
-	sprintf(cadena,"Length: %d",packet.length);
+	sprintf(cadena,"Length: %d\n",packet.length);
 	write(1,cadena, sizeof(char)*strlen(cadena));
-	write(1,"\n", sizeof(char));
 
 	write(1,"Data: ",strlen("Data: ")* sizeof(char));
 	write(1,packet.data, sizeof(char)*packet.length);
-	write(1,"\n", sizeof(char));
+	write(1,"\n\0", sizeof(char)*2);
 
 }
 

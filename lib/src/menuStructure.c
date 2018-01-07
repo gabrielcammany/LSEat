@@ -89,7 +89,7 @@ void MSTRUCTURE_insert(Menu *table, mBucket bucket) {
 
 				table->bucket[pos].key = bucket.key;
 				table->bucket[pos].data = bucket.data;
-				table->bucket[pos].number = 0;
+				table->bucket[pos].number = bucket.number;
 
 				table->elements++;
 
@@ -173,7 +173,7 @@ int MSTRUCTURE_findElement(Menu table, char *key) {
 	pos = MSTRUCTURE_function(table, key);
 
 	while (table.bucket[pos].key != EMPTY_BUCKET && strcmp(table.bucket[pos].key, key) != 0) {
-
+		//printf("KEEEY: %s\n",table.bucket[pos].key);
 		pos++;
 
 		if (pos == table.length) {
@@ -181,7 +181,7 @@ int MSTRUCTURE_findElement(Menu table, char *key) {
 		}
 
 	}
-
+	//printf("OUT KEEEY: %s\n",table.bucket[pos].key);
 	return (table.bucket[pos].key != EMPTY_BUCKET ? pos : -1);
 
 }
@@ -192,7 +192,7 @@ int MSTRUCTURE_function(Menu table, char *key) {
 
 	while( hashval < ULONG_MAX && i < (int) strlen(key) ) {
 		hashval = hashval << 8;
-		hashval += key[ i ];
+		hashval += key[i];
 		i++;
 	}
 
@@ -204,7 +204,7 @@ int MSTRUCTURE_function(Menu table, char *key) {
 mBucket MSTRUCTURE_createBucket(char *key, int data, int number) {
 	mBucket bucket;
 
-	bucket.key = key;
+	//bucket.key = key;
 
 	bucket.key = (char*) calloc(strlen(key),strlen(key) *  sizeof(char));
 
