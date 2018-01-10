@@ -29,8 +29,18 @@
  */
 int FILES_openFile(char *name, int status);
 
+/**
+ * Function to move pointer of file to start
+ * @param fd file descriptor of file
+ * @return if everything goes right
+ */
 int FILES_moveToStart(int fd);
 
+/**
+ * Checks if the file is empty
+ * @param fd File file descriptor
+ * @return if everything goes right
+ */
 int FILES_checkEmpty(int fd);
 
 #endif

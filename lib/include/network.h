@@ -23,7 +23,6 @@
 
 //own includes
 #include "utils.h"
-#include "../include/llista.h"
 
 //constantes propias
 #define ERR_PORT "Error: %d es un port invalid\n"
@@ -99,17 +98,39 @@ typedef struct {
             - Client functions -
 **/
 
+/**
+ * Configure the program to act as a client in a Client-Server Comunication
+ * @param portInput
+ * @param ipInput
+ * @return
+ */
 int NETWORK_createConnectionClient(int portInput, char *ipInput);
 
 
 /**
             - Server functions -
 **/
-
+/**
+ * Configure the program to act as a server in a Client-Server Comunication
+ * @param portInput
+ * @param ipInput
+ * @return
+ */
 int NETWORK_createConnectionServer(int portInput, char *ipInput);
 
+/**
+ * Manage petition of connection
+ * @param socketfd Comunication file descriptor
+ * @param handler function that will handle connection
+ */
 void NETWORK_serialHandler(int socketfd, void *(*handler)(void *));
 
+/**
+ * Creates a thread to manage petitions
+ * @param port that listens
+ * @param ip that listens
+ * @param handler function that will handle connection
+ */
 void NETWORK_parallelHandler(int port, char *ip, void *(*handler)(void *)/*, void *arg*/);
 
 /**
@@ -130,17 +151,52 @@ int NETWORK_sendSerialized(int socket, Packet packet);
  */
 Packet NETWORK_createPacket(char type, char *header, int length, char *data);
 
+/**
+ * Function that reads socket and depending of the header returns 1 or 0
+ * @param socket
+ * @return
+ */
 int NETWORK_readSimpleResponse(int socket);
 
+/**
+ * Extracts packet from socket frame
+ * @param socket
+ * @return
+ */
 Packet NETWORK_extractIncomingFrame(int socket);
 
+/**
+ * Sends KO connection frame
+ * @param socket
+ * @param type
+ * @param header
+ */
 void NETWORK_sendKOPacket(int socket, int type, char* header);
 
+/**
+ * Sends OK connection frame
+ * @param socket
+ * @param type
+ * @param header
+ */
 void NETWORK_sendOKPacket(int socket, int type, char* header);
 
+/**
+ * Frees all the packet memory
+ * @param packet
+ */
 void NETWORK_freePacket(Packet *packet);
 
+/**
+ * Function to debug the packet
+ * @param packet
+ */
 void NETWORK_printPacket(Packet packet);
 
+/**
+ * Function to detect if the connection is still opened
+ * @param socket
+ * @return
+ */
 int NETWORK_openedSocket(int socket);
 #endif

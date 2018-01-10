@@ -11,13 +11,14 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
+//system includes
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
-
+//own constant
 #define ERROR_CODE -1
 
 /**
@@ -53,9 +54,20 @@ int UTILS_checkEmptyString(const char *input);
  */
 char *UTILS_toLower(char *input);
 
-
+/**
+ * With the given arguments creates a buffer
+ * @param num number of arguments
+ * @param ... arguments
+ * @return buffer
+ */
 char *UTILS_createBuffer(int num, ...);
 
+/**
+ * With a given buffer extracts each word delimited by a delimiter
+ * @param buffer
+ * @param num
+ * @param ...
+ */
 void UTILS_extractFromBuffer(char *buffer, int num, ...);
 
 char *deletePadding(char *input, int max);

@@ -51,11 +51,19 @@ typedef struct {
 	int Port;
 } Config;
 
+/**
+ * Typo to save Enterprise information
+ * name: Enterprise name
+ * port: Enterprise port
+ */
 typedef struct {
 	char *name;
 	int port;
 }Enterprise;
 
+/**
+ * Typo that includes all the typos above
+ */
 typedef struct {
 	Config config;
 	Client client;

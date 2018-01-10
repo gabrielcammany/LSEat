@@ -49,9 +49,14 @@ typedef struct {
 	char **data;
 } Command;
 
-
+/**
+ * Function to charge all commands
+ */
 void INTERFACE_loadHistory();
 
+/**
+ * Function to save all comands
+ */
 void INTERFACE_saveHistory();
 
 /**

@@ -8,16 +8,19 @@
  * @Last modified time: 30-10-2017
  */
 
+#ifndef _SHELL_H_
+#define _SHELL_H_
+
+//includes del sistema
 #include <termios.h>
 #include <memory.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+//Includes propios
 #include "utils.h"
 
-#ifndef _SHELL_H_
-#define _SHELL_H_
-
+//Own Constants
 #define ADALT "\033[1A"
 #define ABAIX "\033[1B"
 #define DRETA "\033[1C"
@@ -54,14 +57,25 @@ void SHELL_resetInput();
  */
 char* SHELL_readInput(char *buffer, char *menu);
 
+/**
+ * Funcion que carga la siguiente comanda
+ * @return
+ */
 int SHELL_loadNextCommand();
 
 int SHELL_loadBatch();
 
 void SHELL_freeAndClose();
 
+/**
+ * Saves to file the command
+ */
 void SHELL_saveToFile();
 
+/**
+ * Initializes the history of commands
+ * @param fd
+ */
 void SHELL_initializeHistory(int fd);
 
 #endif

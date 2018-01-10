@@ -32,7 +32,11 @@
  * Funtions to create the thread that sends info to Data every X time
  */
 int CONNECTION_executeEnterpriseClient();
-
+/**
+ *
+ * @param arg
+ * @return
+ */
 void *CONNECTION_dataListener(void *arg);
 
 /**

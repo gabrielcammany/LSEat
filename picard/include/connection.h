@@ -135,7 +135,15 @@ void CONNECTION_takeNoteEnterprise(char **data);
  */
 void CONNECTION_disconnectEnterprise(char *nom);
 
+/**
+ * Function to reconnect an Enterprise
+ */
 void CONNECTION_enterpriseReconnect();
 
+/**
+ * Sends all the commands stored to the new Enterprise
+ * @param socket
+ * @param table
+ */
 void CONNECTION_resendCommands(int socket,Menu *table);
 #endif

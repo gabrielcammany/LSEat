@@ -21,7 +21,7 @@
 #include "../../lib/include/network.h"
 #include "dataStructure.h"
 
-
+//own Constants
 #define BYE "Apagant el servidor Data...\n"
 #define NBYE "Error en Data. Apagant el servidor...\n"
 
@@ -36,7 +36,12 @@ pthread_t thread_id;
 int socketPic, socketEnt;
 
 Table enterprise;
-
+/**
+ * Executes all the process of Data for comunication
+ * @param portE
+ * @param portP
+ * @param ip
+ */
 void CONNECTION_executeData(int portE, int portP, char *ip);
 
 #endif //LSEAT_CONNECTION_H

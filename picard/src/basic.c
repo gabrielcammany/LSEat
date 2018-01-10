@@ -140,7 +140,6 @@ int BASIC_readClientConfig(char *name) {
  * @param lseat Variable a borrar
  */
 void BASIC_freeMemory() {
-
 	free(lseat.client.nom);
 	free(lseat.config.IP);
 	free(lseat.enterprise.name);

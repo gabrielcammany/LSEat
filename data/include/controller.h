@@ -47,7 +47,10 @@ typedef struct{
 dConfig data;
 
 
-
+/**
+ * Function to handle signal
+ * @param signum
+ */
 void dCONTROLLER_signalHandler(int signum);
 
 /**
@@ -63,7 +66,10 @@ int BASIC_readDataConfig(char* name,dConfig *data);
  */
 void BASIC_freeMemory(dConfig *data);
 
-
+/**
+ * Funtion to initalize all the variable and structures
+ * @param data
+ */
 void BASIC_startValues(dConfig *data);
 
 

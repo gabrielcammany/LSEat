@@ -47,7 +47,12 @@
 #define MAX_PICARDS 10
 #define MENU_SIZE 20
 
-
+/**
+ * Typo to save information from Enterprise
+ * second: seconds to refresh
+ * name: name of the Enterprise
+ * menu: Hash table with the menu
+ */
 typedef struct {
 
 	int seconds;
@@ -56,6 +61,9 @@ typedef struct {
 
 } Restaurant;
 
+/**
+ * Typo of the comunication configuration
+ */
 typedef struct {
 
 	char *data_ip;
@@ -64,6 +72,7 @@ typedef struct {
 	char *picard_port;
 
 } Config;
+
 
 typedef struct {
 
@@ -104,9 +113,15 @@ int BASIC_readConfigEnterprise(char *fitxer);
  * @param enterprise structure with all information
  */
 void BASIC_startValues();
-
+/**
+ * Function to read the menu from file
+ * @param menu
+ * @return
+ */
 int BASIC_readMenu(char *menu);
-
+/**
+ * Function to show welcome message
+ */
 void BASIC_welcomeMessage();
 
 /**
