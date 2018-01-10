@@ -19,7 +19,10 @@ int HASH_isPosEmpty(void* key){
 void HASH_deleteBucket(Bucket *bucket){
 
 	bucket->key = EMPTY_BUCKET;
-	if(bucket->data!= NULL)free(bucket->data);
+	if(bucket->data!= NULL){
+		free(bucket->data);
+		bucket->data = NULL;
+	}
 	bucket->number = 0;
 
 }
@@ -122,6 +125,68 @@ void HASH_insert(Table *table, Bucket bucket) {
 }
 
 
+void HASH_updateNumber(Table *table){
+	int i = 0, elements;
+	table->number = 0;
+
+
+	if(table->elements > 0){
+
+		elements = table->elements;
+
+		for(i = 0; i < table->length && elements > 0; i++){
+
+			if(table->bucket[i].key != EMPTY_BUCKET){
+
+				if(table->bucket[table->elements].key != EMPTY_BUCKET){
+
+					if(table->bucket[i].number <= table->bucket[table->elements].number){
+
+						table->number = i;
+
+					}
+
+				}else{
+
+					table->number = i;
+
+				}
+
+				elements--;
+
+			}
+
+		}
+
+	}
+
+}
+
+int HASH_deletePos(Table *table, int pos){
+
+	if(pos < table->length && pos > -1){
+
+		HASH_deleteBucket(&table->bucket[pos]);
+
+
+		if(table->number == pos){
+			table->number = 0;
+			HASH_updateNumber(table);
+		}
+
+		table->elements--;
+
+		return 1;
+
+	}else{
+
+		return 0;
+
+	}
+
+}
+
+
 int HASH_delete(Table *table, int key) {
 	int pos;
 
@@ -141,6 +206,9 @@ int HASH_delete(Table *table, int key) {
 
 		if (HASH_compareKeys(&table->bucket[pos].key,&key)) {
 
+			if(table->number == pos){
+				HASH_updateNumber(table);
+			}
 			HASH_deleteBucket(&table->bucket[pos]);
 
 		}else{
@@ -188,7 +256,7 @@ void HASH_destruct(Table *table){
 
 	if(table->bucket!= NULL){
 
-		for (i = 0; i < table->elements; i++) {
+		for (i = 0; i < table->length; i++) {
 			if(table->bucket[i].data != NULL)free(table->bucket[i].data);
 		}
 

@@ -9,6 +9,7 @@
  */
 
 #include "../include/connection.h"
+#include "../include/dataStructure.h"
 
 
 void *CONNECTION_handlerEnterprise(void *arg) {
@@ -86,6 +87,7 @@ void *CONNECTION_handlerEnterprise(void *arg) {
 
 				if (strcmp(packet.header, HEADER_DATPIC) == 0) {
 
+
 					if((pos = HASH_findElement(enterprise, atoi(packet.data))) > 0){
 
 						memset(text,0,20);
@@ -96,16 +98,19 @@ void *CONNECTION_handlerEnterprise(void *arg) {
 
 						write(1,text, strlen(text));
 
-						HASH_deleteBucket(&enterprise.bucket[pos]);
+						if(HASH_deletePos(&enterprise,pos) > 0){
+							NETWORK_sendOKPacket(socket, DISCONNECT, HEADER_DATPIC);
+						}else{
+							NETWORK_sendKOPacket(socket, DISCONNECT, HEADER_DATPIC);
+						}
 
-						NETWORK_sendKOPacket(socket, DISCONNECT, HEADER_DATPIC);
 
 						free(port);
 						free(number);
 
 					}else{
 
-						NETWORK_sendOKPacket(socket, DISCONNECT, HEADER_DATPIC);
+						NETWORK_sendKOPacket(socket, DISCONNECT, HEADER_DATPIC);
 
 					}
 
@@ -125,7 +130,6 @@ void *CONNECTION_handlerEnterprise(void *arg) {
 
 		}
 
-		NETWORK_freePacket(&packet);
 
 	} else {
 
@@ -133,15 +137,16 @@ void *CONNECTION_handlerEnterprise(void *arg) {
 
 	}
 
+	NETWORK_freePacket(&packet);
+
 	if(socket > 2)close(socket);
 
-	//pthread_exit(0);
 	return NULL;
 }
 
 void *CONNECTION_handlerClient(void *arg) {
 
-	int socket = *((int *) arg), size = 0;
+	int socket = *((int *) arg), size = 0, number = 0;
 	Packet packet, aux;
 	char *name = NULL, *port = NULL;
 	//We extract the information of the clients packet
@@ -156,14 +161,18 @@ void *CONNECTION_handlerClient(void *arg) {
 
 	}
 
-
 	if(packet.type == 8){
-
 		UTILS_extractFromBuffer(packet.data,2,&name,&port);
-		HASH_delete(&enterprise,atoi(port));
+		number = atoi(port);
+		if(number > 0){
+			HASH_delete(&enterprise,atoi(port));
+		}
 
-	}else{
-		name = packet.data;
+		if(name != NULL){
+			free(name);
+			name = NULL;
+		}
+
 	}
 
 	//Because is type 1 we know that data contains the client name
@@ -173,48 +182,61 @@ void *CONNECTION_handlerClient(void *arg) {
 
 	//we check that struct enterprise isnt empty
 
-	if (!enterprise.elements) {
+	if (enterprise.elements == 0) {
 
 		NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
 		write(1, DCONNECT_ERR, strlen(DCONNECT_ERR));
-		write(1, name, sizeof(char) * strlen(name));
+		write(1, packet.data, sizeof(char) * strlen(packet.data));
 		write(1, "\n\0", sizeof(char) * 2);
+		printf("Elements Zero\n");
 
 	} else {
 
-		size = (int) strlen(enterprise.bucket[enterprise.number].data);
+		if(enterprise.bucket[enterprise.number].data != NULL){
 
-		//we create packet to response client
-		aux = NETWORK_createPacket(CONNECT, HEADER_DATPIC,size,
-								   enterprise.bucket[enterprise.number].data);
+			size = (int) strlen(enterprise.bucket[enterprise.number].data);
 
-		if (aux.type > 0) {
+			//we create packet to response client
+			aux = NETWORK_createPacket(CONNECT, HEADER_DATPIC,size,
+									   enterprise.bucket[enterprise.number].data);
 
-			//if everything is ok then we send information of the enterprise back to the client
-			NETWORK_sendSerialized(socket, aux);
-			write(1, DISCONNECTING, strlen(DISCONNECTING));
-			write(1, name, sizeof(char) * strlen(name));
-			write(1, "\n\0", sizeof(char) * 2);
+			if (aux.type > 0) {
 
-		} else {
+				//if everything is ok then we send information of the enterprise back to the client
+				NETWORK_sendSerialized(socket, aux);
+				write(1, DISCONNECTING, strlen(DISCONNECTING));
+				write(1, packet.data, sizeof(char) * strlen(packet.data));
+				write(1, "\n\0", sizeof(char) * 2);
+
+			} else {
+
+				NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
+
+				write(1, DCONNECT_ERR, strlen(DCONNECT_ERR));
+				write(1, packet.data, sizeof(char) * strlen(packet.data));
+				write(1, "\n\0", sizeof(char) * 2);
+				printf("Error paquet!\n");
+
+			}
+
+			NETWORK_freePacket(&aux);
+
+		}else{
 
 			NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
-
 			write(1, DCONNECT_ERR, strlen(DCONNECT_ERR));
-			write(1, name, sizeof(char) * strlen(name));
+			write(1, packet.data, sizeof(char) * strlen(packet.data));
 			write(1, "\n\0", sizeof(char) * 2);
+			printf("Data enterprise null...\n");
 
 		}
-
-		NETWORK_freePacket(&aux);
-
 	}
 
 	NETWORK_freePacket(&packet);
 
+	if(port != NULL)free(port);
 	close(socket);
 
-	//pthread_exit(0);
 	return NULL;
 }
 
@@ -242,8 +264,8 @@ void CONNECTION_executeData(int portE, int portP, char *ip) {
 		}
 
 
-
 	}
 
+	printf("Em maalskdjaksljdkljasjdlajksda\n");
 	raise(SIGUSR1);
 }

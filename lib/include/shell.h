@@ -24,7 +24,7 @@
 #define ESQUERRA "\033[1D"
 #define NETEJAR_LINIA "\033[2K"
 
-#define BUFFER 64
+#define BUFFER 128
 #define BATCH_HISTORY 32
 
 

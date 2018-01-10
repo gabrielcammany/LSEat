@@ -10,7 +10,7 @@
 
 #include "../include/controller.h"
 
-void BASIC_freeMemory() {
+void eBASIC_freeMemory() {
 
 	if(enterprise.config.picard_ip != NULL)free(enterprise.config.picard_ip);
 	if(enterprise.config.data_ip != NULL)free(enterprise.config.data_ip);

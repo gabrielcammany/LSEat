@@ -250,6 +250,8 @@ Command INTERFACE_readCommand(char *cadena) {
 
 	}
 
+	free(input);
+
 	return command;
 }
 

@@ -58,13 +58,6 @@
  * Port: interface through which we will comunicate with enterprise
  * NumberOfClients: just in case we have to know how many clients
  */
-/*typedef struct {
-	char *ip;
-	char *name;
-	int port;
-	char numberClients;
-} Enterprise;
-*/
 /*
  * GLOBAL VARIABLES
  */
@@ -81,7 +74,7 @@ int socketfd; //File descriptor through which we will first communicate to data 
  * @param socket file descriptor through which we will be sending data
  * @return if everything goes well returns EXIT_SUCCESS, EXIT_FAILURE if not
  */
-int connection_sendInfoData(int socket);
+int CONNECTION_sendInfoData(int socket);
 
 /**
  * Function through which we will make connection with data
@@ -90,7 +83,7 @@ int connection_sendInfoData(int socket);
  * @param name  name of the Picard
  * @return      information that Data gave us
  */
-char *connection_data(int option, int port, char *ip, char *name);
+char *CONNECTION_data(int option, int port, char *ip, char *name);
 
 /**
  * Function to connect to enterprise with
@@ -100,7 +93,7 @@ char *connection_data(int option, int port, char *ip, char *name);
  * @param saldo money left
  * @return If everything OK the EXIT_SUCCESS, EXIT_FAILURE if not
  */
-int connection_enterprise(char *data, char *nom, int saldo);
+int CONNECTION_enterprise(char *data, char *nom, int saldo);
 
 /**
  * Function that given a packet, switch the type of the packet

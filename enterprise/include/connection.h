@@ -21,9 +21,12 @@
 
 //constant to tell there is an error in the connection
 #define ERR_CONNECTION "Hi ha hagut un problema de connexio amb Data!\n"
-#define UPDATE_ERR "Per problemes de connexió, s'ha desactivat l'actualització automàtica!\n"
+#define UPDATE_ERR "Problemes de connexio amb data... Intentant reconnectar! %d de %d Intents.\n"
 #define ERR_CONN_PIC "Error en la conexió de %s! Desconectant...\n"
 #define ERR_CONN_CLIENT "Error en la conexió d'un client!\n"
+#define ERR_LIMIT "Maxim d'intents per reconnectar. Apagant actualitzacio automatica...\n"
+
+#define LIMIT_RECONNECT 10
 
 /**
  * Funtions to create the thread that sends info to Data every X time

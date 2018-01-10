@@ -135,6 +135,22 @@ void PSTRUCTURE_insert(Table *table, Bucket bucket) {
 
 }
 
+int PSTRUCTURE_deletePos(Table *table, int pos){
+
+	if(pos < table->length && pos > -1){
+		PSTRUCTURE_deleteBucket(&table->bucket[pos]);
+
+		table->elements--;
+
+		return 1;
+
+	}else{
+
+		return 0;
+
+	}
+
+}
 
 int PSTRUCTURE_delete(Table *table, int key) {
 	int pos;
@@ -157,6 +173,11 @@ int PSTRUCTURE_delete(Table *table, int key) {
 
 			PSTRUCTURE_deleteBucket(&table->bucket[pos]);
 
+			if(table->bucket[pos].pthread > 0){
+				pthread_kill(table->bucket[pos].pthread, SIGUSR2);
+				pthread_join(table->bucket[pos].pthread, NULL);
+			}
+
 		}else{
 
 			return -1;
@@ -166,6 +187,11 @@ int PSTRUCTURE_delete(Table *table, int key) {
 	} else {
 
 		PSTRUCTURE_deleteBucket(&table->bucket[pos]);
+
+		if(table->bucket[pos].pthread > 0){
+			pthread_kill(table->bucket[pos].pthread, SIGUSR2);
+			pthread_join(table->bucket[pos].pthread, NULL);
+		}
 
 	}
 
@@ -204,14 +230,19 @@ int PSTRUCTURE_function(Table table, int key) {
 void PSTRUCTURE_destruct(Table *table){
 	int i;
 
-	if(table->bucket!= NULL){
+	if(table->bucket != NULL){
 
-		for (i = 0; i < table->elements; i++) {
+		for (i = 0; i < table->length && table->elements > 0; i++) {
 
-			PSTRUCTURE_deleteBucket(&table->bucket[i]);
+			if (table->bucket[i].key != EMPTY_BUCKET){
 
+				PSTRUCTURE_deleteBucket(&table->bucket[i]);
+
+				table->elements--;
+
+			}
 			if(table->bucket[i].pthread > 0){
-				pthread_kill(table->bucket[i].pthread,SIGKILL);
+				pthread_kill(table->bucket[i].pthread, SIGKILL);
 				pthread_join(table->bucket[i].pthread, NULL);
 			}
 		}

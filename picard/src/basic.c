@@ -76,14 +76,14 @@ int BASIC_readNetworkConfig(int fd, Config *config) {
 	return error;
 }
 
-int BASIC_readClientConfig(char *name, ClientLSEat *lseat) {
+int BASIC_readClientConfig(char *name) {
 
 	int fd = 0;
 	char *cadena = NULL;
 	int error;
 
-	lseat->config.IP = NULL;
-	lseat->client.nom = NULL;
+	lseat.config.IP = NULL;
+	lseat.client.nom = NULL;
 
 
 	fd = FILES_openFile(name, 1);
@@ -92,7 +92,7 @@ int BASIC_readClientConfig(char *name, ClientLSEat *lseat) {
 	}
 	//We read the clients name through the function read Dynamic
 	//Which reads dynamically controlling memory usage
-	error = UTILS_readDynamic(&lseat->client.nom, fd);
+	error = UTILS_readDynamic(&lseat.client.nom, fd);
 	if (error < 0) {
 		write(1, ERROR_MEMORY, strlen(ERROR_MEMORY));
 		close(fd);
@@ -113,8 +113,8 @@ int BASIC_readClientConfig(char *name, ClientLSEat *lseat) {
 		} else {
 
 			//If everything is fine we make atoi (ascii -> int)
-			lseat->client.saldo = atoi(cadena);
-			if (lseat->client.saldo == 0) {
+			lseat.client.saldo = atoi(cadena);
+			if (lseat.client.saldo == 0) {
 				write(1, ERR_FORMAT_SALDO_FILE, strlen(ERR_FORMAT_SALDO_FILE));
 				close(fd);
 				error = ERROR_CODE;
@@ -124,7 +124,7 @@ int BASIC_readClientConfig(char *name, ClientLSEat *lseat) {
 
 	//Now it's time for the network configuration (ip and port)
 	if (error > 0) {
-		error = BASIC_readNetworkConfig(fd, &lseat->config);
+		error = BASIC_readNetworkConfig(fd, &lseat.config);
 	}
 
 	close(fd);
@@ -145,4 +145,5 @@ void BASIC_freeMemory() {
 	free(lseat.config.IP);
 	free(lseat.enterprise.name);
 	MSTRUCTURE_destruct(&lseat.commands);
+
 }

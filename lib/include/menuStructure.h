@@ -25,7 +25,7 @@
 
 typedef struct {
 
-	char * key;
+	char *key;
 	int data;
 	int number;
 
@@ -44,19 +44,19 @@ Menu MSTRUCTURE_createStructure(int size);
 
 void MSTRUCTURE_insert(Menu *table, mBucket bucket);
 
-void MSTRUCTURE_delete(Menu *table, char* key);
+void MSTRUCTURE_delete(Menu *table, char *key);
 
-int MSTRUCTURE_findElement(Menu table, char* key);
+int MSTRUCTURE_findElement(Menu table, char *key);
 
-int MSTRUCTURE_function(Menu table, char* key);
+int MSTRUCTURE_function(Menu table, char *key);
 
-mBucket MSTRUCTURE_createBucket(char* key, int data, int number);
+mBucket MSTRUCTURE_createBucket(char *key, int data, int number);
 
 void MSTRUCTURE_destruct(Menu *table);
 
-void MSTRUCTURE_incrementNum(Menu *table,int pos, int quantity);
+void MSTRUCTURE_incrementNum(Menu *table, int pos, int quantity);
 
-int MSTRUCTURE_decrementNum(Menu *table,int pos, int quantity);
+int MSTRUCTURE_decrementNum(Menu *table, int pos, int quantity);
 
 int MSTRUCTURE_getPrice(Menu table, int pos);
 

@@ -10,15 +10,16 @@
 
 #include "../include/controller.h"
 
+
 void eCONTROLLER_signalHandler(int signum) {
 	Packet packet;
 
     switch (signum) {
         case SIGINT:
 
-			if(socketData > 2)close(socketData);
+			if(NETWORK_openedSocket(socketData) > 0 && socketData > 0){
 
-			if(socketData > 2){
+				close(socketData);
 
 				if ((socketData = NETWORK_createConnectionClient(atoi(enterprise.config.data_port), enterprise.config.data_ip)) > 0) {
 
@@ -29,14 +30,13 @@ void eCONTROLLER_signalHandler(int signum) {
 						NETWORK_sendSerialized(socketData, packet);
 						NETWORK_freePacket(&packet);
 					}
+					close(socketData);
 				}
 
 			}
+			if(NETWORK_openedSocket(socketPic) > 0 && socketPic > 0)close(socketPic);
 
-			if(socketData > 2)close(socketData);
-			if(socketPic > 2)close(socketPic);
-
-			BASIC_freeMemory();
+			eBASIC_freeMemory();
 
 			pthread_kill(enterprise.thread_data, SIGUSR2);
 			pthread_join(enterprise.thread_data, NULL);
@@ -51,7 +51,7 @@ void eCONTROLLER_signalHandler(int signum) {
 			pthread_kill(enterprise.thread_data, SIGUSR2);
 			pthread_join(enterprise.thread_data, NULL);
 
-			BASIC_freeMemory();
+			eBASIC_freeMemory();
 
 			if(socketData > 2)close(socketData);
 			if(socketPic > 2)close(socketPic);

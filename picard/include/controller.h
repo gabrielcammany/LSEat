@@ -55,9 +55,7 @@ typedef struct {
 	char *name;
 	int port;
 }Enterprise;
-/**
- * General typo that contains the 2 typos above
- */
+
 typedef struct {
 	Config config;
 	Client client;
@@ -82,7 +80,7 @@ void CONTROLLER_signalHandler(int signum);
  * @param lseat general struct
  * @return returns 0
  */
-int CONTROLLER_executeCommand(Command command, ClientLSEat lseat);
+int CONTROLLER_executeCommand(Command command);
 
 /**
  * Reads the information of the client configuration
@@ -90,7 +88,7 @@ int CONTROLLER_executeCommand(Command command, ClientLSEat lseat);
  * @param lseat general structure
  * @return 0
  */
-int BASIC_readClientConfig(char *name, ClientLSEat *lseat);
+int BASIC_readClientConfig(char *name);
 
 /**
  * Shows start up message

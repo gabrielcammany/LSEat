@@ -24,7 +24,7 @@ void dCONTROLLER_signalHandler(int signum) {
 			pthread_join(thread_id, NULL);
 
 			exit(EXIT_SUCCESS);
-			break;
+
 		case SIGUSR1:
 
 			BASIC_freeMemory(&data);
@@ -37,10 +37,13 @@ void dCONTROLLER_signalHandler(int signum) {
 			close(socketPic);
 
 			exit(EXIT_FAILURE);
-			break;
+
 		case SIGUSR2:
 			pthread_exit(0);
-		break;
+		case SIGPIPE:
+			printf("Error pipe!\n");
+			break;
+
 		default:
 			write(1, ERR_INT, strlen(ERR_INT));
 			break;

@@ -10,6 +10,8 @@
 
 #include "../include/connection.h"
 #include "../../lib/include/menuStructure.h"
+#include "../include/controller.h"
+#include "../include/picardStructure.h"
 
 #define MIN_FD 2
 #define EMPTY_BUCKET (NULL)
@@ -47,7 +49,7 @@ int CONNECTION_connectData() {
 
 	if (buffer != NULL)free(buffer);
 
-	if(socketData > 0)close(socketData);
+	if(NETWORK_openedSocket(socketData))close(socketData);
 
 	return 1;
 }
@@ -55,9 +57,8 @@ int CONNECTION_connectData() {
 void *CONNECTION_dataListener(void *arg) {
 	char *buffer = NULL;
 	Packet packet;
-	char convert[10];
-
-	arg = arg;
+	char convert[10], message[50];
+	int limitReconnect = 1;
 
 	if ((socketData = NETWORK_createConnectionClient(atoi(enterprise.config.data_port), enterprise.config.data_ip)) <
 		0) {
@@ -71,16 +72,25 @@ void *CONNECTION_dataListener(void *arg) {
 
 			while (1) {
 
-				if(socketData > 0)close(socketData);
+				if(NETWORK_openedSocket(socketData) > 0 && socketData > 0)close(socketData);
 
 				sleep((unsigned int) enterprise.restaurant.seconds);
 
 				if ((socketData = NETWORK_createConnectionClient(atoi(enterprise.config.data_port),
 																 enterprise.config.data_ip)) < 0) {
 
-					write(1, UPDATE_ERR, strlen(UPDATE_ERR));
+					sprintf(message,UPDATE_ERR,limitReconnect,LIMIT_RECONNECT);
 
-					break;
+					write(1, message, strlen(message));
+
+					limitReconnect++;
+
+					if(limitReconnect == LIMIT_RECONNECT){
+
+						write(STDOUT_FILENO,ERR_LIMIT,strlen(ERR_LIMIT));
+						break;
+
+					}
 
 				} else {
 
@@ -105,7 +115,7 @@ void *CONNECTION_dataListener(void *arg) {
 					if (packet.type != (UPDATE)) {
 
 						write(1, UPDATE_ERR, strlen(UPDATE_ERR));
-						close(socketData);
+						if(NETWORK_openedSocket(socketData))close(socketData);
 
 						break;
 
@@ -122,7 +132,7 @@ void *CONNECTION_dataListener(void *arg) {
 
 	}
 
-	pthread_exit(EXIT_SUCCESS);
+	pthread_exit(arg);
 }
 
 int CONNECTION_executeEnterpriseClient() {
@@ -149,7 +159,11 @@ void *CONNECTION_Picard(void *arg) {
 
 			exit = CONNECTION_analysePacketPicard(socket, packet);
 
+			NETWORK_freePacket(&packet);
+
 		} else {
+
+			NETWORK_freePacket(&packet);
 
 			pthread_mutex_lock(&mtx);
 
@@ -173,6 +187,7 @@ void *CONNECTION_Picard(void *arg) {
 
 	}
 
+
 	if (socket > MIN_FD)close(socket);
 
 	return NULL;
@@ -194,7 +209,6 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 			if ((memcmp(packet.header, HEADER_PICINF,HEADER_SIZE) == 0) && packet.length > 0) {
 
 				UTILS_extractFromBuffer(packet.data, 2, &name, &money);
-				num = atoi(money);
 
 				pthread_mutex_lock(&mtx);
 				PSTRUCTURE_insert(&enterprise.clients, PSTRUCTURE_createBucket(socket, name, 0, pthread_self()));
@@ -221,12 +235,16 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 
                 num = PSTRUCTURE_findElement(enterprise.clients,socket);
 
-                if(MSTRUCTURE_isEmpty(enterprise.clients.bucket[num].commanda) > 0){
-                    MSTRUCTURE_returnCommands(enterprise.clients.bucket[num].commanda,&enterprise.restaurant.menu);
-                }
-				NETWORK_sendOKPacket(socket, CONNECT, HEADER_CON);
+				if(num > -1){
 
-				if (PSTRUCTURE_delete(&enterprise.clients, socket) > 0) {
+					if(MSTRUCTURE_isEmpty(enterprise.clients.bucket[num].commanda) > 0){
+
+						MSTRUCTURE_returnCommands(enterprise.clients.bucket[num].commanda,&enterprise.restaurant.menu);
+
+					}
+
+					NETWORK_sendOKPacket(socket, CONNECT, HEADER_CON);
+
 
 					write(1, "Desconnectant ", strlen("Desconnectant "));
 					write(1, packet.data, strlen(packet.data));
@@ -234,11 +252,14 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 
 					vReturn = 1;
 
-				} else {
+					PSTRUCTURE_deletePos(&enterprise.clients, num);
+
+				}else{
 
 					NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
 
 				}
+
 
 				pthread_mutex_unlock(&mtx);
 
@@ -322,7 +343,12 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 
 					pthread_mutex_lock(&mtx);
 					//Trobat again is the position in the table where the element we are looking for is
-					trobat = MSTRUCTURE_findElement(enterprise.clients.bucket[num].commanda,plat);
+					if(enterprise.clients.bucket[num].commanda.bucket == NULL){
+						enterprise.clients.bucket[num].commanda = MSTRUCTURE_createStructure(MIN_COMMAND);
+						trobat = -1;
+					}else{
+						trobat = MSTRUCTURE_findElement(enterprise.clients.bucket[num].commanda,plat);
+					}
 					pthread_mutex_unlock(&mtx);
 
 					if(trobat >= 0){
@@ -502,9 +528,10 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 
 					packet1 = NETWORK_createPacket(PAY,HEADER_PAY,(int)strlen(buff),buff);
 					NETWORK_sendSerialized(socket,packet1);
+					NETWORK_freePacket(&packet1);
 
                     if(MSTRUCTURE_isEmpty(enterprise.clients.bucket[num].commanda) > 0){
-                        MSTRUCTURE_empty(&enterprise.clients.bucket[num].commanda);
+						MSTRUCTURE_destruct(&enterprise.clients.bucket[num].commanda);
                     }
 
 					enterprise.clients.bucket[num].number = 0;
@@ -531,8 +558,6 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 	if (units != NULL)free(units);
 	if (plat != NULL)free(plat);
 	if (name != NULL)free(name);
-
-	NETWORK_freePacket(&packet);
 
 	return vReturn;
 

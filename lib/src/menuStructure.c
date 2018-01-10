@@ -14,7 +14,7 @@ Menu MSTRUCTURE_createStructure(int size) {
 	table.bucket = NULL;
 
 	table.length = size;
-	table.bucket = (mBucket *) calloc( size, sizeof(mBucket) * size);
+	table.bucket = (mBucket *) calloc( (size_t) size, sizeof(mBucket) * size);
 	table.elements = 0;
 
 	if (table.bucket == NULL) {
@@ -224,13 +224,17 @@ void MSTRUCTURE_destruct(Menu *table) {
 
 	if (table->bucket != NULL) {
 
-		for (i = 0; i < table->length; i++) {
+		for (i = 0; i < table->length && table->elements > 0; i++) {
 
-			if (table->bucket[i].key != NULL)free(table->bucket[i].key);
+			if (table->bucket[i].key != NULL){
+				free(table->bucket[i].key);
+				table->elements--;
+			}
 
 		}
 
 		free(table->bucket);
+		table->bucket = NULL;
 	}
 
 

@@ -11,8 +11,9 @@
 #include "../include/connection.h"
 #include "../../lib/include/network.h"
 #include "../include/controller.h"
+#include "../../lib/include/menuStructure.h"
 
-char *connection_data(int option, int port, char *ip, char *name) {
+char *CONNECTION_data(int option, int port, char *ip, char *name) {
     Packet packet;
     packet.data = NULL;
     char *buff = NULL, cport[6];
@@ -32,8 +33,11 @@ char *connection_data(int option, int port, char *ip, char *name) {
 
         }else{
             sprintf(cport,"%d",lseat.enterprise.port);
+
             buff = UTILS_createBuffer(2,lseat.client.nom,cport);
             packet = NETWORK_createPacket(RECONNECT, HEADER_PICDAT, (unsigned short) strlen(buff), buff);
+
+			free(buff);
         }
 
         if (packet.type > 0) {
@@ -41,7 +45,7 @@ char *connection_data(int option, int port, char *ip, char *name) {
             //then we send the packet serialized
             if (NETWORK_sendSerialized(socketfd, packet) > 0) {
 
-                NETWORK_freePacket(&packet);
+				NETWORK_freePacket(&packet);
 
                 //we receive the response
                 packet = NETWORK_extractIncomingFrame(socketfd);
@@ -58,13 +62,14 @@ char *connection_data(int option, int port, char *ip, char *name) {
                         return NULL;
 
                     }
-
                 } else {
                     return NULL;
                 }
 
             }else{
-                return NULL;
+				NETWORK_freePacket(&packet);
+
+				return NULL;
             }
 
 
@@ -123,7 +128,7 @@ void CONNECTION_extractEnterpriseData(char *data, char **nom, int *port, char **
 }
 
 
-int connection_enterprise(char *data, char *nameUser, int saldo) {
+int CONNECTION_enterprise(char *data, char *nameUser, int saldo) {
     char *ip = NULL, *userData = NULL, money[10], *port = NULL;
 
     //First we extract the information
@@ -132,6 +137,8 @@ int connection_enterprise(char *data, char *nameUser, int saldo) {
     if(lseat.enterprise.port!= 0)lseat.enterprise.port=0;
 
     UTILS_extractFromBuffer(data, 3,&lseat.enterprise.name, &port, &ip);
+
+	free(data);
 
     lseat.enterprise.port = atoi(port);
 
@@ -339,7 +346,7 @@ void CONNECTION_payEnterprise() {
                   strlen(" euros. Carregat en el seu compte.\n") * sizeof(char));
 
             if (MSTRUCTURE_isEmpty(lseat.commands) > 0) {
-                MSTRUCTURE_empty(&lseat.commands);
+				MSTRUCTURE_destruct(&lseat.commands);
             }
         } else {
             CONNECTION_enterpriseReconnect();
@@ -361,16 +368,22 @@ void CONNECTION_takeNoteEnterprise(char **data) {
         Packet packet = NETWORK_createPacket(DISH, NEW_ORD, (unsigned short) strlen(buffer), buffer);
 
         if ( NETWORK_openedSocket(socketfd) < 0 || NETWORK_sendSerialized(socketfd, packet) < 0 ) {
+
             CONNECTION_enterpriseReconnect();
 
         } else {
-
 
             if (NETWORK_readSimpleResponse(socketfd) > 0) {
                 write(1, "OK!\n", strlen("OK!\n") * sizeof(char));
 
                 data[1] = UTILS_toLower(data[1]);
-                trobat = MSTRUCTURE_findElement(lseat.commands, data[1]);
+
+				if (lseat.commands.bucket == NULL){
+					lseat.commands = MSTRUCTURE_createStructure(MENU_SIZE);
+					trobat = -1;
+				}else{
+					trobat = MSTRUCTURE_findElement(lseat.commands, data[1]);
+				}
 
                 if (trobat >= 0) {
                     MSTRUCTURE_incrementNum(&lseat.commands, trobat, atoi(data[0]));
@@ -394,6 +407,7 @@ void CONNECTION_takeNoteEnterprise(char **data) {
 
     }
 
+    if (buffer != NULL)free(buffer);
     if (data[0] != NULL)free(data[0]);
     if (data[1] != NULL)free(data[1]);
     free(data);
@@ -414,6 +428,9 @@ void CONNECTION_disconnectEnterprise(char *nom) {
 
                 socketfd = -1;
 
+				if (MSTRUCTURE_isEmpty(lseat.commands) > 0) {
+					MSTRUCTURE_destruct(&lseat.commands);
+				}
             } else {
                 write(1, CONNECTION_NENT, strlen(CONNECTION_NENT));
 
@@ -421,6 +438,7 @@ void CONNECTION_disconnectEnterprise(char *nom) {
         } else {
             CONNECTION_enterpriseReconnect();
         }
+		NETWORK_freePacket(&packet);
 
     } else {
         write(1, ERR_CONN, strlen(ERR_CONN));
@@ -433,12 +451,15 @@ void CONNECTION_enterpriseReconnect(){
     write(1, "Enterprise ha caido\n", strlen("Enterprise ha caido\n") * sizeof(char));
     close(socketfd);
     socketfd = -1;
-    enterpriseData = connection_data(2,lseat.config.Port, lseat.config.IP, lseat.client.nom);
+    enterpriseData = CONNECTION_data(2, lseat.config.Port, lseat.config.IP, lseat.client.nom);
 
     if (enterpriseData != NULL) {
-        socketfd = connection_enterprise(enterpriseData, lseat.client.nom, lseat.client.saldo);
+
+        socketfd = CONNECTION_enterprise(enterpriseData, lseat.client.nom, lseat.client.saldo);
         CONNECTION_resendCommands(socketfd,&lseat.commands);
+
     }else{
+        lseat.enterprise.port = -1;
         write(1,"Error en conectarnos a Data!\n", strlen("Error en conectarnos a Data!\n") * sizeof(char));
     }
 }
@@ -453,15 +474,21 @@ void CONNECTION_resendCommands(int socket,Menu *table){
     for(i=0; i < table->length; i++){
 
         if(table->bucket[i].key != NULL){
-            cadena = (char *) malloc (sizeof(char) * 5);
+
+            cadena = (char *) malloc (sizeof(char) * 10);
+
             sprintf(cadena,"%d",table->bucket[i].number);
+
             buffer = UTILS_createBuffer(2,table->bucket[i].key,cadena);
 
             packet = NETWORK_createPacket(DISH, NEW_ORD, (unsigned short) strlen(buffer), buffer);
 
+			free(buffer);
+			free(cadena);
+
             if ( NETWORK_openedSocket(socket) < 0 || NETWORK_sendSerialized(socket, packet) < 0 ) {
 
-                //CONNECTION_enterpriseReconnect();
+				lseat.enterprise.port = -1;
                 write(1,"Error en conectarnos a un nuevo Enterprise\n", strlen("Error en conectarnos a un nuevo Enterprise\n")* sizeof(char));
             } else {
 
@@ -486,7 +513,6 @@ void CONNECTION_resendCommands(int socket,Menu *table){
 
             }
 
-            if(cadena != NULL){free(cadena);cadena=NULL;}
         }
     }
 }

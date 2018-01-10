@@ -79,7 +79,7 @@ typedef struct {
 
 Enterprise enterprise;
 
-static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
+extern pthread_mutex_t mtx;
 
 //file descriptors to listen different programs
 int socketData;
@@ -88,7 +88,7 @@ int socketPic;
  * Funcion encargada de borrar la memoria dinamica
  * @param lseat Variable a borrar
  */
-void BASIC_freeMemory();
+void eBASIC_freeMemory();
 
 /**
  * Function that reads enterprise configuration

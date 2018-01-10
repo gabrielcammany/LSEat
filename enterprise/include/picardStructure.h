@@ -50,6 +50,8 @@ void PSTRUCTURE_insert(Table *table, Bucket bucket);
 
 int PSTRUCTURE_delete(Table *table, int key);
 
+int PSTRUCTURE_deletePos(Table *table, int pos);
+
 int PSTRUCTURE_findElement(Table table, int key);
 
 int PSTRUCTURE_function(Table table, int key);

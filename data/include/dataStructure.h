@@ -48,6 +48,8 @@ void HASH_insert(Table *table, Bucket bucket);
 
 int HASH_delete(Table *table, int key);
 
+int HASH_deletePos(Table *table,int pos);
+
 int HASH_findElement(Table table, int key);
 
 int HASH_function(Table table, int key);
