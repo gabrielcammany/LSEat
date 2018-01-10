@@ -140,9 +140,9 @@ int BASIC_readClientConfig(char *name) {
  * @param lseat Variable a borrar
  */
 void BASIC_freeMemory() {
-	free(lseat.client.nom);
-	free(lseat.config.IP);
-	free(lseat.enterprise.name);
+	if(lseat.client.nom != NULL)free(lseat.client.nom);
+	if(lseat.config.IP != NULL)free(lseat.config.IP);
+	if(lseat.enterprise.name != NULL)free(lseat.enterprise.name);
 	MSTRUCTURE_destruct(&lseat.commands);
 
 }

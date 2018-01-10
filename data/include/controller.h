@@ -46,7 +46,6 @@ typedef struct{
 
 dConfig data;
 
-
 /**
  * Function to handle signal
  * @param signum

@@ -10,6 +10,7 @@
 
 #include "include/controller.h"
 
+pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
 
 int main(int argc, char *argv[]) {
 

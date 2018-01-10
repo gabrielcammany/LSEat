@@ -31,7 +31,7 @@ typedef struct {
 	char* data;
 	int number;
 	pthread_t pthread;
-	Menu commanda;
+	Menu comanda;
 
 } Bucket;
 

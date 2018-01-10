@@ -7,6 +7,7 @@
 
 void BASIC_freeMemory(dConfig *data) {
 	free(data->ip);
+	pthread_mutex_destroy(&mtx);
 }
 
 void BASIC_startValues(dConfig *data) {
@@ -18,6 +19,7 @@ void BASIC_startValues(dConfig *data) {
 	thread_id = 0;
 
 	enterprise = HASH_createTable(MAX_ENTERPRISES);
+	pthread_mutex_init(&mtx, NULL);
 
 
 }

@@ -38,24 +38,28 @@ void eCONTROLLER_signalHandler(int signum) {
 
 			eBASIC_freeMemory();
 
-			pthread_kill(enterprise.thread_data, SIGUSR2);
-			pthread_join(enterprise.thread_data, NULL);
-
 			write(1, "\n", strlen("\n"));
 			write(1, BYE, strlen(BYE));
+
+			if(enterprise.thread_data > 0){
+				pthread_kill(enterprise.thread_data, SIGUSR2);
+			}
+
 
             exit(EXIT_SUCCESS);
 
 		case SIGUSR1:
-
-			pthread_kill(enterprise.thread_data, SIGUSR2);
-			pthread_join(enterprise.thread_data, NULL);
-
 			eBASIC_freeMemory();
 
-			if(socketData > 2)close(socketData);
-			if(socketPic > 2)close(socketPic);
+			if(NETWORK_openedSocket(socketData) > 0 && socketData > 0)close(socketData);;
+			if(NETWORK_openedSocket(socketPic) > 0 && socketPic > 0)close(socketPic);
 
+			write(1, "\n", strlen("\n"));
+			write(1, BYE, strlen(BYE));
+
+			if(enterprise.thread_data > 0){
+				pthread_kill(enterprise.thread_data, SIGUSR2);
+			}
 
 			exit(EXIT_FAILURE);
 

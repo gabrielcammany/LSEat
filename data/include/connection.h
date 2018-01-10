@@ -34,6 +34,7 @@
 
 pthread_t thread_id;
 int socketPic, socketEnt;
+extern pthread_mutex_t mtx;
 
 Table enterprise;
 /**

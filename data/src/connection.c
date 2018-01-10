@@ -39,7 +39,9 @@ void *CONNECTION_handlerEnterprise(void *arg) {
 						write(1, number, strlen(number) * sizeof(char));
 						write(1, "\n", sizeof(char));
 
+						pthread_mutex_lock(&mtx);
 						HASH_insert(&enterprise, HASH_createBucket(atoi(port), packet.data, 0));
+						pthread_mutex_unlock(&mtx);
 						NETWORK_sendOKPacket(socket, CONNECT, HEADER_CON);
 
 						free(aux);
@@ -68,7 +70,9 @@ void *CONNECTION_handlerEnterprise(void *arg) {
 
 					UTILS_extractFromBuffer(packet.data, 2, &port, &number);
 
+					pthread_mutex_lock(&mtx);
 					HASH_insert(&enterprise, HASH_createBucket(atoi(port), NULL, atoi(number)));
+					pthread_mutex_unlock(&mtx);
 
 					NETWORK_sendOKPacket(socket, UPDATE, HEADER_UPDATE);
 
@@ -92,17 +96,21 @@ void *CONNECTION_handlerEnterprise(void *arg) {
 
 						memset(text,0,20);
 
+						pthread_mutex_lock(&mtx);
 						UTILS_extractFromBuffer(enterprise.bucket[pos].data, 1, &port);
+						pthread_mutex_unlock(&mtx);
 
 						sprintf(text,DISC_ENT,port);
 
 						write(1,text, strlen(text));
 
+						pthread_mutex_lock(&mtx);
 						if(HASH_deletePos(&enterprise,pos) > 0){
 							NETWORK_sendOKPacket(socket, DISCONNECT, HEADER_DATPIC);
 						}else{
 							NETWORK_sendKOPacket(socket, DISCONNECT, HEADER_DATPIC);
 						}
+						pthread_mutex_unlock(&mtx);
 
 
 						free(port);
@@ -165,7 +173,9 @@ void *CONNECTION_handlerClient(void *arg) {
 		UTILS_extractFromBuffer(packet.data,2,&name,&port);
 		number = atoi(port);
 		if(number > 0){
+			pthread_mutex_lock(&mtx);
 			HASH_delete(&enterprise,atoi(port));
+			pthread_mutex_unlock(&mtx);
 		}
 
 		if(name != NULL){
@@ -182,7 +192,9 @@ void *CONNECTION_handlerClient(void *arg) {
 
 	//we check that struct enterprise isnt empty
 
+	pthread_mutex_lock(&mtx);
 	if (enterprise.elements == 0) {
+		pthread_mutex_unlock(&mtx);
 
 		NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
 		write(1, DCONNECT_ERR, strlen(DCONNECT_ERR));
@@ -199,6 +211,7 @@ void *CONNECTION_handlerClient(void *arg) {
 			//we create packet to response client
 			aux = NETWORK_createPacket(CONNECT, HEADER_DATPIC,size,
 									   enterprise.bucket[enterprise.number].data);
+			pthread_mutex_unlock(&mtx);
 
 			if (aux.type > 0) {
 
@@ -222,12 +235,14 @@ void *CONNECTION_handlerClient(void *arg) {
 			NETWORK_freePacket(&aux);
 
 		}else{
+			pthread_mutex_unlock(&mtx);
 
 			NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
 			write(1, DCONNECT_ERR, strlen(DCONNECT_ERR));
 			write(1, packet.data, sizeof(char) * strlen(packet.data));
 			write(1, "\n\0", sizeof(char) * 2);
 			printf("Data enterprise null...\n");
+			printf("Position: %d\n", enterprise.number);
 
 		}
 	}
@@ -265,7 +280,5 @@ void CONNECTION_executeData(int portE, int portP, char *ip) {
 
 
 	}
-
-	printf("Em maalskdjaksljdkljasjdlajksda\n");
 	raise(SIGUSR1);
 }

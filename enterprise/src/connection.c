@@ -83,7 +83,6 @@ void *CONNECTION_dataListener(void *arg) {
 
 					write(1, message, strlen(message));
 
-					limitReconnect++;
 
 					if(limitReconnect == LIMIT_RECONNECT){
 
@@ -91,6 +90,8 @@ void *CONNECTION_dataListener(void *arg) {
 						break;
 
 					}
+
+					limitReconnect++;
 
 				} else {
 
@@ -138,10 +139,23 @@ void *CONNECTION_dataListener(void *arg) {
 int CONNECTION_executeEnterpriseClient() {
 	int error = 0;
 
-	if ((error = pthread_create(&enterprise.thread_data, NULL, CONNECTION_dataListener, NULL)) != 0) {
+	if ((socketData = NETWORK_createConnectionClient(atoi(enterprise.config.data_port), enterprise.config.data_ip)) <
+		0) {
 
-		perror("could not create thread");
+		write(1, ERR_CONNECTION, strlen(ERR_CONNECTION));
+		raise(SIGUSR1);
 
+	} else {
+
+		if (CONNECTION_connectData() > 0) {
+
+			if ((error = pthread_create(&enterprise.thread_data, NULL, CONNECTION_dataListener, NULL)) != 0) {
+
+				perror("could not create thread");
+
+			}
+			pthread_detach(enterprise.thread_data);
+		}
 	}
 	return error;
 }
@@ -237,9 +251,9 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 
 				if(num > -1){
 
-					if(MSTRUCTURE_isEmpty(enterprise.clients.bucket[num].commanda) > 0){
+					if(MSTRUCTURE_isEmpty(enterprise.clients.bucket[num].comanda) > 0){
 
-						MSTRUCTURE_returnCommands(enterprise.clients.bucket[num].commanda,&enterprise.restaurant.menu);
+						MSTRUCTURE_returnCommands(enterprise.clients.bucket[num].comanda,&enterprise.restaurant.menu);
 
 					}
 
@@ -343,11 +357,11 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 
 					pthread_mutex_lock(&mtx);
 					//Trobat again is the position in the table where the element we are looking for is
-					if(enterprise.clients.bucket[num].commanda.bucket == NULL){
-						enterprise.clients.bucket[num].commanda = MSTRUCTURE_createStructure(MIN_COMMAND);
+					if(enterprise.clients.bucket[num].comanda.bucket == NULL){
+						enterprise.clients.bucket[num].comanda = MSTRUCTURE_createStructure(MIN_COMMAND);
 						trobat = -1;
 					}else{
-						trobat = MSTRUCTURE_findElement(enterprise.clients.bucket[num].commanda,plat);
+						trobat = MSTRUCTURE_findElement(enterprise.clients.bucket[num].comanda,plat);
 					}
 					pthread_mutex_unlock(&mtx);
 
@@ -357,10 +371,10 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 						i = MSTRUCTURE_findElement(enterprise.restaurant.menu,plat);
 						if(		MSTRUCTURE_decrementNum(
 								&enterprise.restaurant.menu,
-								i/*enterprise.clients.bucket[num].commanda.bucket[trobat].data*/,
+								i/*enterprise.clients.bucket[num].comanda.bucket[trobat].data*/,
 								atoi(units)	) > 0){
 
-							MSTRUCTURE_incrementNum(&enterprise.clients.bucket[num].commanda,trobat,atoi(units));
+							MSTRUCTURE_incrementNum(&enterprise.clients.bucket[num].comanda,trobat,atoi(units));
 
 							PSTRUCTURE_calculateMoneyLeft(
 									1,
@@ -399,7 +413,7 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 									trobat,
 									atoi(units)	) > 0){
 
-								MSTRUCTURE_insert(&enterprise.clients.bucket[num].commanda,
+								MSTRUCTURE_insert(&enterprise.clients.bucket[num].comanda,
 								MSTRUCTURE_createBucket(plat,trobat,atoi(units)));
 
 								PSTRUCTURE_calculateMoneyLeft(
@@ -456,7 +470,7 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 
 					pthread_mutex_lock(&mtx);
 					//trobat again is the position of the plate in the table
-					trobat = MSTRUCTURE_findElement(enterprise.clients.bucket[num].commanda,plat);
+					trobat = MSTRUCTURE_findElement(enterprise.clients.bucket[num].comanda,plat);
 					pthread_mutex_unlock(&mtx);
 
 					if(trobat >= 0){
@@ -470,7 +484,7 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 								i,
 								atoi(units));
 
-						MSTRUCTURE_decrementNum(&enterprise.clients.bucket[num].commanda,trobat,atoi(units));
+						MSTRUCTURE_decrementNum(&enterprise.clients.bucket[num].comanda,trobat,atoi(units));
 
 
 						PSTRUCTURE_calculateMoneyLeft(
@@ -530,8 +544,8 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 					NETWORK_sendSerialized(socket,packet1);
 					NETWORK_freePacket(&packet1);
 
-                    if(MSTRUCTURE_isEmpty(enterprise.clients.bucket[num].commanda) > 0){
-						MSTRUCTURE_destruct(&enterprise.clients.bucket[num].commanda);
+                    if(MSTRUCTURE_isEmpty(enterprise.clients.bucket[num].comanda) > 0){
+						MSTRUCTURE_destruct(&enterprise.clients.bucket[num].comanda);
                     }
 
 					enterprise.clients.bucket[num].number = 0;

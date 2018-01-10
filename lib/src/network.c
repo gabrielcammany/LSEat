@@ -129,7 +129,7 @@ void NETWORK_parallelHandler(int port, char *ip, void *(*handler)(void *)) {
 		int newsock = accept(sockfd, (void *) &c_addr, &c_len);
 		if (newsock < 0) {
 			perror("accept");
-			exit(EXIT_FAILURE);
+			break;
 		}
 
 		if (pthread_create(&thread_id, NULL, handler, &newsock) < 0) {

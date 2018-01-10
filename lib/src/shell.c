@@ -98,8 +98,8 @@ void SHELL_saveCommand(char *input) {
 
 	char **auxiliar = NULL;
 	int size = history.lengthSession;
-
 	auxiliar = (char **) realloc(history.cmdSession, (size + 1) * sizeof(char **));
+
 
 	if (auxiliar != NULL) {
 
@@ -111,12 +111,11 @@ void SHELL_saveCommand(char *input) {
 
 			memset(history.cmdSession[size], 0, strlen(input));
 
-			strcpy(history.cmdSession[size], input);
+			memcpy(history.cmdSession[size], input, strlen(input));
 
 			history.lengthSession++;
 
 		} else {
-
 			if (size > 1) {
 
 				auxiliar = (char **) realloc(history.cmdSession, size * sizeof(char **));
@@ -192,17 +191,18 @@ void SHELL_printRest(char* buffer, int max){
 
 char* SHELL_readInput(char *buffer, char *menu) {
 
-	int index = 0, max = 2, hEnabled = 1,
+	int index = 0, max = 1, hEnabled = 1, length = 2,
 			command = history.length, commandSession = history.lengthSession;
 	char c = ' ', aux[10];
 
-	buffer = (char*) malloc(sizeof(char));
+	buffer = (char*) malloc(sizeof(char) * length);
+	buffer[0] = ' ';
 
 	while (c != '\n') {
 
 		read(0, &c, 1);
 
-		if (c == '\n') {
+		if(c == '\n'){
 			break;
 		}
 
@@ -210,19 +210,17 @@ char* SHELL_readInput(char *buffer, char *menu) {
 			read(0, &c, 1);
 			read(0, &c, 1);
 			switch (c) {
-				case 'A': //Move up the history
+				case 'A': //Adalt
 					if (history.lengthSession > 0 || history.length > 0) {
 
 						if (commandSession > 0) {
 
 							commandSession--;
-							printf("Buffer load size: %d\n",(int)strlen(history.cmdSession[commandSession]) + 2);
 							strcpy(buffer, history.cmdSession[commandSession]);
 
 						} else if (command > 0) {
 
 							command--;
-							printf("Buffer load size: %d\n",(int)strlen(history.cmdHistory[command]) + 2);
 							strcpy(buffer, history.cmdHistory[command]);
 
 						} else {
@@ -236,21 +234,19 @@ char* SHELL_readInput(char *buffer, char *menu) {
 
 							hEnabled = 1;
 							max = (int) strlen(buffer);
-							index = max - 1;
+							length = max;
+							index = max-1;
 
 							write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
 							write(1, "\r", 1);
 							write(1, menu, strlen(menu));
+							write(1, buffer, max);
 
-							SHELL_printRest(buffer,max - 1);
-
-							sprintf(aux, "\033[%dD", 1);
-							write(1, aux, strlen(aux));
 
 						}
 					}
 					break;
-				case 'D': //Move left through command
+				case 'D': //Esquerra
 					if (index > 0) {
 
 						write(1, ESQUERRA, strlen(ESQUERRA));
@@ -258,7 +254,7 @@ char* SHELL_readInput(char *buffer, char *menu) {
 
 					}
 					break;
-				case 'C': //Move rigth through the command
+				case 'C': //Dreta
 					if (index < max - 1) {
 
 						write(1, DRETA, strlen(DRETA));
@@ -266,25 +262,17 @@ char* SHELL_readInput(char *buffer, char *menu) {
 
 					}
 					break;
-				case 'B': //Move down history
+				case 'B': //Abaix
 					if (history.lengthSession > 0 || history.length > 0) {
 
 						if (commandSession < history.lengthSession) {
 
-							printf("Buffer load size: %d\n",(int)strlen(history.cmdSession[commandSession]));
-
-							buffer = realloc(buffer, sizeof(char) * strlen(history.cmdSession[commandSession]) + 1);
-
 							strcpy(buffer, history.cmdSession[commandSession]);
-
 
 							commandSession++;
 
 
 						} else if (command < history.length) {
-
-							printf("Buffer load size: %d\n",(int)strlen(history.cmdHistory[command]));
-							buffer = realloc(buffer, sizeof(char) * strlen(history.cmdHistory[command]) + 1);
 
 							strcpy(buffer, history.cmdHistory[command]);
 
@@ -301,16 +289,13 @@ char* SHELL_readInput(char *buffer, char *menu) {
 						if (hEnabled < 2) {
 
 							max = (int) strlen(buffer);
-							index = max - 1;
+							index = max;
+							length = max + 1;
 
 							write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
 							write(1, "\r", 1);
 							write(1, menu, strlen(menu));
-
-							SHELL_printRest(buffer,max - 1);
-
-							sprintf(aux, "\033[%dD", 2);
-							write(1, aux, strlen(aux));
+							write(1, buffer, max);
 
 
 						}
@@ -324,59 +309,63 @@ char* SHELL_readInput(char *buffer, char *menu) {
 			continue;
 		}
 
-		//ASCII number in hexa for delete
+
 		if (c == 0x7f) {
 
 			if (index > 0) {
 
-				memmove(&buffer[index - 1], &(buffer[index]), sizeof(char));
+				memmove(&buffer[index - 1], &(buffer[index]), sizeof(char) * max);
 
-				buffer[index] = ' ';
+				write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
+				write(1, "\r", strlen("\r"));
 
-				sprintf(aux, "\033[%dD", 1);
-				write(1, aux, strlen(aux));
+				write(1, menu, strlen(menu));
 
-				SHELL_printRest(buffer+(index),(max) - index);
+				if (max > 0 && max >= index)max--;
+				write(1, buffer, max);
 
-				sprintf(aux, "\033[%dD", 2);
+
+				sprintf(aux, "\033[%dD", max - index + 1);
 				write(1, aux, strlen(aux));
 
 				index--;
-
-				buffer = realloc(buffer, sizeof(char) * max + 1);
-
-				if (max > 0 && max >= index)max--;
-
 
 			}
 
 			continue;
 		}
 
-		if (index < BUFFER) {
+		if (index < BUFFER-1) {
 
-			memmove(&buffer[index + 1], &buffer[index], sizeof(char));
+			write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
+
+			write(1, "\r", strlen("\r"));
+
+			write(1, menu, strlen(menu));
+
+			memmove(&buffer[index + 1], &buffer[index], sizeof(char) * (max - index + 1));
 
 			buffer[index] = c;
 
-			SHELL_printRest(buffer+(index),(max - index - 1));
+			if(max < BUFFER)max++;
+			length++;
 
-			max++;
+			write(1, buffer, max);
 
-			buffer = realloc(buffer, sizeof(char) * max + 2);
+			sprintf(aux, "\033[%dD", max - index - 1);
+			write(1, aux, strlen(aux));
+
+			buffer = (char*) realloc(buffer,sizeof(char) * max + 1);
 
 			index++;
 		}
 
 
 	}
-
 	buffer[max - 1] = '\0';
 	write(1, "\n", 1);
-	if (!UTILS_checkEmptyString(buffer))SHELL_saveCommand(buffer);
+	//if (!UTILS_checkEmptyString(buffer))SHELL_saveCommand(buffer);
 
-	buffer[max - 2] = '\0';
-	printf("buffer -%s-\n",buffer);
 	return buffer;
 }
 
@@ -395,13 +384,13 @@ void SHELL_freeAndClose() {
 	int i = 0;
 	if (history.cmdHistory != NULL) {
 		for (i = 0; i < history.length; i++) {
-			free(history.cmdHistory[i]);
+			if(history.cmdHistory[i] != NULL)free(history.cmdHistory[i]);
 		}
 		free(history.cmdHistory);
 	}
 	if (history.cmdSession != NULL) {
 		for (i = 0; i < history.lengthSession; i++) {
-			free(history.cmdSession[i]);
+			if(history.cmdSession[i] != NULL)free(history.cmdSession[i]);
 		}
 		free(history.cmdSession);
 	}

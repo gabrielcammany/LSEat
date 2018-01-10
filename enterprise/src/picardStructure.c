@@ -26,7 +26,7 @@ void PSTRUCTURE_deleteBucket(Bucket *bucket){
 		bucket->key = EMPTY_BUCKET;
 	}
 
-	MSTRUCTURE_destruct(&bucket->commanda);
+	MSTRUCTURE_destruct(&bucket->comanda);
 
 	free(bucket->data);
 
@@ -125,7 +125,7 @@ void PSTRUCTURE_insert(Table *table, Bucket bucket) {
 	if(bucket.data != NULL)table->bucket[pos].data = bucket.data;
 	table->bucket[pos].number = bucket.number;
 	table->bucket[pos].pthread = bucket.pthread;
-	table->bucket[pos].commanda = bucket.commanda;
+	table->bucket[pos].comanda = bucket.comanda;
 
 	if (table->bucket[pos].number <= table->bucket[table->number].number) {
 
@@ -266,7 +266,7 @@ Bucket PSTRUCTURE_createBucket(int key, char *data, int number, pthread_t pthrea
 		memcpy(bucket.data,data,strlen(data)*sizeof(char));
 		bucket.number = number;
 		bucket.pthread = pthread;
-		bucket.commanda = MSTRUCTURE_createStructure(MIN_COMMAND);
+		bucket.comanda = MSTRUCTURE_createStructure(MIN_COMMAND);
 
 	}
 

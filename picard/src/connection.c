@@ -318,6 +318,9 @@ void CONNECTION_deleteDishMenu(char **data) {
                   "ERROR: aquest plat no l'has demanat\n",
                   strlen("ERROR: aquest plat no l'has demanat\n") * sizeof(char));
         }
+		if (data[0] != NULL)free(data[0]);
+		if (data[1] != NULL)free(data[1]);
+		free(data);
 
     } else {
 
@@ -456,7 +459,7 @@ void CONNECTION_enterpriseReconnect(){
     if (enterpriseData != NULL) {
 
         socketfd = CONNECTION_enterprise(enterpriseData, lseat.client.nom, lseat.client.saldo);
-        CONNECTION_resendCommands(socketfd,&lseat.commands);
+        if(NETWORK_openedSocket(socketfd) > 0 && socketfd > 0)CONNECTION_resendCommands(socketfd,&lseat.commands);
 
     }else{
         lseat.enterprise.port = -1;

@@ -131,6 +131,7 @@ Command INTERFACE_specialCommand(char *input) {
 
 		write(1, ERR_MEMORY, strlen(ERR_MEMORY));
 		command.id = ERROR_CODE;
+
 		return command;
 
 	}
@@ -175,7 +176,7 @@ Command INTERFACE_specialCommand(char *input) {
 	}
 
 	free(buffer);
-	free(input);
+
 	return command;
 }
 
@@ -191,6 +192,7 @@ Command INTERFACE_identifyCommand(char *input) {
 	command.data = NULL;
 
 	if(input != NULL){
+
 		input = UTILS_toLower(input);
 
 		if (strcmp(input, "connecta") == 0) {
@@ -220,6 +222,7 @@ Command INTERFACE_identifyCommand(char *input) {
 
 		free(input);
 
+
 	}
 
 
@@ -247,11 +250,7 @@ Command INTERFACE_readCommand(char *cadena) {
 
 		command = INTERFACE_identifyCommand(input);
 
-
 	}
-
-	free(input);
-
 	return command;
 }
 

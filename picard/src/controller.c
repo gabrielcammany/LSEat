@@ -79,6 +79,10 @@ int CONTROLLER_executeCommand(Command command) {
 				break;
 		}
 	} else {
+		if(command.data != NULL){
+			if (command.data[0] != NULL)free(command.data[0]);
+			if (command.data[1] != NULL)free(command.data[1]);
+		}
 		write(1, ERR_NOCONNECTION, strlen(ERR_NOCONNECTION));
 	}
 	return 0;

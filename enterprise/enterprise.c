@@ -47,5 +47,6 @@ int main (int argc, char *argv[])
 
     CONNECTION_createConnectionPicards();
 
+	raise(SIGUSR1);
     return EXIT_SUCCESS;
 }
