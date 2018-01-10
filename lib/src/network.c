@@ -125,7 +125,6 @@ void NETWORK_parallelHandler(int port, char *ip, void *(*handler)(void *)) {
 	while (1) {
 		struct sockaddr_in c_addr;
 		socklen_t c_len = sizeof(c_addr);
-
 		int newsock = accept(sockfd, (void *) &c_addr, &c_len);
 		if (newsock < 0) {
 			perror("accept");

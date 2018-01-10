@@ -17,7 +17,6 @@ int main(int argc, char *argv[]) {
 	signal(SIGINT, dCONTROLLER_signalHandler);
 	signal(SIGUSR1, dCONTROLLER_signalHandler);
 	signal(SIGUSR2, dCONTROLLER_signalHandler);
-	signal(SIGPIPE, dCONTROLLER_signalHandler);
 
 	if (argc != 2) {
 		write(1, ERR_ARGS, strlen(ERR_ARGS));

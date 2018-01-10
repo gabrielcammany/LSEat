@@ -220,9 +220,6 @@ Command INTERFACE_identifyCommand(char *input) {
 
 		}
 
-		free(input);
-
-
 	}
 
 
@@ -232,7 +229,7 @@ Command INTERFACE_identifyCommand(char *input) {
 
 
 Command INTERFACE_readCommand(char *cadena) {
-	char *input = NULL;
+	char input[BUFFER];
 	char auxiliar[10];
 
 	Command command;
@@ -244,7 +241,7 @@ Command INTERFACE_readCommand(char *cadena) {
 
 	if (!SHELL_setInputMode()) {
 
-		input = SHELL_readInput(input, auxiliar);
+		SHELL_readInput(input, auxiliar);
 
 		SHELL_resetInput();
 

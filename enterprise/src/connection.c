@@ -12,6 +12,7 @@
 #include "../../lib/include/menuStructure.h"
 #include "../include/controller.h"
 #include "../include/picardStructure.h"
+#include "../../lib/include/network.h"
 
 #define MIN_FD 2
 #define EMPTY_BUCKET (NULL)
@@ -60,76 +61,62 @@ void *CONNECTION_dataListener(void *arg) {
 	char convert[10], message[50];
 	int limitReconnect = 1;
 
-	if ((socketData = NETWORK_createConnectionClient(atoi(enterprise.config.data_port), enterprise.config.data_ip)) <
-		0) {
+	while (1) {
 
-		write(1, ERR_CONNECTION, strlen(ERR_CONNECTION));
-		raise(SIGUSR1);
+		sleep((unsigned int) enterprise.restaurant.seconds);
 
-	} else {
+		if ((socketData = NETWORK_createConnectionClient(atoi(enterprise.config.data_port),
+														 enterprise.config.data_ip)) < 0) {
 
-		if (CONNECTION_connectData() > 0) {
+			sprintf(message,UPDATE_ERR,limitReconnect,LIMIT_RECONNECT);
 
-			while (1) {
-
-				if(NETWORK_openedSocket(socketData) > 0 && socketData > 0)close(socketData);
-
-				sleep((unsigned int) enterprise.restaurant.seconds);
-
-				if ((socketData = NETWORK_createConnectionClient(atoi(enterprise.config.data_port),
-																 enterprise.config.data_ip)) < 0) {
-
-					sprintf(message,UPDATE_ERR,limitReconnect,LIMIT_RECONNECT);
-
-					write(1, message, strlen(message));
+			write(1, message, strlen(message));
 
 
-					if(limitReconnect == LIMIT_RECONNECT){
+			if(limitReconnect == LIMIT_RECONNECT){
 
-						write(STDOUT_FILENO,ERR_LIMIT,strlen(ERR_LIMIT));
-						break;
-
-					}
-
-					limitReconnect++;
-
-				} else {
-
-					memset(convert, 0, 10);
-
-					pthread_mutex_lock(&mtx);
-					sprintf(convert, "%d", enterprise.clients.elements);
-					pthread_mutex_unlock(&mtx);
-
-					buffer = UTILS_createBuffer(2, enterprise.config.picard_port, convert);
-
-					packet = NETWORK_createPacket(UPDATE, HEADER_EUPDATE, (unsigned short) strlen(buffer), buffer);
-
-					if (buffer != NULL)free(buffer);
-
-					NETWORK_sendSerialized(socketData, packet);
-
-					NETWORK_freePacket(&packet);
-
-					packet = NETWORK_extractIncomingFrame(socketData);
-
-					if (packet.type != (UPDATE)) {
-
-						write(1, UPDATE_ERR, strlen(UPDATE_ERR));
-						if(NETWORK_openedSocket(socketData))close(socketData);
-
-						break;
-
-					}
-
-					NETWORK_freePacket(&packet);
-
-				}
-
+				write(STDOUT_FILENO,ERR_LIMIT,strlen(ERR_LIMIT));
+				break;
 
 			}
 
+			limitReconnect++;
+
+		} else {
+
+			memset(convert, 0, 10);
+
+			pthread_mutex_lock(&mtx);
+			sprintf(convert, "%d", enterprise.clients.elements);
+			pthread_mutex_unlock(&mtx);
+
+			buffer = UTILS_createBuffer(2, enterprise.config.picard_port, convert);
+
+			packet = NETWORK_createPacket(UPDATE, HEADER_EUPDATE, (unsigned short) strlen(buffer), buffer);
+
+			if (buffer != NULL)free(buffer);
+
+			NETWORK_sendSerialized(socketData, packet);
+
+			NETWORK_freePacket(&packet);
+
+			packet = NETWORK_extractIncomingFrame(socketData);
+
+			if (packet.type != (UPDATE)) {
+
+				write(1, UPDATE_ERR, strlen(UPDATE_ERR));
+				if(NETWORK_openedSocket(socketData))close(socketData);
+
+				break;
+
+			}
+
+			NETWORK_freePacket(&packet);
+
 		}
+
+		if(NETWORK_openedSocket(socketData) > 0 && socketData > 0)close(socketData);
+
 
 	}
 
@@ -168,6 +155,7 @@ void *CONNECTION_Picard(void *arg) {
 	while (!exit) {
 
 		packet = NETWORK_extractIncomingFrame(socket);
+
 
 		if (packet.type != ERROR_CODE) {
 
@@ -337,7 +325,6 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 			}
 			break;
 		case 4:
-
 			if ((memcmp(packet.header, NEW_ORD,HEADER_SIZE) == 0) && packet.length > 0) {
 				//We extract information for each buffer
 				UTILS_extractFromBuffer(packet.data, 2, &plat, &units);

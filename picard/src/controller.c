@@ -9,6 +9,7 @@
  */
 
 #include "../include/controller.h"
+#include "../include/interface.h"
 
 
 void CONTROLLER_signalHandler(int signum) {

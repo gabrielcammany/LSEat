@@ -200,7 +200,6 @@ void *CONNECTION_handlerClient(void *arg) {
 		write(1, DCONNECT_ERR, strlen(DCONNECT_ERR));
 		write(1, packet.data, sizeof(char) * strlen(packet.data));
 		write(1, "\n\0", sizeof(char) * 2);
-		printf("Elements Zero\n");
 
 	} else {
 
@@ -228,7 +227,6 @@ void *CONNECTION_handlerClient(void *arg) {
 				write(1, DCONNECT_ERR, strlen(DCONNECT_ERR));
 				write(1, packet.data, sizeof(char) * strlen(packet.data));
 				write(1, "\n\0", sizeof(char) * 2);
-				printf("Error paquet!\n");
 
 			}
 
@@ -241,8 +239,6 @@ void *CONNECTION_handlerClient(void *arg) {
 			write(1, DCONNECT_ERR, strlen(DCONNECT_ERR));
 			write(1, packet.data, sizeof(char) * strlen(packet.data));
 			write(1, "\n\0", sizeof(char) * 2);
-			printf("Data enterprise null...\n");
-			printf("Position: %d\n", enterprise.number);
 
 		}
 	}

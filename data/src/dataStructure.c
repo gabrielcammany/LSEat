@@ -112,7 +112,6 @@ void HASH_insert(Table *table, Bucket bucket) {
 
 	}
 
-	printf("Position: %d\n", pos);
 	table->bucket[pos].key = bucket.key;
 	if(bucket.data != NULL)table->bucket[pos].data = bucket.data;
 	table->bucket[pos].number = bucket.number;

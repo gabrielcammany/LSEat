@@ -40,9 +40,6 @@ void dCONTROLLER_signalHandler(int signum) {
 
 		case SIGUSR2:
 			pthread_exit(0);
-		case SIGPIPE:
-			printf("Error pipe!\n");
-			break;
 
 		default:
 			write(1, ERR_INT, strlen(ERR_INT));

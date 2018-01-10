@@ -110,8 +110,10 @@ int BASIC_readMenu(char *menu){
 		if(BASIC_readNumber(fd, &units) < 0){return ERROR_CODE;}
 
 		if(BASIC_readNumber(fd, &price) < 0){return ERROR_CODE;}
+
 		aux_key = UTILS_toLower(aux_key);
-		aux_key[strlen(aux_key)-1] = '\0';
+
+
 		MSTRUCTURE_insert(&enterprise.restaurant.menu,MSTRUCTURE_createBucket(aux_key,price,units));
 
 		free(aux_key);

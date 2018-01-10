@@ -38,7 +38,6 @@ int SHELL_loadNextCommand() {
 	memset(&buffer, 0, BUFFER);
 
 	if (read(history.historyfd, &buffer, BUFFER) > 0) {
-		printf("Commanda -%s-\n", buffer);
 
 		auxiliar = (char **) realloc(history.cmdHistory, size * sizeof(char **) + 1);
 
@@ -75,7 +74,6 @@ int SHELL_loadNextCommand() {
 				history.cmdHistory[size] = aux;
 				memset(history.cmdHistory[size], 0, BUFFER);
 				strcpy(history.cmdHistory[size], buffer);
-				printf("Commanda -%s-\n", buffer);
 
 			}
 
@@ -98,47 +96,42 @@ void SHELL_saveCommand(char *input) {
 
 	char **auxiliar = NULL;
 	int size = history.lengthSession;
-	auxiliar = (char **) realloc(history.cmdSession, (size + 1) * sizeof(char **));
 
+	auxiliar = (char **) realloc(history.cmdSession, (size + 1) * sizeof(char **));
 
 	if (auxiliar != NULL) {
 
 		history.cmdSession = auxiliar;
 		history.cmdSession[size] = NULL;
-		history.cmdSession[size] = (char *) malloc((strlen(input) + 1) * sizeof(char));
+		history.cmdSession[size] = (char *) malloc(strlen(input));
 
 		if (history.cmdSession[size] != NULL) {
 
-			memset(history.cmdSession[size], 0, strlen(input));
+			memset(history.cmdSession[size], 0, strlen(history.cmdSession[size]));
 
-			memcpy(history.cmdSession[size], input, strlen(input));
-
+			strcpy(history.cmdSession[size], input);
 			history.lengthSession++;
 
 		} else {
-			if (size > 1) {
 
-				auxiliar = (char **) realloc(history.cmdSession, size * sizeof(char **));
+			auxiliar = (char **) realloc(history.cmdSession, size * sizeof(char **));
 
-				if (auxiliar == NULL) {
+			if (auxiliar == NULL) {
 
-					int i;
+				int i;
 
-					for (i = 0; i < size; i++) {
+				for (i = 0; i < size; i++) {
 
-						free(history.cmdSession[i]);
-
-					}
-
-					free(history.cmdSession);
-
-				} else {
-
-					history.cmdSession = auxiliar;
+					free(history.cmdSession[i]);
 
 				}
-			} else {
+
 				free(history.cmdSession);
+
+			} else {
+
+				history.cmdSession = auxiliar;
+
 			}
 
 		}
@@ -189,13 +182,13 @@ void SHELL_printRest(char* buffer, int max){
 	write(1,'\0', sizeof(char));
 }
 
-char* SHELL_readInput(char *buffer, char *menu) {
+void SHELL_readInput(char *buffer, char *menu) {
 
-	int index = 0, max = 1, hEnabled = 1, length = 2,
+	int index = 0, max = 1, hEnabled = 1,
 			command = history.length, commandSession = history.lengthSession;
 	char c = ' ', aux[10];
 
-	buffer = (char*) malloc(sizeof(char) * length);
+	memset(buffer, 0, BUFFER);
 	buffer[0] = ' ';
 
 	while (c != '\n') {
@@ -234,13 +227,12 @@ char* SHELL_readInput(char *buffer, char *menu) {
 
 							hEnabled = 1;
 							max = (int) strlen(buffer);
-							length = max;
 							index = max-1;
 
 							write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
 							write(1, "\r", 1);
 							write(1, menu, strlen(menu));
-							write(1, buffer, max);
+							write(1, buffer, strlen(buffer)-1);
 
 
 						}
@@ -289,13 +281,12 @@ char* SHELL_readInput(char *buffer, char *menu) {
 						if (hEnabled < 2) {
 
 							max = (int) strlen(buffer);
-							index = max;
-							length = max + 1;
+							index = max - 1;
 
 							write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
 							write(1, "\r", 1);
 							write(1, menu, strlen(menu));
-							write(1, buffer, max);
+							write(1, buffer, strlen(buffer)-1);
 
 
 						}
@@ -348,25 +339,21 @@ char* SHELL_readInput(char *buffer, char *menu) {
 			buffer[index] = c;
 
 			if(max < BUFFER)max++;
-			length++;
 
 			write(1, buffer, max);
 
 			sprintf(aux, "\033[%dD", max - index - 1);
 			write(1, aux, strlen(aux));
 
-			buffer = (char*) realloc(buffer,sizeof(char) * max + 1);
-
 			index++;
 		}
 
 
 	}
-	buffer[max - 1] = '\0';
+	buffer[max] = '\0';
 	write(1, "\n", 1);
-	//if (!UTILS_checkEmptyString(buffer))SHELL_saveCommand(buffer);
-
-	return buffer;
+	if (!UTILS_checkEmptyString(buffer))SHELL_saveCommand(buffer);
+	buffer[max - 1] = '\0';
 }
 
 

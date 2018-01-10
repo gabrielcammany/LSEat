@@ -21,6 +21,7 @@ stop:
 	ps -u $(LOGIN) | grep $(EXE_DATA) | awk '{print $$1}' | xargs kill
 
 clean:
+	mkdir bin
 	rm -f $(patsubst %,%.exe,$*)
 
 tar:
