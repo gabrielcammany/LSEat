@@ -143,7 +143,6 @@ Command INTERFACE_specialCommand(char *input) {
 		command.data = NULL;
 
 	} else {
-
 		strncpy(buffer, input, nextObjective);
 		buffer[nextObjective] = '\0';
 		command.id = ERROR_CODE;
@@ -231,8 +230,10 @@ Command INTERFACE_identifyCommand(char *input) {
 Command INTERFACE_readCommand(char *cadena) {
 	char input[BUFFER];
 	char auxiliar[10];
-
 	Command command;
+
+	memset(input, '\0', BUFFER);
+
 	command.id = ERROR_CODE;
 	command.data = NULL;
 
@@ -247,8 +248,10 @@ Command INTERFACE_readCommand(char *cadena) {
 
 		command = INTERFACE_identifyCommand(input);
 
+
 	}
 	return command;
+
 }
 
 void INTERFACE_saveHistory() {

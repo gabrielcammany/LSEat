@@ -257,8 +257,9 @@ Packet NETWORK_extractIncomingFrame(int socket) {
 	char type = 0, header[HEADER_SIZE], *data = NULL, *slength = NULL;
 	unsigned short length = 0;
 	Packet packet;
+	packet.type = ERROR_CODE;
 
-	if (read(socket, &type, sizeof(char)) < 0) {
+	if (read(socket, &type, sizeof(char)) <= 0) {
 		close(socket);
 		packet.type = ERROR_CODE;
 		return packet;
@@ -267,7 +268,7 @@ Packet NETWORK_extractIncomingFrame(int socket) {
 	//mas para que el final se el \0
 
 	memset(header, '\0', sizeof(char) * (HEADER_SIZE));
-	if (read(socket, &header, sizeof(char) * HEADER_SIZE) < 0) {
+	if (read(socket, &header, sizeof(char) * HEADER_SIZE) <= 0) {
 		close(socket);
 		packet.type = ERROR_CODE;
 		return packet;
@@ -289,7 +290,7 @@ Packet NETWORK_extractIncomingFrame(int socket) {
 
 		}
 
-		if (read(socket, slength, sizeof(unsigned short)) < 0) {
+		if (read(socket, slength, sizeof(unsigned short)) <= 0) {
 
 			close(socket);
 			packet.type = ERROR_CODE;
@@ -329,7 +330,6 @@ Packet NETWORK_extractIncomingFrame(int socket) {
 
 			}
 		} else {
-
 
 			return NETWORK_createPacket(type, header, length, "\0");
 

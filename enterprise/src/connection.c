@@ -58,7 +58,7 @@ int CONNECTION_connectData() {
 void *CONNECTION_dataListener(void *arg) {
 	char *buffer = NULL;
 	Packet packet;
-	char convert[10], message[50];
+	char convert[10], message[100];
 	int limitReconnect = 1;
 
 	while (1) {
@@ -156,7 +156,6 @@ void *CONNECTION_Picard(void *arg) {
 
 		packet = NETWORK_extractIncomingFrame(socket);
 
-
 		if (packet.type != ERROR_CODE) {
 
 			exit = CONNECTION_analysePacketPicard(socket, packet);
@@ -164,8 +163,6 @@ void *CONNECTION_Picard(void *arg) {
 			NETWORK_freePacket(&packet);
 
 		} else {
-
-			NETWORK_freePacket(&packet);
 
 			pthread_mutex_lock(&mtx);
 
@@ -213,7 +210,7 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 				UTILS_extractFromBuffer(packet.data, 2, &name, &money);
 
 				pthread_mutex_lock(&mtx);
-				PSTRUCTURE_insert(&enterprise.clients, PSTRUCTURE_createBucket(socket, name, 0, pthread_self()));
+				PSTRUCTURE_insert(&enterprise.clients, PSTRUCTURE_createBucket(socket, name, atoi(money), pthread_self()));
 				pthread_mutex_unlock(&mtx);
 
 				write(1, "Connectant ", strlen("Connectant ") * sizeof(char));
@@ -355,30 +352,37 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 					if(trobat >= 0){
 						pthread_mutex_lock(&mtx);
 
-						i = MSTRUCTURE_findElement(enterprise.restaurant.menu,plat);
-						if(		MSTRUCTURE_decrementNum(
-								&enterprise.restaurant.menu,
-								i/*enterprise.clients.bucket[num].comanda.bucket[trobat].data*/,
-								atoi(units)	) > 0){
+						if ((i = MSTRUCTURE_findElement(enterprise.restaurant.menu,plat)) > -1){
 
-							MSTRUCTURE_incrementNum(&enterprise.clients.bucket[num].comanda,trobat,atoi(units));
+							if((MSTRUCTURE_getPrice(enterprise.restaurant.menu,i) *
+								atoi(units)) <= enterprise.clients.bucket[num].number){
 
-							PSTRUCTURE_calculateMoneyLeft(
-									1,
-									&enterprise.clients.bucket[num],
-									MSTRUCTURE_getPrice(enterprise.restaurant.menu,i),
-									atoi(units)
-							);
+								if(		MSTRUCTURE_decrementNum(
+										&enterprise.restaurant.menu,
+										i/*enterprise.clients.bucket[num].comanda.bucket[trobat].data*/,
+										atoi(units)	) > 0){
 
-							write(1, "Anotant ", strlen("Anotant "));
-							write(1, plat, strlen(plat));
-							write(1, " ", sizeof(char));
-							write(1, units, strlen(units));
-							write(1, "\n", sizeof(char));
+									MSTRUCTURE_incrementNum(&enterprise.clients.bucket[num].comanda,trobat,atoi(units));
 
-							NETWORK_sendOKPacket(socket, DISH, HEADER_ORD);
+									PSTRUCTURE_calculateMoneyLeft(
+											2,
+											&enterprise.clients.bucket[num],
+											MSTRUCTURE_getPrice(enterprise.restaurant.menu,i),
+											atoi(units)
+									);
 
-							vReturn = 0;
+									write(1, "Anotant ", strlen("Anotant "));
+									write(1, plat, strlen(plat));
+									write(1, " ", sizeof(char));
+									write(1, units, strlen(units));
+									write(1, "\n", sizeof(char));
+
+									NETWORK_sendOKPacket(socket, DISH, HEADER_ORD);
+
+									vReturn = 0;
+								}
+							}
+
 						}
 						pthread_mutex_unlock(&mtx);
 
@@ -394,34 +398,38 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 						if(trobat >= 0){
 
 							pthread_mutex_lock(&mtx);
+							if((MSTRUCTURE_getPrice(enterprise.restaurant.menu,trobat) *
+								atoi(units)) <= enterprise.clients.bucket[num].number) {
 
-							if(		MSTRUCTURE_decrementNum(
-									&enterprise.restaurant.menu,
-									trobat,
-									atoi(units)	) > 0){
+								if (MSTRUCTURE_decrementNum(
+										&enterprise.restaurant.menu,
+										trobat,
+										atoi(units)) > 0) {
 
-								MSTRUCTURE_insert(&enterprise.clients.bucket[num].comanda,
-								MSTRUCTURE_createBucket(plat,trobat,atoi(units)));
+									MSTRUCTURE_insert(&enterprise.clients.bucket[num].comanda,
+													  MSTRUCTURE_createBucket(plat, trobat, atoi(units)));
 
-								PSTRUCTURE_calculateMoneyLeft(
-										1,
-										&enterprise.clients.bucket[num],
-										MSTRUCTURE_getPrice(enterprise.restaurant.menu,trobat),
-										atoi(units)
-								);
+									PSTRUCTURE_calculateMoneyLeft(
+											2,
+											&enterprise.clients.bucket[num],
+											MSTRUCTURE_getPrice(enterprise.restaurant.menu, trobat),
+											atoi(units)
+									);
 
-								write(1, "Anotant ", strlen("Anotant "));
-								write(1, plat, strlen(plat));
-								write(1, " ", sizeof(char));
-								write(1, units, strlen(units));
-								write(1, "\n", sizeof(char));
+									write(1, "Anotant ", strlen("Anotant "));
+									write(1, plat, strlen(plat));
+									write(1, " ", sizeof(char));
+									write(1, units, strlen(units));
+									write(1, "\n", sizeof(char));
 
-								vReturn = 0;
+									vReturn = 0;
 
-								NETWORK_sendOKPacket(socket, DISH, HEADER_ORD);
+									NETWORK_sendOKPacket(socket, DISH, HEADER_ORD);
 
+								}
 							}
 							pthread_mutex_unlock(&mtx);
+
 
 						}
 
@@ -466,36 +474,30 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 
 						i = MSTRUCTURE_findElement(enterprise.restaurant.menu,plat);
 
-						MSTRUCTURE_incrementNum(
-								&enterprise.restaurant.menu,
-								i,
-								atoi(units));
+						if (MSTRUCTURE_decrementNum(&enterprise.clients.bucket[num].comanda,trobat,atoi(units)) > 0){
 
-						MSTRUCTURE_decrementNum(&enterprise.clients.bucket[num].comanda,trobat,atoi(units));
-
-
-						PSTRUCTURE_calculateMoneyLeft(
-								2,
-								&enterprise.clients.bucket[num],
-								MSTRUCTURE_getPrice(enterprise.restaurant.menu,i),
-								atoi(units)
-						);
+							MSTRUCTURE_incrementNum(&enterprise.restaurant.menu,i,atoi(units));
+							PSTRUCTURE_calculateMoneyLeft(
+									1,
+									&enterprise.clients.bucket[num],
+									MSTRUCTURE_getPrice(enterprise.restaurant.menu,i),
+									atoi(units)
+							);
 
 
+							write(1, "Eliminant ", strlen("Eliminant "));
+							write(1, plat, strlen(plat));
+							write(1, " ", sizeof(char));
+							write(1, units, strlen(units));
+							write(1, "\n", sizeof(char));
+
+
+							NETWORK_sendOKPacket(socket, DEL_DISH, HEADER_ORD);
+
+							vReturn = 0;
+
+						}
 						pthread_mutex_unlock(&mtx);
-
-
-						write(1, "Eliminant ", strlen("Eliminant "));
-						write(1, plat, strlen(plat));
-						write(1, " ", sizeof(char));
-						write(1, units, strlen(units));
-						write(1, "\n", sizeof(char));
-
-
-						NETWORK_sendOKPacket(socket, DEL_DISH, HEADER_ORD);
-
-						vReturn = 0;
-
 
 					}
 
@@ -521,11 +523,10 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 				if ( num >= 0 ){
 
 
-					write(1, "Notificant factura: ", strlen("Notificant factura: "));
+					write(1, "Notificant factura.\n", strlen("Notificant factura.\n"));
+
 					buff = (char*) malloc (sizeof(char) * 4);
 					sprintf(buff,"%d", enterprise.clients.bucket[num].number);
-					write(1,buff,strlen(buff)* sizeof(char));
-					write(1," euros\n", strlen(" euros\n") * sizeof(char));
 
 					packet1 = NETWORK_createPacket(PAY,HEADER_PAY,(int)strlen(buff),buff);
 					NETWORK_sendSerialized(socket,packet1);
@@ -535,7 +536,6 @@ int CONNECTION_analysePacketPicard(int socket, Packet packet) {
 						MSTRUCTURE_destruct(&enterprise.clients.bucket[num].comanda);
                     }
 
-					enterprise.clients.bucket[num].number = 0;
 				}else{
 					NETWORK_sendKOPacket(socket,PAY,HEADER_NPAY);
 				}

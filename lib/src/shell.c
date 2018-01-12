@@ -97,19 +97,19 @@ void SHELL_saveCommand(char *input) {
 	char **auxiliar = NULL;
 	int size = history.lengthSession;
 
-	auxiliar = (char **) realloc(history.cmdSession, (size + 1) * sizeof(char **));
+	auxiliar = (char **) realloc(history.cmdSession, (size + 2) * sizeof(char **));
 
 	if (auxiliar != NULL) {
 
 		history.cmdSession = auxiliar;
 		history.cmdSession[size] = NULL;
-		history.cmdSession[size] = (char *) malloc(strlen(input));
+		history.cmdSession[size] = (char *) malloc(sizeof(char) * strlen(input) + 2);
 
 		if (history.cmdSession[size] != NULL) {
 
-			memset(history.cmdSession[size], 0, strlen(history.cmdSession[size]));
+			memset(history.cmdSession[size], '\0', strlen(input) + 2);
 
-			strcpy(history.cmdSession[size], input);
+			memcpy(history.cmdSession[size], input, strlen(input));
 			history.lengthSession++;
 
 		} else {
@@ -179,7 +179,6 @@ void SHELL_printRest(char* buffer, int max){
 	for(i = 0; i < max; i++){
 		write(1, &buffer[i], sizeof(char));
 	}
-	write(1,'\0', sizeof(char));
 }
 
 void SHELL_readInput(char *buffer, char *menu) {
@@ -188,7 +187,6 @@ void SHELL_readInput(char *buffer, char *menu) {
 			command = history.length, commandSession = history.lengthSession;
 	char c = ' ', aux[10];
 
-	memset(buffer, 0, BUFFER);
 	buffer[0] = ' ';
 
 	while (c != '\n') {
@@ -206,12 +204,12 @@ void SHELL_readInput(char *buffer, char *menu) {
 				case 'A': //Adalt
 					if (history.lengthSession > 0 || history.length > 0) {
 
-						if (commandSession > 0) {
+						if (commandSession > 0 && history.cmdSession != NULL) {
 
 							commandSession--;
 							strcpy(buffer, history.cmdSession[commandSession]);
 
-						} else if (command > 0) {
+						} else if (command > 0 && history.cmdHistory != NULL) {
 
 							command--;
 							strcpy(buffer, history.cmdHistory[command]);
@@ -232,27 +230,26 @@ void SHELL_readInput(char *buffer, char *menu) {
 							write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
 							write(1, "\r", 1);
 							write(1, menu, strlen(menu));
-							write(1, buffer, strlen(buffer)-1);
-
+							write(1, buffer, strlen(buffer) - 1);
 
 						}
 					}
 					break;
 				case 'D': //Esquerra
-					if (index > 0) {
+					/*if (index > 0) {
 
 						write(1, ESQUERRA, strlen(ESQUERRA));
 						index--;
 
-					}
+					}*/
 					break;
 				case 'C': //Dreta
-					if (index < max - 1) {
+					/*if (index < max - 1) {
 
 						write(1, DRETA, strlen(DRETA));
 						index++;
 
-					}
+					}*/
 					break;
 				case 'B': //Abaix
 					if (history.lengthSession > 0 || history.length > 0) {
@@ -280,13 +277,13 @@ void SHELL_readInput(char *buffer, char *menu) {
 						}
 						if (hEnabled < 2) {
 
-							max = (int) strlen(buffer);
+							max = (int) strlen(buffer) - 1;
 							index = max - 1;
 
 							write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
 							write(1, "\r", 1);
 							write(1, menu, strlen(menu));
-							write(1, buffer, strlen(buffer)-1);
+							write(1, buffer, strlen(buffer) - 1);
 
 
 						}
@@ -307,43 +304,30 @@ void SHELL_readInput(char *buffer, char *menu) {
 
 				memmove(&buffer[index - 1], &(buffer[index]), sizeof(char) * max);
 
-				write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
-				write(1, "\r", strlen("\r"));
+				buffer[index] = ' ';
 
-				write(1, menu, strlen(menu));
-
-				if (max > 0 && max >= index)max--;
-				write(1, buffer, max);
-
+				SHELL_printRest(buffer + index , max - index);
 
 				sprintf(aux, "\033[%dD", max - index + 1);
 				write(1, aux, strlen(aux));
 
-				index--;
+				if (max > 0 && max >= index)max--;
 
+				index--;
 			}
 
 			continue;
 		}
 
-		if (index < BUFFER-1) {
-
-			write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
-
-			write(1, "\r", strlen("\r"));
-
-			write(1, menu, strlen(menu));
+		if (index < BUFFER - 2) {
 
 			memmove(&buffer[index + 1], &buffer[index], sizeof(char) * (max - index + 1));
 
 			buffer[index] = c;
 
+			SHELL_printRest(buffer + index, max - index);
+
 			if(max < BUFFER)max++;
-
-			write(1, buffer, max);
-
-			sprintf(aux, "\033[%dD", max - index - 1);
-			write(1, aux, strlen(aux));
 
 			index++;
 		}
@@ -381,5 +365,4 @@ void SHELL_freeAndClose() {
 		}
 		free(history.cmdSession);
 	}
-	if(history.historyfd > 1)close(history.historyfd);
 }

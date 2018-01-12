@@ -21,18 +21,18 @@ void eCONTROLLER_signalHandler(int signum) {
 
 				close(socketData);
 
-				if ((socketData = NETWORK_createConnectionClient(atoi(enterprise.config.data_port), enterprise.config.data_ip)) > 0) {
+			}
 
-					packet = NETWORK_createPacket(DISCONNECT, HEADER_DATPIC, (int)strlen(enterprise.config.picard_port), enterprise.config.picard_port);
+			if ((socketData = NETWORK_createConnectionClient(atoi(enterprise.config.data_port), enterprise.config.data_ip)) > 0) {
 
-					if(packet.type != ERROR_CODE){
+				packet = NETWORK_createPacket(DISCONNECT, HEADER_DATPIC, (int)strlen(enterprise.config.picard_port), enterprise.config.picard_port);
 
-						NETWORK_sendSerialized(socketData, packet);
-						NETWORK_freePacket(&packet);
-					}
-					close(socketData);
+				if(packet.type != ERROR_CODE){
+
+					NETWORK_sendSerialized(socketData, packet);
+					NETWORK_freePacket(&packet);
 				}
-
+				close(socketData);
 			}
 			if(NETWORK_openedSocket(socketPic) > 0 && socketPic > 0)close(socketPic);
 

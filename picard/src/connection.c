@@ -272,7 +272,7 @@ void CONNECTION_deleteDishMenu(char **data) {
         if (num >= 0) {
             unitats = atoi(data[0]);
 
-            if (unitats <= lseat.commands.bucket[num].number && unitats > 0) {
+            if (unitats <= lseat.commands.bucket[num].number && unitats > 0 && lseat.commands.bucket[num].number > 0) {
 
                 char *buffer = UTILS_createBuffer(2, data[1], data[0]);
 
@@ -331,6 +331,8 @@ void CONNECTION_deleteDishMenu(char **data) {
 
 void CONNECTION_payEnterprise() {
 
+	char text[50];
+
     if (socketfd > 2) {
 
         Packet packet = NETWORK_createPacket(PAY, PAY_HEADER, (unsigned short) 0, NULL);
@@ -341,12 +343,20 @@ void CONNECTION_payEnterprise() {
 
             packet = NETWORK_extractIncomingFrame(socketfd);
 
-            lseat.client.saldo -= atoi(packet.data);
+			memset(text,'\0',50);
+
+			sprintf(text,"%d",lseat.client.saldo - atoi(packet.data));
 
             write(1, "Son ", strlen("Son ") * sizeof(char));
-            write(1, packet.data, strlen(packet.data) * sizeof(char));
+            write(1, text, strlen(text));
             write(1, " euros. Carregat en el seu compte.\n",
                   strlen(" euros. Carregat en el seu compte.\n") * sizeof(char));
+
+			lseat.client.saldo = atoi(packet.data);
+
+			memset(text,'\0',50);
+			sprintf(text,"Saldo de %d\n",lseat.client.saldo);
+			write(1, text,strlen(text));
 
             if (MSTRUCTURE_isEmpty(lseat.commands) > 0) {
 				MSTRUCTURE_destruct(&lseat.commands);
@@ -389,9 +399,13 @@ void CONNECTION_takeNoteEnterprise(char **data) {
 				}
 
                 if (trobat >= 0) {
+
                     MSTRUCTURE_incrementNum(&lseat.commands, trobat, atoi(data[0]));
+
                 } else {
+
                     MSTRUCTURE_insert(&lseat.commands, MSTRUCTURE_createBucket(data[1], trobat, atoi(data[0])));
+
                 }
 
             } else {
@@ -419,6 +433,7 @@ void CONNECTION_takeNoteEnterprise(char **data) {
 }
 
 void CONNECTION_disconnectEnterprise(char *nom) {
+
     if (socketfd > 2) {
         Packet packet = NETWORK_createPacket(DISCONNECT, HEADER_PICDAT, (unsigned short) strlen(nom), nom);
 
@@ -446,6 +461,7 @@ void CONNECTION_disconnectEnterprise(char *nom) {
     } else {
         write(1, ERR_CONN, strlen(ERR_CONN));
     }
+
 }
 
 void CONNECTION_enterpriseReconnect(){
@@ -473,49 +489,54 @@ void CONNECTION_resendCommands(int socket,Menu *table){
     char *buffer = NULL, *cadena = NULL;
     Packet packet;
 
-    write(1, "Reenviando Pedidos!\n", strlen("Reenviando Pedidos!\n") * sizeof(char));
-    for(i=0; i < table->length; i++){
 
-        if(table->bucket[i].key != NULL){
+	if(table->bucket != NULL){
+		write(1, "Reenviando Pedidos!\n", strlen("Reenviando Pedidos!\n") * sizeof(char));
+    	for(i=0; i < table->length; i++){
+            if(table->bucket[i].key != NULL){
 
-            cadena = (char *) malloc (sizeof(char) * 10);
+                cadena = (char *) malloc (sizeof(char) * 10);
 
-            sprintf(cadena,"%d",table->bucket[i].number);
+                sprintf(cadena,"%d",table->bucket[i].number);
 
-            buffer = UTILS_createBuffer(2,table->bucket[i].key,cadena);
+                buffer = UTILS_createBuffer(2,table->bucket[i].key,cadena);
 
-            packet = NETWORK_createPacket(DISH, NEW_ORD, (unsigned short) strlen(buffer), buffer);
+                packet = NETWORK_createPacket(DISH, NEW_ORD, (unsigned short) strlen(buffer), buffer);
 
-			free(buffer);
-			free(cadena);
+                free(buffer);
+                free(cadena);
 
-            if ( NETWORK_openedSocket(socket) < 0 || NETWORK_sendSerialized(socket, packet) < 0 ) {
+                if ( NETWORK_openedSocket(socket) < 0 || NETWORK_sendSerialized(socket, packet) < 0 ) {
 
-				lseat.enterprise.port = -1;
-                write(1,"Error en conectarnos a un nuevo Enterprise\n", strlen("Error en conectarnos a un nuevo Enterprise\n")* sizeof(char));
-            } else {
-
-                if (NETWORK_readSimpleResponse(socketfd) > 0) {
-
-                    write(1,"Plato ", strlen("Plato ") * sizeof(char));
-                    write(1,table->bucket[i].key, strlen(table->bucket[i].key) * sizeof(char));
-                    write(1, " se ha podido anotar\n", strlen(" se ha podido anotar\n") * sizeof(char));
-
+                    lseat.enterprise.port = -1;
+                    write(1,"Error en conectarnos a un nuevo Enterprise\n", strlen("Error en conectarnos a un nuevo Enterprise\n")* sizeof(char));
                 } else {
 
-                    write(1,"Plato ", strlen("Plato ") * sizeof(char));
-                    write(1,table->bucket[i].key, strlen(table->bucket[i].key) * sizeof(char));
-                    write(1, " NO se ha podido anotar\n", strlen(" NO se ha podido anotar\n") * sizeof(char));
+                    if (NETWORK_readSimpleResponse(socketfd) > 0) {
 
-                    MSTRUCTURE_delete(table,table->bucket[i].key);
+                        write(1,"Plato ", strlen("Plato ") * sizeof(char));
+                        write(1,table->bucket[i].key, strlen(table->bucket[i].key) * sizeof(char));
+                        write(1, " se ha podido anotar\n", strlen(" se ha podido anotar\n") * sizeof(char));
+
+                    } else {
+
+                        write(1,"Plato ", strlen("Plato ") * sizeof(char));
+                        write(1,table->bucket[i].key, strlen(table->bucket[i].key) * sizeof(char));
+                        write(1, " NO se ha podido anotar\n", strlen(" NO se ha podido anotar\n") * sizeof(char));
+
+                        MSTRUCTURE_delete(table,table->bucket[i].key);
+
+                    }
+
+
+                    NETWORK_freePacket(&packet);
 
                 }
 
-
-                NETWORK_freePacket(&packet);
-
             }
-
         }
-    }
+
+    }else{
+		write(1, "No hay pedidos que reenviar!\n", strlen("No hay pedidos que reenviar!\n") * sizeof(char));
+	}
 }

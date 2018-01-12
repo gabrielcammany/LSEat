@@ -40,7 +40,6 @@ int main(int argc, char **argv) {
 	while (!error) {
 
 		command = INTERFACE_readCommand(lseat.client.nom);
-
 		//after checking the command id and reading its data
 		//from user, then we execute the command it represents
 		if (command.id != ERROR_CODE)error = CONTROLLER_executeCommand(command);
