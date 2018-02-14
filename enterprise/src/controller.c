@@ -34,6 +34,7 @@ void eCONTROLLER_signalHandler(int signum) {
 				}
 				close(socketData);
 			}
+
 			if(NETWORK_openedSocket(socketPic) > 0 && socketPic > 0)close(socketPic);
 
 			eBASIC_freeMemory();

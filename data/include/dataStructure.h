@@ -91,4 +91,6 @@ void HASH_destruct(Table *table);
 
 void HASH_deleteBucket(Bucket *bucket);
 
+void HASH_updateNumber(Table *table);
+
 #endif //LSEAT_DATASTRUCTURE_H

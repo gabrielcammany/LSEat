@@ -233,12 +233,13 @@ void *CONNECTION_handlerClient(void *arg) {
 			NETWORK_freePacket(&aux);
 
 		}else{
+			HASH_updateNumber(&enterprise);
 			pthread_mutex_unlock(&mtx);
 
 			NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
 			write(1, DCONNECT_ERR, strlen(DCONNECT_ERR));
 			write(1, packet.data, sizeof(char) * strlen(packet.data));
-			write(1, "\n\0", sizeof(char) * 2);
+			write(1, "a\n\0", sizeof(char) * 3);
 
 		}
 	}

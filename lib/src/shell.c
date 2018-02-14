@@ -336,7 +336,7 @@ void SHELL_readInput(char *buffer, char *menu) {
 	}
 	buffer[max] = '\0';
 	write(1, "\n", 1);
-	if (!UTILS_checkEmptyString(buffer))SHELL_saveCommand(buffer);
+	//if (!UTILS_checkEmptyString(buffer))SHELL_saveCommand(buffer);
 	buffer[max - 1] = '\0';
 }
 

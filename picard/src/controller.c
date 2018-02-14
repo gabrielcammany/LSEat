@@ -27,7 +27,7 @@ void CONTROLLER_signalHandler(int signum) {
 			BASIC_freeMemory();
 
 			SHELL_resetInput();
-			INTERFACE_saveHistory();
+			//INTERFACE_saveHistory();
 
 			if (socketfd > 2)close(socketfd);
 

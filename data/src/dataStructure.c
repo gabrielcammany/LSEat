@@ -126,15 +126,13 @@ void HASH_insert(Table *table, Bucket bucket) {
 
 
 void HASH_updateNumber(Table *table){
-	int i = 0, elements;
+	int i = 0;
 	table->number = 0;
 
 
 	if(table->elements > 0){
 
-		elements = table->elements;
-
-		for(i = 0; i < table->length && elements > 0; i++){
+		for(i = 0; i < table->length; i++){
 
 			if(table->bucket[i].key != EMPTY_BUCKET){
 
@@ -151,8 +149,6 @@ void HASH_updateNumber(Table *table){
 					table->number = i;
 
 				}
-
-				elements--;
 
 			}
 
@@ -220,6 +216,9 @@ int HASH_delete(Table *table, int key) {
 	} else {
 
 		HASH_deleteBucket(&table->bucket[pos]);
+		if(table->number == pos){
+			HASH_updateNumber(table);
+		}
 
 	}
 

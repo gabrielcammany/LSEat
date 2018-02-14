@@ -23,6 +23,7 @@ void BASIC_startValues(Command *command) {
 	lseat.config.Port = 0;
 	lseat.enterprise.name = NULL;
 	lseat.enterprise.port = 0;
+	lseat.enterprise.ip = NULL;
 	command->data = NULL;
 	command->id = -1;
 	socketfd = -1;
@@ -143,6 +144,7 @@ void BASIC_freeMemory() {
 	if(lseat.client.nom != NULL)free(lseat.client.nom);
 	if(lseat.config.IP != NULL)free(lseat.config.IP);
 	if(lseat.enterprise.name != NULL)free(lseat.enterprise.name);
+	if(lseat.enterprise.ip != NULL)free(lseat.enterprise.ip);
 	MSTRUCTURE_destruct(&lseat.commands);
 
 }

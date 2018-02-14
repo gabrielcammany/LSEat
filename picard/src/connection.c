@@ -149,6 +149,11 @@ int CONNECTION_enterprise(char *data, char *nameUser, int saldo) {
         if (socketfd < 0) {
             write(1, ERR_CONN, strlen(ERR_CONN));
         } else {
+
+            lseat.enterprise.ip = calloc(strlen(ip), sizeof(char)*strlen(ip));
+
+			memcpy(lseat.enterprise.ip,ip, sizeof(char)*strlen(ip));
+
             //we create a buffer with all the information
             //of the picard in order to create a packet with it
             //and after serializating it and send it we wait for a response
@@ -441,6 +446,7 @@ void CONNECTION_disconnectEnterprise(char *nom) {
 
             if (NETWORK_readSimpleResponse(socketfd) > 0) {
 
+				write(1, "\n", sizeof(char));
                 write(1, DESCONNECTING_OK, strlen(DESCONNECTING_OK));
                 close(socketfd);
 
@@ -450,6 +456,7 @@ void CONNECTION_disconnectEnterprise(char *nom) {
 					MSTRUCTURE_destruct(&lseat.commands);
 				}
             } else {
+				write(1, "\n", sizeof(char));
                 write(1, CONNECTION_NENT, strlen(CONNECTION_NENT));
 
             }
@@ -465,22 +472,38 @@ void CONNECTION_disconnectEnterprise(char *nom) {
 }
 
 void CONNECTION_enterpriseReconnect(){
-    char *enterpriseData = NULL;
+    char *enterpriseData = NULL, *buffer = NULL, port[10];
+
 
     write(1, "Enterprise ha caido\n", strlen("Enterprise ha caido\n") * sizeof(char));
     close(socketfd);
     socketfd = -1;
-    enterpriseData = CONNECTION_data(2, lseat.config.Port, lseat.config.IP, lseat.client.nom);
 
-    if (enterpriseData != NULL) {
+	sprintf(port,"%d",lseat.enterprise.port);
 
-        socketfd = CONNECTION_enterprise(enterpriseData, lseat.client.nom, lseat.client.saldo);
-        if(NETWORK_openedSocket(socketfd) > 0 && socketfd > 0)CONNECTION_resendCommands(socketfd,&lseat.commands);
+	buffer = UTILS_createBuffer(3,lseat.enterprise.ip,lseat.enterprise.name,port);
 
-    }else{
-        lseat.enterprise.port = -1;
-        write(1,"Error en conectarnos a Data!\n", strlen("Error en conectarnos a Data!\n") * sizeof(char));
-    }
+	socketfd = CONNECTION_enterprise(buffer, lseat.client.nom, lseat.client.saldo);
+
+	if(NETWORK_openedSocket(socketfd) > 0 && socketfd > 0){
+
+		CONNECTION_resendCommands(socketfd,&lseat.commands);
+
+	}else{
+
+		enterpriseData = CONNECTION_data(2, lseat.config.Port, lseat.config.IP, lseat.client.nom);
+
+		if (enterpriseData != NULL) {
+
+			socketfd = CONNECTION_enterprise(enterpriseData, lseat.client.nom, lseat.client.saldo);
+			if(NETWORK_openedSocket(socketfd) > 0 && socketfd > 0)CONNECTION_resendCommands(socketfd,&lseat.commands);
+
+		}else{
+			lseat.enterprise.port = -1;
+			write(1,"Error en conectarnos a Data!\n", strlen("Error en conectarnos a Data!\n") * sizeof(char));
+		}
+
+	}
 }
 
 

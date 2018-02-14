@@ -58,6 +58,7 @@ typedef struct {
  */
 typedef struct {
 	char *name;
+	char *ip;
 	int port;
 }Enterprise;
 
