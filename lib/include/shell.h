@@ -53,9 +53,8 @@ void SHELL_resetInput();
 /**
  * Funcion que se encarga de gestionar el input del usuario
  * @param buffer Estructura de datos donde se vuelca los datos introducidos
- * @param menu Cadena de caracters que incluye el prompt
  */
-void SHELL_readInput(char *buffer, char *menu);
+void SHELL_readInput(char **buffer);
 
 /**
  * Funcion que carga la siguiente comanda

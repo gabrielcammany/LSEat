@@ -221,18 +221,15 @@ Command INTERFACE_identifyCommand(char *input) {
 
 	}
 
-
 	return command;
 
 }
 
 
 Command INTERFACE_readCommand(char *cadena) {
-	char input[BUFFER];
+	char *input = NULL;
 	char auxiliar[10];
 	Command command;
-
-	memset(input, '\0', BUFFER);
 
 	command.id = ERROR_CODE;
 	command.data = NULL;
@@ -242,12 +239,11 @@ Command INTERFACE_readCommand(char *cadena) {
 
 	if (!SHELL_setInputMode()) {
 
-		SHELL_readInput(input, auxiliar);
+		SHELL_readInput(&input);
 
 		SHELL_resetInput();
 
 		command = INTERFACE_identifyCommand(input);
-
 
 	}
 	return command;

@@ -181,13 +181,14 @@ void SHELL_printRest(char* buffer, int max){
 	}
 }
 
-void SHELL_readInput(char *buffer, char *menu) {
+void SHELL_readInput(char **buffer) {
 
-	int index = 0, max = 1, hEnabled = 1,
-			command = history.length, commandSession = history.lengthSession;
-	char c = ' ', aux[10];
+	int index = 0, max = 2;
+	char c = ' ';
 
-	buffer[0] = ' ';
+	(*buffer) = (char*) malloc(sizeof(char) * max);
+
+	(*buffer)[0] = ' ';
 
 	while (c != '\n') {
 
@@ -198,101 +199,9 @@ void SHELL_readInput(char *buffer, char *menu) {
 		}
 
 		if (c == 27) {
+
 			read(0, &c, 1);
 			read(0, &c, 1);
-			switch (c) {
-				case 'A': //Adalt
-					if (history.lengthSession > 0 || history.length > 0) {
-
-						if (commandSession > 0 && history.cmdSession != NULL) {
-
-							commandSession--;
-							strcpy(buffer, history.cmdSession[commandSession]);
-
-						} else if (command > 0 && history.cmdHistory != NULL) {
-
-							command--;
-							strcpy(buffer, history.cmdHistory[command]);
-
-						} else {
-
-							hEnabled = 0;
-
-							continue;
-
-						}
-						if (hEnabled > 0) {
-
-							hEnabled = 1;
-							max = (int) strlen(buffer);
-							index = max-1;
-
-							write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
-							write(1, "\r", 1);
-							write(1, menu, strlen(menu));
-							write(1, buffer, strlen(buffer) - 1);
-
-						}
-					}
-					break;
-				case 'D': //Esquerra
-					/*if (index > 0) {
-
-						write(1, ESQUERRA, strlen(ESQUERRA));
-						index--;
-
-					}*/
-					break;
-				case 'C': //Dreta
-					/*if (index < max - 1) {
-
-						write(1, DRETA, strlen(DRETA));
-						index++;
-
-					}*/
-					break;
-				case 'B': //Abaix
-					if (history.lengthSession > 0 || history.length > 0) {
-
-						if (commandSession < history.lengthSession) {
-
-							strcpy(buffer, history.cmdSession[commandSession]);
-
-							commandSession++;
-
-
-						} else if (command < history.length) {
-
-							strcpy(buffer, history.cmdHistory[command]);
-
-							command++;
-
-
-						} else {
-
-							hEnabled = 2;
-
-							continue;
-
-						}
-						if (hEnabled < 2) {
-
-							max = (int) strlen(buffer) - 1;
-							index = max - 1;
-
-							write(1, NETEJAR_LINIA, strlen(NETEJAR_LINIA));
-							write(1, "\r", 1);
-							write(1, menu, strlen(menu));
-							write(1, buffer, strlen(buffer) - 1);
-
-
-						}
-					}
-
-					break;
-				default:
-					break;
-			}
 
 			continue;
 		}
@@ -300,44 +209,27 @@ void SHELL_readInput(char *buffer, char *menu) {
 
 		if (c == 0x7f) {
 
-			if (index > 0) {
-
-				memmove(&buffer[index - 1], &(buffer[index]), sizeof(char) * max);
-
-				buffer[index] = ' ';
-
-				SHELL_printRest(buffer + index , max - index);
-
-				sprintf(aux, "\033[%dD", max - index + 1);
-				write(1, aux, strlen(aux));
-
-				if (max > 0 && max >= index)max--;
-
-				index--;
-			}
-
 			continue;
 		}
 
-		if (index < BUFFER - 2) {
 
-			memmove(&buffer[index + 1], &buffer[index], sizeof(char) * (max - index + 1));
+		(*buffer) = (char*) realloc((*buffer),sizeof(char)* (max + 2));
 
-			buffer[index] = c;
+		memmove(&(*buffer)[index + 1], &(*buffer)[index], sizeof(char) * (max - index + 1));
 
-			SHELL_printRest(buffer + index, max - index);
+		(*buffer)[index] = c;
 
-			if(max < BUFFER)max++;
+		SHELL_printRest((*buffer) + index, max - index - 1);
 
-			index++;
-		}
+		max++;
+
+		index++;
 
 
 	}
-	buffer[max] = '\0';
+
 	write(1, "\n", 1);
-	//if (!UTILS_checkEmptyString(buffer))SHELL_saveCommand(buffer);
-	buffer[max - 1] = '\0';
+	(*buffer)[max - 2] = '\0';
 }
 
 
