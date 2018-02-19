@@ -24,6 +24,7 @@
 //own Constants
 #define BYE "Apagant el servidor Data...\n"
 #define NBYE "Error en Data. Apagant el servidor...\n"
+#define ERR_UPDATE "Avisant d'error perquè realitzi una reconnexió!\n"
 
 #define CONNECTING "Connectant "
 #define DISCONNECTING "Desconnectant "

@@ -30,6 +30,7 @@
 
 
 #define WAIT_CLIENT "Esperant clients...\n"
+#define ERR_ENTERPRISE_UPDATE "Actualització d'un Enterprise desconegut amb port %d...\n"
 
 #define HEADER_SIZE 10
 #define LENGTH_SIZE 2

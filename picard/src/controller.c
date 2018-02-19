@@ -52,7 +52,9 @@ int CONTROLLER_executeCommand(Command command) {
 		if (enterpriseData != NULL) {
 			socketfd = CONNECTION_enterprise(enterpriseData, lseat.client.nom, lseat.client.saldo);
 			if (socketfd < 0) {
+
 				CONNECTION_enterpriseReconnect();
+
 			}
 		} else {
 			write(1, "Error en connectarnos a Data!\n", strlen("Error en connectarnos a Data!\n") * sizeof(char));

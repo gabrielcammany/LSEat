@@ -10,6 +10,7 @@
 
 #include "../include/connection.h"
 #include "../include/dataStructure.h"
+#include "../../lib/include/network.h"
 
 
 void *CONNECTION_handlerEnterprise(void *arg) {
@@ -17,7 +18,7 @@ void *CONNECTION_handlerEnterprise(void *arg) {
 	Packet packet;
 	int socket = *((int *) arg), pos = 0;
 
-	char *number = NULL, *port = NULL, *aux = NULL, text[20];
+	char *number = NULL, *port = NULL, *aux = NULL, text[80];
 
 	packet = NETWORK_extractIncomingFrame(socket);
 
@@ -68,16 +69,39 @@ void *CONNECTION_handlerEnterprise(void *arg) {
 
 				if (strcmp(packet.header, HEADER_EUPDATE) == 0) {
 
-					UTILS_extractFromBuffer(packet.data, 2, &port, &number);
+					aux = (char *) calloc(packet.length,sizeof(char) * packet.length);
 
-					pthread_mutex_lock(&mtx);
-					HASH_insert(&enterprise, HASH_createBucket(atoi(port), NULL, atoi(number)));
-					pthread_mutex_unlock(&mtx);
+					if (aux != NULL) {
 
-					NETWORK_sendOKPacket(socket, UPDATE, HEADER_UPDATE);
+						memcpy(aux, packet.data, sizeof(char) * packet.length);
 
-					free(port);
-					free(number);
+						UTILS_extractFromBuffer(aux, 2, &port, &number);
+
+						pthread_mutex_lock(&mtx);
+
+						if (HASH_findElement(enterprise, atoi(port)) > 0) {
+							HASH_insert(&enterprise, HASH_createBucket(atoi(port), NULL, atoi(number)));
+							pthread_mutex_unlock(&mtx);
+
+							NETWORK_sendOKPacket(socket, UPDATE, HEADER_UPDATE);
+
+						} else {
+							pthread_mutex_unlock(&mtx);
+
+							memset(text,0,80);
+							sprintf(text, ERR_ENTERPRISE_UPDATE, atoi(port));
+							write(1, text, strlen(text) * sizeof(char));
+							write(1, ERR_UPDATE, strlen(ERR_UPDATE) * sizeof(char));
+
+							NETWORK_sendKOPacket(socket, UPDATE, HEADER_NUPDATE);
+
+						}
+
+						free(aux);
+						free(port);
+						free(number);
+
+					}
 
 				} else {
 
@@ -239,7 +263,7 @@ void *CONNECTION_handlerClient(void *arg) {
 			NETWORK_sendKOPacket(socket, CONNECT, HEADER_NCON);
 			write(1, DCONNECT_ERR, strlen(DCONNECT_ERR));
 			write(1, packet.data, sizeof(char) * strlen(packet.data));
-			write(1, "a\n\0", sizeof(char) * 3);
+			write(1, "\n\0", sizeof(char) * 2);
 
 		}
 	}

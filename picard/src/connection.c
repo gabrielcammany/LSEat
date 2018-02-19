@@ -436,7 +436,7 @@ void CONNECTION_disconnectEnterprise(char *nom) {
 	if (socketfd > 2) {
 		Packet packet = NETWORK_createPacket(DISCONNECT, HEADER_PICDAT, (unsigned short) strlen(nom), nom);
 
-		if (NETWORK_sendSerialized(socketfd, packet) > 0) {
+		if (NETWORK_openedSocket(socketfd) > 0 && NETWORK_sendSerialized(socketfd, packet) > 0) {
 
 			if (NETWORK_readSimpleResponse(socketfd) > 0) {
 
@@ -449,25 +449,33 @@ void CONNECTION_disconnectEnterprise(char *nom) {
 				if (MSTRUCTURE_isEmpty(lseat.commands) > 0) {
 					MSTRUCTURE_destruct(&lseat.commands);
 				}
+
 			} else {
+
 				write(1, "\n", sizeof(char));
 				write(1, CONNECTION_NENT, strlen(CONNECTION_NENT));
 
 			}
-		} else {
-			CONNECTION_enterpriseReconnect();
+
+		}else{
+
+			write(1, "\n", sizeof(char));
+			write(1, CONNECTION_NENT, strlen(CONNECTION_NENT));
+
 		}
+
 		NETWORK_freePacket(&packet);
 
 	} else {
+
 		write(1, ERR_CONN, strlen(ERR_CONN));
+
 	}
 
 }
 
 void CONNECTION_enterpriseReconnect() {
 	char *enterpriseData = NULL, *buffer = NULL, port[10];
-
 
 	write(1, ENT_DOWN, strlen(ENT_DOWN) * sizeof(char));
 	close(socketfd);

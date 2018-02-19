@@ -180,6 +180,7 @@ int NETWORK_sendSerialized(int socket, Packet packet) {
 	}
 
 	if (write(socket, buffer, size * sizeof(char)) == size) {
+
 		free(buffer);
 
 		return 1;
@@ -360,12 +361,18 @@ void NETWORK_sendOKPacket(int socket, int type, char* header) {
 
 void NETWORK_freePacket(Packet *packet){
 
-	if(packet->data != NULL){
-		free(packet->data);
-		packet->data = NULL;
+	if(packet != NULL){
+
+		if(packet->data != NULL){
+
+			free(packet->data);
+			packet->data = NULL;
+		}
+
+		packet->type = 0;
+		packet->length = 0;
 	}
-	packet->type = 0;
-	packet->length = 0;
+
 }
 
 void NETWORK_printPacket(Packet packet){

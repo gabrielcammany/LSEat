@@ -68,7 +68,7 @@ void *CONNECTION_dataListener(void *arg) {
 		if ((socketData = NETWORK_createConnectionClient(atoi(enterprise.config.data_port),
 														 enterprise.config.data_ip)) < 0) {
 
-			sprintf(message,UPDATE_ERR,limitReconnect,LIMIT_RECONNECT);
+			sprintf(message,UPDATE_ERR, limitReconnect ,LIMIT_RECONNECT);
 
 			write(1, message, strlen(message));
 
@@ -84,6 +84,12 @@ void *CONNECTION_dataListener(void *arg) {
 
 		} else {
 
+			if(limitReconnect > 1){
+
+				write(1,UPDATE_ERR_OK,strlen(UPDATE_ERR_OK)* sizeof(char));
+				limitReconnect = 1;
+
+			}
 			memset(convert, 0, 10);
 
 			pthread_mutex_lock(&mtx);
@@ -104,10 +110,48 @@ void *CONNECTION_dataListener(void *arg) {
 
 			if (packet.type != (UPDATE)) {
 
-				write(1, UPDATE_ERR, strlen(UPDATE_ERR));
-				if(NETWORK_openedSocket(socketData))close(socketData);
+				write(1, UPDATE_ERR_DATA, strlen(UPDATE_ERR_DATA));
+
+				if(NETWORK_openedSocket(socketData) > 0){
+
+					close(socketData);
+
+				}
 
 				break;
+
+			}else{
+
+				if((memcmp(packet.header, HEADER_NUPDATE, HEADER_SIZE)==0)){
+
+					write(1, UPDATE_ERR_DATA_REC, strlen(UPDATE_ERR_DATA_REC));
+
+					if(NETWORK_openedSocket(socketData) > 0){
+
+						close(socketData);
+
+					}
+
+					if ((socketData = NETWORK_createConnectionClient(atoi(enterprise.config.data_port), enterprise.config.data_ip)) <
+						0) {
+
+						break;
+
+					}else{
+
+						if (CONNECTION_connectData() < 0) {
+
+							break;
+
+						}else{
+
+							write(1,UPDATE_ERR_REC_OK,strlen(UPDATE_ERR_REC_OK)* sizeof(char));
+
+						}
+
+					}
+
+				}
 
 			}
 
@@ -115,7 +159,9 @@ void *CONNECTION_dataListener(void *arg) {
 
 		}
 
-		if(NETWORK_openedSocket(socketData) > 0 && socketData > 0)close(socketData);
+		if(NETWORK_openedSocket(socketData) > 0 && socketData > 0){
+			close(socketData);
+		}
 
 
 	}

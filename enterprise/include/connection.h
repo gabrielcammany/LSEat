@@ -22,9 +22,13 @@
 //constant to tell there is an error in the connection
 #define ERR_CONNECTION "Hi ha hagut un problema de connexio amb Data!\n"
 #define UPDATE_ERR "Problemes de connexio amb data... Intentant reconnectar! %d de %d Intents.\n"
+#define UPDATE_ERR_OK "\nS'ha pogut tornar a establir la connexió, actualització automàtica activa!\n\n"
 #define ERR_CONN_PIC "Error en la conexió de %s! Desconectant...\n"
 #define ERR_CONN_CLIENT "Error en la conexió d'un client!\n"
-#define ERR_LIMIT "Maxim d'intents per reconnectar. Apagant actualitzacio automatica...\n"
+#define ERR_LIMIT "Màxim d'intents per reconnectar. Apagant actualització automàtica...\n"
+#define UPDATE_ERR_DATA "Data ha retornat error al actualitzar. Apagant actuaització\n"
+#define UPDATE_ERR_DATA_REC "Data ha retornat error al actualitzar. Tornant a realitzar nova connexió.\n"
+#define UPDATE_ERR_REC_OK "Reconnexió realitzada correctament.\n\n"
 
 #define LIMIT_RECONNECT 10
 
