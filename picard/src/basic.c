@@ -146,5 +146,4 @@ void BASIC_freeMemory() {
 	if(lseat.enterprise.name != NULL)free(lseat.enterprise.name);
 	if(lseat.enterprise.ip != NULL)free(lseat.enterprise.ip);
 	MSTRUCTURE_destruct(&lseat.commands);
-
 }

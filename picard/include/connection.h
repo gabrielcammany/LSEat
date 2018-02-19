@@ -23,7 +23,7 @@
 #include "../../lib/include/network.h"
 #include "../../lib/include/menuStructure.h"
 
-//constants to make user know if there is any error
+//Error
 #define ERR_ARG "Error en el nombre d'arguments!\n"
 #define ERR_INT "Interrupció desconeguda!\n"
 #define ERR_MEMORY "Hi ha un problema amb la memoria del sistema.\n"
@@ -31,14 +31,25 @@
 #define ERR_DATA "Problema amb l'informació rebuda\n"
 #define ERR_NUM "Hi ha un error en el numero d'unitats\n"
 #define ERR_PLAT "Hi ha un error en el nom del plat\n"
+#define ERR_RCV_PLAT "Error con los platos recibidos\n"
+#define ERR_NUM_UNITS "ERROR: nombre d'unitats incorrecte\n"
+#define ERR_PLAT_NDEMANAT "ERROR: aquest plat no l'has demanat\n"
 
-//constants to inform the user
+//Info
 #define SALDO "Té %d euros disponibles\n"
 #define BYE "Gràcies per fer servir LsEat. Fins la propera.\n"
 #define WELCOME "BENVINGUT %s\n"
+#define OK "Commanda executada correctament!\n"
+#define PAY_FIRST "Son "
+#define PAY_SECOND " euros. Carregat en el seu compte.\n"
+#define BALANCE "Saldo de %d\n"
+#define RESENDING_COMMANDS "Reenviant commandes...\n"
+#define PLATE_F "Plat "
+#define PLATE_OK " s'ha anotat correctament.\n"
+#define PLATE_KO " no s'ha pogut anotar...\n"
 
 
-//constants from connections of picard
+//Connections
 #define CONNECTING "Connectant amb LsEat...\n"
 #define CONNECTION_DATA "[Connexió amb Data OK]\n"
 #define CONNECTION_NDATA "[Connexió amb Data KO]\n"
@@ -46,6 +57,11 @@
 #define CONNECTION_NENT "[Connexió amb Enterprise KO]\n"
 #define DESCONNECTING_OK "[Desconnecta Enterprise OK]\n"
 #define DESCONNECTING_KO "[Desconnecta Enterprise KO]\n"
+#define ENT_DOWN "\nEnterprise no es troba connectat! Intentant reconnectar..\n"
+#define ERR_NO_ENTERPRISES "Error en la connexió al nou Enterprise...\n"
+#define ERR_MEM_ENTERPRISES "Error en memoria al intentar la connexió al nou Enterprise...\n"
+#define ERR_NEW_CONNECTION "\nNo s'ha pogut tornar a connectar al mateix Enterprise. Creant nova petició...\n"
+
 
 #define NO_PLAT "No s'ha pogut demanar aquest plat!\n"
 #define NO_DPLAT "No s'ha pogut eliminar aquest el plat!\n"
@@ -145,5 +161,6 @@ void CONNECTION_enterpriseReconnect();
  * @param socket
  * @param table
  */
-void CONNECTION_resendCommands(int socket,Menu *table);
+void CONNECTION_resendCommands(int socket, Menu *table);
+
 #endif

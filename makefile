@@ -25,4 +25,4 @@ clean:
 	rm -f $(patsubst %,%.exe,$*)
 
 tar:
-	tar -cvf G13_F$(FASE)_$(LOGIN)_$(LOGIN1).tar ./
+	tar -cvf G13_$(LOGIN)_$(LOGIN1).tar ./

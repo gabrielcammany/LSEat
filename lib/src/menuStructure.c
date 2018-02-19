@@ -233,8 +233,10 @@ void MSTRUCTURE_destruct(Menu *table) {
 
 		}
 
-		free(table->bucket);
-		table->bucket = NULL;
+		if(table->bucket != NULL){
+			free(table->bucket);
+			table->bucket = NULL;
+		}
 	}
 
 

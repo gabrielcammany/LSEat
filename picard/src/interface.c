@@ -251,7 +251,7 @@ Command INTERFACE_readCommand(char *cadena) {
 }
 
 void INTERFACE_saveHistory() {
-	//SHELL_saveToFile();
+	SHELL_saveToFile();
 	SHELL_freeAndClose();
 }
 

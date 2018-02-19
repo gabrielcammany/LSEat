@@ -174,7 +174,7 @@ void *CONNECTION_handlerClient(void *arg) {
 		number = atoi(port);
 		if(number > 0){
 			pthread_mutex_lock(&mtx);
-			HASH_delete(&enterprise,atoi(port));
+			HASH_delete(&enterprise,number);
 			pthread_mutex_unlock(&mtx);
 		}
 

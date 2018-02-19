@@ -18,16 +18,12 @@ void CONTROLLER_signalHandler(int signum) {
 
 			if (socketfd > 2) CONNECTION_disconnectEnterprise(lseat.client.nom);
 
-			free(lseat.client.nom);
-			free(lseat.config.IP);
-
 			write(1, "\n", strlen("\n"));
 			write(1, BYE, strlen(BYE));
 
 			BASIC_freeMemory();
 
 			SHELL_resetInput();
-			//INTERFACE_saveHistory();
 
 			if (socketfd > 2)close(socketfd);
 
@@ -52,11 +48,14 @@ int CONTROLLER_executeCommand(Command command) {
 
 	if (command.id == CMD_CONNECTA) {
 		enterpriseData = CONNECTION_data(1, lseat.config.Port, lseat.config.IP, lseat.client.nom);
-		if (enterpriseData != NULL) {
 
+		if (enterpriseData != NULL) {
 			socketfd = CONNECTION_enterprise(enterpriseData, lseat.client.nom, lseat.client.saldo);
+			if (socketfd < 0) {
+				CONNECTION_enterpriseReconnect();
+			}
 		} else {
-			write(1, "Error en conectarnos a Data!\n", strlen("Error en conectarnos a Data!\n") * sizeof(char));
+			write(1, "Error en connectarnos a Data!\n", strlen("Error en connectarnos a Data!\n") * sizeof(char));
 		}
 	} else if (socketfd > 2) {
 

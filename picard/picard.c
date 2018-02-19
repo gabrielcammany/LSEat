@@ -35,8 +35,6 @@ int main(int argc, char **argv) {
 	//start message when executing picard client
 	BASIC_startupMessages();
 
-	INTERFACE_loadHistory();
-
 	while (!error) {
 
 		command = INTERFACE_readCommand(lseat.client.nom);
@@ -47,8 +45,6 @@ int main(int argc, char **argv) {
 	}
 
 	write(1, BYE, strlen(BYE));
-
-	INTERFACE_saveHistory();
 
 	BASIC_freeMemory();
 
